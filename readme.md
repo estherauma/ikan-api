@@ -12,3 +12,7 @@ settings/
    dev.py  # contains the development app settings
    prod.py # contains the production app settings
    staging.py # contains the staging app settings
+
+## Running tests
+1. `coverage run manage.py test` to run tests
+1. `coverage report` to generate test report
