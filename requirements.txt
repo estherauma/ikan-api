@@ -5,6 +5,7 @@ django-cors-headers==3.13.0
 django-filter==22.1
 djangorestframework==3.13.1
 fake-factory==9999.9.9
+gunicorn==20.1.0
 importlib-metadata==4.12.0
 Markdown==3.4.1
 python-decouple==3.6
