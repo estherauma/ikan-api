@@ -1,5 +1,7 @@
 asgiref==3.5.2
 coverage==6.4.2
 Django==4.0.6
+fake-factory==9999.9.9
 python-decouple==3.6
 sqlparse==0.4.2
+whitenoise==6.2.0
