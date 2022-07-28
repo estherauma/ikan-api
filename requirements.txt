@@ -8,6 +8,7 @@ fake-factory==9999.9.9
 gunicorn==20.1.0
 importlib-metadata==4.12.0
 Markdown==3.4.1
+numpy==1.23.1
 python-decouple==3.6
 pytz==2022.1
 sqlparse==0.4.2

@@ -1,0 +1,9 @@
+[run]
+branch=True
+omit = */envs/*
+       */venv/*
+       */test*.py
+       */manage.py
+       */wsgi.py
+       */asgi.py
+       */migrations/*
