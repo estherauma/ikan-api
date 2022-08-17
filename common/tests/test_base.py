@@ -15,10 +15,24 @@ class BaseTestCase(APITestCase):
         pass
 
     def tests_first(self):
-        self.assertEqual(200, 200)
+        pass
 
     def test_login_url_exits(self):
         pass
 
     def test_logout_url_exists(self):
-        self.assertEqual(1,2)
+        pass
+
+    def test_camel_to_snake_case_coversion(self):
+        response = self.client.get(reverse('sample'))
+        result = response.json()
+        self.assertIn('testData', result)
+        
+
+    def test_snake_to_camel_case_conversion(self):
+        response = self.client.post(reverse('sample'),  {
+            "parserWorks": "Parser workers"
+        })
+        result = response.json()
+        self.assertIn('status', result)
+        self.assertEqual(result['status'], 'OK')
