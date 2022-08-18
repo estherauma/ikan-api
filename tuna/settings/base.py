@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
     'common',
@@ -150,4 +151,7 @@ REST_FRAMEWORK = {
         'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
         'djangorestframework_camel_case.parser.CamelCaseJSONParser',
     ),
+     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
 }
