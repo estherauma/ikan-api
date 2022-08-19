@@ -31,18 +31,19 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.spl
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts',
+    'corsheaders',
+    'common',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
+    'drf_yasg',
     'rest_framework',
     'rest_framework_simplejwt',
-    'django_filters',
-    'corsheaders',
-    'common',
-    'accounts'
 ]
 AUTH_USER_MODEL="accounts.User"
 

@@ -16,10 +16,30 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import include
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+# Swagger documentation setup
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Railway API",
+        default_version='v1',
+        description="This is the api documentation for chuitrading railway management system",
+        terms_of_service="",
+        contact=openapi.Contact(email=""),
+        license=openapi.License(name="API is licensed to chuitradingco"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include('tuna.urls_v1')),
-    path('api/v1/accounts/', include('accounts.urls'))
+    path('api/v1/accounts/', include('accounts.urls')),
+    # documentation
+    path('api/docs/', schema_view.with_ui(
+        'redoc',cache_timeout=0), name='schema-redoc'),
 ]
