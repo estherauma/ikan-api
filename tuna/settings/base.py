@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'rest_framework',
-    'rest_framework_simplejwt',
 ]
 AUTH_USER_MODEL="accounts.User"
 
@@ -152,7 +151,13 @@ REST_FRAMEWORK = {
         'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
         'djangorestframework_camel_case.parser.CamelCaseJSONParser',
     ),
-     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'accounts.backends.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+     
 }
+
+# jwt token settings
+TOKEN_ISSUER = config('TOKEN_ISSUER', 'chuitradingco')
+TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=360000)

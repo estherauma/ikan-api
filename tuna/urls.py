@@ -39,7 +39,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include('tuna.urls_v1')),
     path('api/v1/accounts/', include('accounts.urls')),
-    # documentation
+    # api documentation
     path('api/docs/', schema_view.with_ui(
         'redoc',cache_timeout=0), name='schema-redoc'),
 ]

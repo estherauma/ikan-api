@@ -54,7 +54,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
         return self.is_superuser
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name} {self.work_id}'
+        return f'{self.email} {self.last_name}'
 
 
 class LoginEvent(BaseModel):
