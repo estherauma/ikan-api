@@ -13,7 +13,7 @@ default: &defaults
         DB_PASSWORD: example
         DB_HOST: localhost
         DB_PORT: 5432
-    - image: "circleci/postgres:9.6.5-alpine-ram"
+    - image: "cimg/postgres:14.4.0"
       environment:
         POSTGRES_USER: example
         POSTGRES_PASSWORD: example
