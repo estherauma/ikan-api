@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'rest_framework',
+    'prismic'
 ]
 AUTH_USER_MODEL="accounts.User"
 

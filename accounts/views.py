@@ -29,7 +29,6 @@ class LoginView(APIView):
         user = User.objects.filter(
             Q(email=email)
         ).first()
-        print(email)
        
         if user and user.is_active and user.check_password(password):
             identity_manager = JwtManager()
