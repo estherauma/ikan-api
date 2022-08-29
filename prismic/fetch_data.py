@@ -2,6 +2,7 @@ import requests
 from rest_framework import exceptions
 from decouple import config
 import requests
+from prismic.models import AggregatedContent
 
 
 class PrismicAPI():
@@ -43,7 +44,11 @@ class PrismicAPI():
         for language in self.languages:
             lang_id = language['id']
             lang_url = f'{url}&lang={lang_id}'
-            documents[lang_id] =  self.get_documents(url=lang_url)         
+            documents[lang_id] =  self.get_documents(url=lang_url)
+        #  ToDo: Find a better place to place this logic for storing the content
+        aggregated_content = AggregatedContent()
+        aggregated_content.content = documents
+        aggregated_content.save()
 
     def get_documents(self, url):
         req = requests.get(url)

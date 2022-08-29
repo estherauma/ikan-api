@@ -1,0 +1,34 @@
+{'en-us': {'loginform': {'page_name': 'loginform', 'last_updated': '2022-08-25T15: 58: 20+0000', 'form_questions': [
+                {'key': 'email', 'label': 'Email', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                },
+                {'key': 'password', 'label': 'Password', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                }
+            ]
+        }, 'commonText': {'page_name': 'loginform', 'last_updated': '2022-08-25T15: 58: 20+0000', 'form_questions': [
+                {'key': 'email', 'label': 'Email', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                },
+                {'key': 'password', 'label': 'Password', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                }
+            ]
+        }, 'passwordresetform': {'page_name': 'passwordresetform', 'last_updated': '2022-08-25T15: 57: 44+0000', 'form_questions': [
+                {'key': 'email', 'label': 'Please enter your email', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                }
+            ]
+        }
+    }, 'id-id': {'passwordresetform': {'page_name': 'passwordresetform', 'last_updated': '2022-08-25T17: 49: 56+0000', 'form_questions': [
+                {'key': 'email', 'terlabel': 'Silakan masukkan email Anda', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                }
+            ]
+        }, 'commonText': {'page_name': 'passwordresetform', 'last_updated': '2022-08-25T17: 49: 56+0000', 'form_questions': [
+                {'key': 'email', 'label': 'Silakan masukkan email Anda', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                }
+            ]
+        }, 'loginform': {'page_name': 'loginform', 'last_updated': '2022-08-25T17: 50: 56+0000', 'form_questions': [
+                {'key': 'email', 'label': 'Surel', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                },
+                {'key': 'password', 'label': 'Kata sandi', 'question_type': 'textBox', 'displayquestion': True, 'helptext': None, 'options': None
+                }
+            ]
+        }
+    }
+}
