@@ -43,7 +43,7 @@ class PrismicAPI():
         for language in self.languages:
             lang_id = language['id']
             lang_url = f'{url}&lang={lang_id}'
-            documents[lang_id] =  self.get_documents(url=lang_url)    
+            documents[lang_id] =  self.get_documents(url=lang_url)         
 
     def get_documents(self, url):
         req = requests.get(url)
@@ -61,19 +61,29 @@ class PrismicAPI():
                 question_data.append(question['primary'])
             return question_data
         
-        def agg_common_text(self, common_text_data):
+        def agg_common_text(common_text_data):
             '''Aggregrate common text'''
-            pass
+            aggr_common_content = []
+            for x in common_text_data:
+                aggr_common_content.append(x['primary'])
+            return aggr_common_content
 
         for item in data['results']:
+          
             if item['type'] == 'form_questions':
                 page_data = {
                     'page_name': item['uid'],
                     'last_updated': item['last_publication_date'],
                     'form_questions': agg_form_questions(item['data']['body'])
                 }
-            aggregated_data[item['uid']] = page_data
+                aggregated_data[item['uid']] = page_data
+            
             if item['type'] == 'common_text':
-                pass 
-
+                page_data = {
+                    'page_name': item['uid'],
+                    'last_updated': item['last_publication_date'],
+                    'data': agg_common_text(item['data']['body'])
+                }
+                aggregated_data[item['uid']] = page_data
+               
         return aggregated_data
