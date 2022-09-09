@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL="accounts.User"
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -160,9 +161,12 @@ REST_FRAMEWORK = {
         'accounts.backends.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
-     
 }
 
 # jwt token settings
 TOKEN_ISSUER = config('TOKEN_ISSUER', 'chuitradingco')
 TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=360000)
+
+
+# cors settings
+CORS_ORIGIN_ALLOW_ALL = True

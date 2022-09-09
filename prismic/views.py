@@ -11,7 +11,8 @@ from rest_framework.views import APIView
 from .serializers import AggregatedContentSerializer
 class AggregatedContentView(APIView):
     def get(self, request):
-        data = AggregatedContent.objects.all()[:1]
+        data = AggregatedContent.objects.reverse()
+        data = data[::-1]
         serializer = AggregatedContentSerializer(data, many=True)
         return Response({
             'status': 'OK',

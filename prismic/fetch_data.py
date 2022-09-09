@@ -21,7 +21,7 @@ class PrismicAPI():
         if type == 'doc_search':
             return f'{self.api_url}/documents/search?ref={self.master_ref}&'\
                 f'access_token={self.access_token}'
-                   
+
     def get_master_ref_response(self):
         url = self.build_url()
         req = requests.get(url)
@@ -74,7 +74,6 @@ class PrismicAPI():
             return aggr_common_content
 
         for item in data['results']:
-          
             if item['type'] == 'form_questions':
                 page_data = {
                     'page_name': item['uid'],
@@ -83,12 +82,12 @@ class PrismicAPI():
                 }
                 aggregated_data[item['uid']] = page_data
             
-            if item['type'] == 'common_text':
+            if item['type'] == 'common_text' or item['type'] == 'language_text':
                 page_data = {
                     'page_name': item['uid'],
                     'last_updated': item['last_publication_date'],
                     'data': agg_common_text(item['data']['body'])
                 }
                 aggregated_data[item['uid']] = page_data
-               
+            
         return aggregated_data
