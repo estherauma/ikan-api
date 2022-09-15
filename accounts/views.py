@@ -30,24 +30,30 @@ class LoginView(APIView):
             Q(email=email)
         ).first()
        
-        if user and user.is_active and user.check_password(password):
-            identity_manager = JwtManager()
-            payload = {
-                'email': user.email,
-                'id': user.pk,
-                'firstName': user.first_name,
-                'lastName': user.last_name,
-                'isAdmin': user.is_admin,
-                'roles': list(user.groups.values_list('name',flat=True))
-            }
-            token = identity_manager.encode(payload)
-            is_first_login = user.last_login is None
-            user.last_login = timezone.now()
-            user.save()
-            LoginEvent.objects.create(
-                user=user, ip_address=request.META['REMOTE_ADDR'])
+        if user: 
+            if user.is_active:
+                if user.check_password(password):
+                    identity_manager = JwtManager()
+                    payload = {
+                        'email': user.email,
+                        'id': user.pk,
+                        'firstName': user.first_name,
+                        'lastName': user.last_name,
+                        'isAdmin': user.is_admin,
+                        'roles': list(user.groups.values_list('name',flat=True))
+                    }
+                    token = identity_manager.encode(payload)
+                    is_first_login = user.last_login is None
+                    user.last_login = timezone.now()
+                    user.save()
+                    LoginEvent.objects.create(
+                    user=user, ip_address=request.META['REMOTE_ADDR'])
+                else:
+                    raise AuthenticationFailed('Invalid password, please try again', 401)
+            else: 
+                raise AuthenticationFailed('User account is not activated, contact admin', 401)
         else:
-            raise AuthenticationFailed('Wrong username or password', 401)
+            raise AuthenticationFailed('User does not exist', 401)
         return Response({
             'status': 'OK',
             'data': {
