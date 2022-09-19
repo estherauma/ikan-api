@@ -26,9 +26,7 @@ class LoginView(APIView):
 
         email = data.get('email')
         password = data.get('password')
-        user = User.objects.filter(
-            Q(email=email)
-        ).first()
+        user = User.objects.filter(email=email).first()
         print(user)
         return Response({
             'email': email,
