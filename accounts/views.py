@@ -29,37 +29,44 @@ class LoginView(APIView):
         user = User.objects.filter(
             Q(email=email)
         ).first()
-       
-        if user: 
-            if user.is_active:
-                if user.check_password(password):
-                    identity_manager = JwtManager()
-                    payload = {
-                        'email': user.email,
-                        'id': user.pk,
-                        'firstName': user.first_name,
-                        'lastName': user.last_name,
-                        'isAdmin': user.is_admin,
-                        'roles': list(user.groups.values_list('name',flat=True))
-                    }
-                    token = identity_manager.encode(payload)
-                    is_first_login = user.last_login is None
-                    user.last_login = timezone.now()
-                    user.save()
-                    LoginEvent.objects.create(
-                    user=user, ip_address=request.META['REMOTE_ADDR'])
-                else:
-                    raise AuthenticationFailed('Invalid password, please try again', 401)
-            else: 
-                raise AuthenticationFailed('User account is not activated, contact admin', 401)
-        else:
-            raise AuthenticationFailed('User does not exist', 401)
+        print(user)
         return Response({
-            'status': 'OK',
-            'data': {
-                'token': token,
-                'is_first_login': is_first_login
-            }
-        },
-            status.HTTP_200_OK
-        )
+            'email': email,
+            'password': password,
+            'user': user
+        })
+        
+       
+        # if user: 
+        #     if user.is_active:
+        #         if user.check_password(password):
+        #             identity_manager = JwtManager()
+        #             payload = {
+        #                 'email': user.email,
+        #                 'id': user.pk,
+        #                 'firstName': user.first_name,
+        #                 'lastName': user.last_name,
+        #                 'isAdmin': user.is_admin,
+        #                 'roles': list(user.groups.values_list('name',flat=True))
+        #             }
+        #             token = identity_manager.encode(payload)
+        #             is_first_login = user.last_login is None
+        #             user.last_login = timezone.now()
+        #             user.save()
+        #             LoginEvent.objects.create(
+        #             user=user, ip_address=request.META['REMOTE_ADDR'])
+        #         else:
+        #             raise AuthenticationFailed('Invalid password, please try again', 401)
+        #     else: 
+        #         raise AuthenticationFailed('User account is not activated, contact admin', 401)
+        # else:
+        #     raise AuthenticationFailed('User does not exist', 401)
+        # return Response({
+        #     'status': 'OK',
+        #     'data': {
+        #         'token': token,
+        #         'is_first_login': is_first_login
+        #     }
+        # },
+        #     status.HTTP_200_OK
+        # )
