@@ -12,8 +12,10 @@ from .serializers import AggregatedContentSerializer
 class AggregatedContentView(APIView):
     def get(self, request):
         data = AggregatedContent.objects.reverse()
-        data = data[::-1]
-        serializer = AggregatedContentSerializer(data, many=True)
+        # Order and put the latest aggregated object on top 
+        # Mobile app picks the first object
+        latest = data[::-1]
+        serializer = AggregatedContentSerializer(latest, many=True)
         return Response({
             'status': 'OK',
             'data': serializer.data,
