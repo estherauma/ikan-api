@@ -80,6 +80,7 @@ class PrismicAPI():
             if item['type'] == 'form_questions':
                 page_data = {
                     'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'form_questions': agg_form_questions(item['data']['body'])
                 }
@@ -88,6 +89,7 @@ class PrismicAPI():
             if item['type'] == 'common_text' or item['type'] == 'language_text':
                 page_data = {
                     'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'data': agg_common_text(item['data']['body'])
                 }
@@ -96,6 +98,7 @@ class PrismicAPI():
             if item['type'] == 'menu_content':
                 page_data = {
                     'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'data': agg_side_menu(item['data']['body'])
                 }
