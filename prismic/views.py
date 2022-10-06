@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 from http import HTTPStatus
 
-from prismic.models import AggregatedContent
+from prismic.models import (AggregatedContent, PrismicWebhookNotificationsLog)
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,3 +21,19 @@ class AggregatedContentView(APIView):
             'data': serializer.data,
             'error_messages': []
         }, HTTPStatus.OK)
+
+
+class UpdatedContentView(APIView):
+    def post(self, request):
+        data = request.data
+        # Save webhook notification data for troubleshooting purposes
+        log = PrismicWebhookNotificationsLog()
+        log.content = data
+        log.save()
+        
+        ## 
+        return Response({
+            'status': 'OK',
+            'data': [],
+            'error_messages': []
+        }, HTTPStatus.NO_CONTENT)
