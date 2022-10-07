@@ -162,6 +162,5 @@ cython_debug/
 .DS_STORE
 .vscode/*
 
-# python version
 .python-version
 dump.rdb

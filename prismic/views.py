@@ -30,7 +30,6 @@ def compare_content(request):
     app_content_created_at = request.GET['app_content_created_at']
     parsed_app_content_created_at = parse_datetime(app_content_created_at)
 
-    # get latests content
     data = AggregatedContent.objects.reverse()
     latest = data[::-1]
     serializer = AggregatedContentSerializer(latest, many=True)
@@ -38,7 +37,6 @@ def compare_content(request):
         serializer.data[0]['created_at']
     )
 
-    # compare dates of contents from mobile with latest
     if lastets_content_created_at == parsed_app_content_created_at:
         return Response({
             'status': 'OK',
