@@ -3,6 +3,7 @@ from django.shortcuts import render
 from http import HTTPStatus
 
 from prismic.models import (AggregatedContent, PrismicWebhookNotificationsLog)
+from prismic.fetch_data import PrismicAPI
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -31,7 +32,10 @@ class UpdatedContentView(APIView):
         log.content = data
         log.save()
         
-        ## 
+        # TODO use the notification object  master ref to fetch new updated contnet
+        # Right now, just fetch and aggregate all content. 
+        content = PrismicAPI()
+        
         return Response({
             'status': 'OK',
             'data': [],
