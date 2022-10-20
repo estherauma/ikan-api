@@ -2,11 +2,24 @@ from django.http import HttpResponse
 from decouple import config
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+import django
+from django.db.utils import OperationalError
 
 enviroment = config('ENVIRONMENT', 'Development')
 def welcome(request):
     return HttpResponse(f"Welcome to the Tuna {enviroment} API")
 
+
+@api_view(['GET'])
+def health(request):
+    heath_params = {"app server": "active"}
+    try:
+        django.db.connection.ensure_connection()
+        heath_params["database"] = "active"
+    except OperationalError:
+        heath_params["database"] = "down"
+
+    return Response(heath_params)
 
 # Function is used with test to ensure that camelCasel renderer and snake_case parser are configured  well
 # If not, the tests should fail and give you an indication of what's failed. Otherwise the client apps will fail
