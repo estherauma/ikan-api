@@ -3,7 +3,8 @@ from django.utils.dateparse import parse_datetime
 from datetime import datetime
 from http import HTTPStatus
 
-from prismic.models import AggregatedContent
+from prismic.models import (AggregatedContent, PrismicWebhookNotificationsLog)
+from prismic.fetch_data import PrismicAPI
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -24,6 +25,24 @@ class AggregatedContentView(APIView):
             'error_messages': []
         }, HTTPStatus.OK)
 
+
+class UpdatedContentView(APIView):
+    def post(self, request):
+        data = request.data
+        # Save webhook notification data for troubleshooting purposes
+        log = PrismicWebhookNotificationsLog()
+        log.content = data
+        log.save()
+        
+        # TODO use the notification object  master ref to fetch new updated contnet
+        # Right now, just fetch and aggregate all content. 
+        content = PrismicAPI()
+        
+        return Response({
+            'status': 'OK',
+            'data': [],
+            'error_messages': []
+        }, HTTPStatus.NO_CONTENT)
 
 @api_view(['GET'])
 def compare_content(request):
