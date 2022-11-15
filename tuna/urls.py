@@ -23,7 +23,7 @@ from drf_yasg import openapi
 # Swagger documentation setup
 schema_view = get_schema_view(
     openapi.Info(
-        title="Railway API",
+        title="Tuna API",
         default_version='v1',
         description="This is the api documentation for chuitrading railway management system",
         terms_of_service="",
