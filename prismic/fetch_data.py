@@ -76,6 +76,9 @@ class PrismicAPI():
         def agg_side_menu(menu_data):
             return [ menu['primary'] for menu in menu_data]
         
+        def agg_intro_content(intro_data):
+            return [ data['primary'] for data in intro_data]
+        
         for item in data['results']:
             if item['type'] == 'form_questions':
                 page_data = {
@@ -94,13 +97,22 @@ class PrismicAPI():
                     'data': agg_common_text(item['data']['body'])
                 }
                 aggregated_data[item['uid']] = page_data
-            
+
             if item['type'] == 'menu_content':
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'data': agg_side_menu(item['data']['body'])
+                }
+                aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'intro_content':
+                page_data = {
+                    'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
+                    'last_updated': item['last_publication_date'],
+                    'data': agg_intro_content(item['data']['body'])
                 }
                 aggregated_data[item['uid']] = page_data   
         return aggregated_data
