@@ -42,7 +42,7 @@ class UpdatedContentView(APIView):
             'status': 'OK',
             'data': [],
             'error_messages': []
-        }, HTTPStatus.NO_CONTENT)
+        }, HTTPStatus.OK)
 
 @api_view(['GET'])
 def compare_content(request):
