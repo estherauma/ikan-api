@@ -63,7 +63,18 @@ class PrismicAPI():
             question_data = []
             '''Aggregate form questions'''
             for question in form_data:
-                question_data.append(question['primary'])
+                key, label, question_type, displayquestion, help_text, options = question['primary'].values()
+                if options != None:
+                    options = options.split(',')
+                question_data.append(
+                    {
+                        'key':key, 
+                        'label': label, 
+                        'question_type': question_type,
+                        'displayquestion': displayquestion,
+                        'help_text': help_text,
+                        'options': options 
+                    })
             return question_data
         
         def agg_common_text(common_text_data):
