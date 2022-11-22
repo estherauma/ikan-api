@@ -54,7 +54,8 @@ class LoginView(APIView):
             'status': 'OK',
             'data': {
                 'token': token,
-                'is_first_login': is_first_login
+                'is_first_login': is_first_login,
+                'user_data': payload
             }
         },
             status.HTTP_200_OK

@@ -20,10 +20,14 @@ def seed_users_and_roles(apps, schema_editor):
     ])
 
     for i, group in enumerate(groups):
-        User.objects.create_user(
+        role = Group.objects.get(name=group.name)
+        user = User.objects.create_user(
             password='50Eight12345*',
-            email=construct_email(group.name)
+            email=construct_email(group.name),
+            first_name=group.name,
+            last_name='test'
         )
+        user.groups.add(role)
 
 
 def undo_seed_users_and_roles(apps, schema_editor):
