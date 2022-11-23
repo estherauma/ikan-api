@@ -164,7 +164,7 @@ REST_FRAMEWORK = {
 }
 
 # jwt token settings
-TOKEN_ISSUER = config('TOKEN_ISSUER', 'chuitradingco')
+TOKEN_ISSUER = config('TOKEN_ISSUER', '50Eight')
 TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=360000)
 
 
