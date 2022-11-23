@@ -25,7 +25,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="Tuna API",
         default_version='v1',
-        description="This is the api documentation for chuitrading railway management system",
+        description="TUNA app API Documentation",
         terms_of_service="",
         contact=openapi.Contact(email=""),
         license=openapi.License(name="API is licensed to chuitradingco"),
