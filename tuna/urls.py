@@ -28,7 +28,7 @@ schema_view = get_schema_view(
         description="TUNA app API Documentation",
         terms_of_service="",
         contact=openapi.Contact(email=""),
-        license=openapi.License(name="API is licensed to chuitradingco"),
+        license=openapi.License(name="API is licensed to 50Eight"),
     ),
     public=True,
     permission_classes=[permissions.AllowAny],
