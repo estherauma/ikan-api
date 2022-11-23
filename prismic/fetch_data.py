@@ -63,7 +63,18 @@ class PrismicAPI():
             question_data = []
             '''Aggregate form questions'''
             for question in form_data:
-                question_data.append(question['primary'])
+                key, label, question_type, displayquestion, help_text, options = question['primary'].values()
+                if options != None:
+                    options = options.split(',')
+                question_data.append(
+                    {
+                        'key':key, 
+                        'label': label, 
+                        'question_type': question_type,
+                        'displayquestion': displayquestion,
+                        'help_text': help_text,
+                        'options': options 
+                    })
             return question_data
         
         def agg_common_text(common_text_data):
@@ -75,6 +86,9 @@ class PrismicAPI():
 
         def agg_side_menu(menu_data):
             return [ menu['primary'] for menu in menu_data]
+        
+        def agg_intro_content(intro_data):
+            return [ data['primary'] for data in intro_data]
         
         for item in data['results']:
             if item['type'] == 'form_questions':
@@ -94,13 +108,22 @@ class PrismicAPI():
                     'data': agg_common_text(item['data']['body'])
                 }
                 aggregated_data[item['uid']] = page_data
-            
+
             if item['type'] == 'menu_content':
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'data': agg_side_menu(item['data']['body'])
+                }
+                aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'intro_content':
+                page_data = {
+                    'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
+                    'last_updated': item['last_publication_date'],
+                    'data': agg_intro_content(item['data']['body'])
                 }
                 aggregated_data[item['uid']] = page_data   
         return aggregated_data
