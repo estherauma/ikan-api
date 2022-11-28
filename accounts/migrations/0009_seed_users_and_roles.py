@@ -4,6 +4,7 @@ from django.db import migrations
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from accounts.models import User
+from decouple import config
 
 
 def construct_email(name):
@@ -22,7 +23,7 @@ def seed_users_and_roles(apps, schema_editor):
     for i, group in enumerate(groups):
         role = Group.objects.get(name=group.name)
         user = User.objects.create_user(
-            password='50Eight12345*',
+            password=config('SEED_USERS_PASSWORD'),
             email=construct_email(group.name),
             first_name=group.name,
             last_name='test'
