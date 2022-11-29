@@ -36,7 +36,7 @@ class LoginView(APIView):
                         'firstName': user.first_name,
                         'lastName': user.last_name,
                         'isAdmin': user.is_admin,
-                        'roles': list(user.groups.values_list('name',flat=True))
+                        'role': list(user.groups.values_list('name', flat=True))[0]
                     }
                     token = identity_manager.encode(payload)
                     is_first_login = user.last_login is None
@@ -54,7 +54,8 @@ class LoginView(APIView):
             'status': 'OK',
             'data': {
                 'token': token,
-                'is_first_login': is_first_login
+                'is_first_login': is_first_login,
+                'user_data': payload,
             }
         },
             status.HTTP_200_OK
