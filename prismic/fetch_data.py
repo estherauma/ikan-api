@@ -20,13 +20,14 @@ class PrismicAPI():
 
         if type == 'doc_search':
             return f'{self.api_url}/documents/search?ref={self.master_ref}&'\
-                f'access_token={self.access_token}'
+                f'access_token={self.access_token}&pageSize=100'
 
     def get_master_ref_response(self):
         url = self.build_url()
         req = requests.get(url)
         req.raise_for_status()
         data = req.json()
+        print(data)
         return data
 
     def get_master_ref(self, data):
