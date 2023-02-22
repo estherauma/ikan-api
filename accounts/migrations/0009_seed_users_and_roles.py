@@ -7,8 +7,11 @@ from accounts.models import User
 from decouple import config
 
 
-def construct_email(index):
-    return f'test{index}@50eight.com'
+users = ['vessel_owner', 'tai_agent', 'indo_agent', 'worker', 'buyer']
+
+
+def construct_email(role):
+    return f'{role}@50eight.com'
 
 
 def seed_users_and_roles(apps, schema_editor):
@@ -24,7 +27,7 @@ def seed_users_and_roles(apps, schema_editor):
         role = Group.objects.get(name=group.name)
         user = User.objects.create_user(
             password=config('SEED_USERS_PASSWORD'),
-            email=construct_email(group.name),
+            email=construct_email(users[i]),
             first_name='test',
             last_name='user'
         )
