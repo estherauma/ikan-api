@@ -16,7 +16,7 @@ def construct_email(role):
 
 def seed_users_and_roles(apps, schema_editor):
     groups = Group.objects.bulk_create([
-        Group(name='Vessels Owners'),
+        Group(name='Vessel Owners'),
         Group(name='Taiwanese Agents'),
         Group(name='Indonesian Agents'),
         Group(name='Workers'),
