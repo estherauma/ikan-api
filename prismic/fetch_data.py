@@ -65,8 +65,14 @@ class PrismicAPI():
             '''Aggregate form questions'''
             for question in form_data:
                 key, label, question_type, displayquestion, help_text, options = question['primary'].values()
-                if options != None:
+                if options is not None:
                     options = options.split(',')
+                    option_list = []
+                    for option in options:
+                        new_options_dict = {"value": option, "label": option}
+                        option_list.append(new_options_dict)
+                        options = option_list
+
                 question_data.append(
                     {
                         'key':key, 
