@@ -7,7 +7,7 @@ from accounts.models import User
 from decouple import config
 
 
-users = ['vessel_owner', 'tai_agent', 'indo_agent', 'worker', 'buyer']
+users = ['taien+technology', 'cici+technology', 'farah+technology', 'budi+technology', 'tony+technology']
 
 
 def construct_email(role):
