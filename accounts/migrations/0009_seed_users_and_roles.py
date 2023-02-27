@@ -43,7 +43,7 @@ def undo_seed_users_and_roles(apps, schema_editor):
         Q(name='Buyers')
     )
     for i, group in enumerate(all_seeded_groups):
-        User.objects.filter(email=construct_email(i)).delete()
+        User.objects.filter(email=construct_email(users[i])).delete()
     all_seeded_groups.delete()
 
 
