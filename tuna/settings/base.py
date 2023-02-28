@@ -64,7 +64,7 @@ ROOT_URLCONF = 'tuna.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -170,3 +170,12 @@ TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=360000)
 
 # cors settings
 CORS_ORIGIN_ALLOW_ALL = True
+
+# email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_PORT = '2525'
+EMAIL_HOST_USER = '310d0f46019b6e'
+EMAIL_HOST_PASSWORD = 'd986e3d820cd9b'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False

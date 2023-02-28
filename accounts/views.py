@@ -1,5 +1,6 @@
 from asyncio.log import logger
 from accounts.models import LoginEvent, User
+from common.email import tuna_send_email, tuna_send_application_email
 from common.jwt_manager import JwtManager
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -57,6 +58,23 @@ class LoginView(APIView):
                 'is_first_login': is_first_login,
                 'user_data': payload,
             }
+        },
+            status.HTTP_200_OK
+        )
+
+
+class TestEmail(APIView):
+    def get(self, request):
+        tuna_send_application_email(
+            position="Software Engineer",
+            name="Okumu Justine",
+            company="Tuna Inc",
+            from_email='okumujustine01@gmail.com',
+            to_emails=['justineokumu@50eight.com']
+        )
+        return Response({
+            'status': 'OK',
+            'data': {'token': "token"}
         },
             status.HTTP_200_OK
         )
