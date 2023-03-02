@@ -3,6 +3,7 @@ from django.core.mail import EmailMessage, send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from enum import Enum
+from decouple import config
 
 
 class EmailType(Enum):
@@ -14,7 +15,7 @@ def tuna_send_application_email(
     position,
     name,
     company,
-    from_email='okumujustine01@gmail.com',
+    from_email=config("APPLICATION_FROM_EMAIL"),
 ):
     subject = f'Call for Applications: {position} at {company}'
     context = {'name': name, 'position': position, 'company': company}
@@ -33,7 +34,7 @@ def tuna_send_email(
     subject,
     body,
     to_emails,
-    from_email='okumujustine01@gmail.com',
+    from_email=config("APPLICATION_FROM_EMAIL"),
 ):
     email = EmailMessage(
         subject=subject,
