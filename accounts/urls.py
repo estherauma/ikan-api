@@ -7,5 +7,5 @@ from .views import (
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
-    path('test', TestEmail.as_view(), name='test')
+    path('test-email', TestEmail.as_view(), name='test-email')
 ]
