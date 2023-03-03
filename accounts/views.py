@@ -1,14 +1,14 @@
-from asyncio.log import logger
 from accounts.models import LoginEvent, User
-from common.email import tuna_send_email, tuna_send_application_email
+from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from rest_framework.exceptions import AuthenticationFailed, ValidationError
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from rest_framework.views import APIView
 from accounts.serializers import LoginSerializer
 from rest_framework.response import Response
 from rest_framework import status
+
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -65,13 +65,15 @@ class LoginView(APIView):
 
 class TestEmail(APIView):
     def get(self, request):
-        tuna_send_application_email(
-            position="Software Engineer",
-            name="Okumu Justine",
-            company="Tuna Inc",
+        
+        TunaEmailHelper.send_templated_email(
+            template=EmailTemplate.APPLICATION.value,
             from_email='okumujustine01@gmail.com',
-            to_emails=['justineokumu@50eight.com']
+            to_emails=['justineokumu@50eight.com'],
+            subject='Call for Applications: Software Developer at Tuna Inc',
+            context={'name': 'Justine', 'position': 'Software Developer', 'company': 'Software Developer'}
         )
+
         return Response({
             'status': 'OK',
             'data': {'token': "token"}
