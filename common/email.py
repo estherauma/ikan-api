@@ -16,10 +16,8 @@ class TunaEmailHelper:
     def tuna_send_email(cls, to_emails, subject, body, template=None, from_email=config("APPLICATION_FROM_EMAIL")):
 
         if template is None:
-            print('sent without template')
             return send_mail(subject, body, from_email, to_emails)
         
-        print('** sent with template')
         html_message = render_to_string(f'emails/{template}', {"body": body})
         plain_message = strip_tags(html_message)
 
