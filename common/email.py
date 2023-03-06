@@ -1,5 +1,5 @@
 
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from enum import Enum
@@ -13,13 +13,14 @@ class EmailTemplate(Enum):
 class TunaEmailHelper:
 
     @classmethod
-    def send_plain_email(cls, subject, body, to_emails, from_email=config("APPLICATION_FROM_EMAIL"),):
-        email = EmailMessage(subject=subject, body=body, from_email=from_email, to=to_emails)
-        email.send()
+    def tuna_send_email(cls, to_emails, subject, body, template=None, from_email=config("APPLICATION_FROM_EMAIL")):
 
-    @classmethod
-    def send_templated_email(cls, template, to_emails, subject, context, from_email=config("APPLICATION_FROM_EMAIL")):
-        html_message = render_to_string(f'emails/{template}', context)
+        if template is None:
+            print('sent without template')
+            return send_mail(subject, body, from_email, to_emails)
+        
+        print('** sent with template')
+        html_message = render_to_string(f'emails/{template}', {"body": body})
         plain_message = strip_tags(html_message)
 
         send_mail(subject, plain_message, from_email, to_emails, html_message=html_message)

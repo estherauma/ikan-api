@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from accounts.serializers import LoginSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from decouple import config
 
 
 class LoginView(APIView):
@@ -58,25 +59,6 @@ class LoginView(APIView):
                 'is_first_login': is_first_login,
                 'user_data': payload,
             }
-        },
-            status.HTTP_200_OK
-        )
-
-
-class TestEmail(APIView):
-    def get(self, request):
-        
-        TunaEmailHelper.send_templated_email(
-            template=EmailTemplate.APPLICATION.value,
-            from_email='okumujustine01@gmail.com',
-            to_emails=['justineokumu@50eight.com'],
-            subject='Call for Applications: Software Developer at Tuna Inc',
-            context={'name': 'Justine', 'position': 'Software Developer', 'company': 'Software Developer'}
-        )
-
-        return Response({
-            'status': 'OK',
-            'data': {'token': "token"}
         },
             status.HTTP_200_OK
         )
