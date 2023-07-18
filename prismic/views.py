@@ -105,8 +105,14 @@ class MessagingWebhookView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+
+            # publish notification
             aggregated_content = hook_data.get('aggregated_content')
-            self.publish_notification(aggregated_content)
+            for lang in aggregated_content:
+                lang_data = aggregated_content.get(lang)
+                message = lang_data[0]
+                self.publish_notification(message)
+
             return Response({
                 'status': 'OK',
                 'data': serializer.data,

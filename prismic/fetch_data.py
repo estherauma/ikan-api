@@ -142,6 +142,7 @@ class PrismicMessagingAPI():
         self.doc_ref = self.data['documents'][0] if self.data['documents'] else None
         self.access_token = access_token
 
+    # one doc is published at a time
     def get_published_content(self):
         masterRef = self.data.get('master_ref', None)
         url = f'{self.messaging_api_url}/documents/search?ref={masterRef}&lang=*'
