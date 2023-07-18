@@ -1,7 +1,6 @@
-from datetime import datetime
 import requests
 from decouple import config
-from prismic.models import AggregatedContent
+from prismic.models import AggregatedContent, MessagingContent
 
 
 class PrismicAPI():
@@ -26,11 +25,9 @@ class PrismicAPI():
         req = requests.get(url)
         req.raise_for_status()
         data = req.json()
-        print(data)
         return data
 
     def get_master_ref(self, data):
-        print('getget_master_ref.....data....', data)
         if data['refs']:
             return data['refs'][0]['ref']
         else:
@@ -42,7 +39,6 @@ class PrismicAPI():
     def initiate_document_fetch(self):
         documents = {}
         url = self.build_url(type='doc_search')
-        print('url.........initiate_document_fetch......', url)
         for language in self.languages:
             lang_id = language['id']
             lang_url = f'{url}&lang={lang_id}'
@@ -56,7 +52,7 @@ class PrismicAPI():
         req = requests.get(url)
         req.raise_for_status()
         docs_data = req.json()
-        agg_data = self.aggr_data(docs_data)  
+        agg_data = self.aggr_data(docs_data)
         return agg_data
 
     def aggr_data(self, data):
@@ -134,42 +130,30 @@ class PrismicAPI():
                     'last_updated': item['last_publication_date'],
                     'data': agg_intro_content(item['data']['body'])
                 }
-                aggregated_data[item['uid']] = page_data   
+                aggregated_data[item['uid']] = page_data
         return aggregated_data
 
 
 class PrismicMessagingAPI():
-    def __init__(self, req, access_token, saved_content, language='*'):
+    def __init__(self, req, access_token):
         self.messaging_api_url = config('PRISMIC_MESSAGING_API_URL')
         self.messaging_access_token = config('PRISMIC_MESSAGING_ACCESS_TOKEN')
         self.data = req.data
-        print('seeellleeefuuu', self.data)
         self.doc_ref = self.data['documents'][0] if self.data['documents'] else None
-        self.saved_content = saved_content
         self.access_token = access_token
-        # self.language = self.data['language']
-        # self.db_content = db_content
 
     def get_published_content(self):
         masterRef = self.data.get('master_ref', None)
-        print('mmasterRef', masterRef)
-        # all docs
-        url = f'{self.messaging_api_url}/documents/search?ref={masterRef}&lang=*&access_token={self.access_token}'
-        # specific doc
-        # url = f'{self.messaging_api_url}/documents/search?ref={masterRef}&lang=*&q=[[at(document.id, "{self.doc_ref}")]]&access_token={self.access_token}'
+        url = f'{self.messaging_api_url}/documents/search?ref={masterRef}&lang=*'
+        f'&q=[[at(document.id, "{self.doc_ref}")]]&access_token={self.access_token}'
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         res_data = data['results']
-        # db_data = self.saved_content.content
-        print('_______---------_______--------__________----___________-----___________--')
-        print('self.aggregate_content(res_data)....', self.aggregate_content(res_data))
-        print('(....................................)')
-        print('res_dataaaaaaa....',res_data)
+
         return {
             'content': res_data,
-            'aggregated_content': self.aggregate_content(res_data),
-            # 'updated_at': datetime.now()
+            'aggregated_content': self.format_aggregated_content(res_data),
         }
 
     def get_all_documents(self):
@@ -179,23 +163,54 @@ class PrismicMessagingAPI():
         response.raise_for_status()
         data = response.json()
         res_data = data['results']
-        # db_data = self.saved_content.content
-        print('_______---------_______--------__________----___________-----___________--')
-        print('self.aggregate_content(res_data)....', self.aggregate_content(res_data))
-        print('(....................................)')
-        print('res_dataaaaaaa....',res_data)
+
         return {
             'content': res_data,
-            'aggregated_content': self.aggregate_content(res_data),
-            # 'updated_at': datetime.now()
+            'aggregated_content': self.format_aggregated_content(res_data),
         }
+
+    def format_aggregated_content(self, content_to_agg):
+        messaging_content = MessagingContent.objects.first()
+        saved_agg_content = getattr(messaging_content, 'aggregated_content') if messaging_content else None
+
+        if content_to_agg and saved_agg_content is None:
+            result = self.aggregate_content(content_to_agg)
+            return result
+
+        elif content_to_agg and saved_agg_content:
+            agg_content = self.aggregate_content(content_to_agg)
+            if bool(agg_content):
+                final_data = None
+                for lang in agg_content:
+                    updated_lang_data = agg_content[lang]
+                    saved_lang_data = saved_agg_content.get(lang, None)
+                    if saved_lang_data:
+                        for doc in updated_lang_data:
+                            new_doc_id = doc["id"]
+                            # existing document index
+                            index = next(
+                                (i for i, item in enumerate(saved_lang_data)
+                                    if item["id"] == new_doc_id), None)
+                            if index is None:
+                                saved_lang_data.append(doc)
+                            else:
+                                saved_lang_data[index] = doc
+
+                        new_lang_data = {}
+                        new_lang_data[lang] = saved_lang_data
+                        final_data = {**saved_agg_content, **new_lang_data}
+                    else:
+                        final_data = saved_agg_content
+                        final_data[lang] = updated_lang_data
+                return final_data
+            else:
+                return None
 
     def aggregate_content(self, data):
         agg_data = {}
 
         for item in data:
             if item['type'] == 'message':
-                print('uitem...', item)
                 page_data = {
                     'id': item['id'],
                     'page_name': item['uid'],
@@ -208,23 +223,18 @@ class PrismicMessagingAPI():
                     'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
                     if item['data'].get('page_icon') else None,
                     'userRole': item['data'].get('user_role') if item['data'].get('user_role') else None,
-                    # 'pageTitle': item['data'].page_title.value[0].text if item['data'].page_title else 'Message Title',
-                    # 'pageTitleAudio': aggregate_media_data(item['data'].title_audio) if item['data'].title_audio else None,
-                    # 'pageIcon': aggregate_media_data(item['data'].page_icon) if item['data'].page_icon else None,
-                    # 'userRole': item['data'].user_role.value if item['data'].user_role else None,
                     'pageContent': [],
                 }
                 if 'body' in item['data'] and item['data']['body']:
                     page_content = item['data']['body']
-                    print('page_contentntttt............', page_content)
-                    print('_________________________________________________________________')
                     for data in page_content:
                         slice_data = format_common_slice_data(data, page_data, item)
                         page_data['pageContent'].append(slice_data)
-                    print('______________________________AFTERAFTERAFTER___________________')
 
-                agg_data[item['uid']] = page_data
-
+                if agg_data.get(item['lang']) is None:
+                    agg_data[item['lang']] = [page_data]
+                else:
+                    agg_data[item['lang']].append(page_data)
         return agg_data
 
 
@@ -315,7 +325,6 @@ def add_spans(text_data):
                 text_to_bold = paragraph[span['start']:span['end']]
                 bold_text = f'<strong>{text_to_bold}</strong>'
                 formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
-    print('-------------formatedtextttxx-----------------', formated_text)
     return formated_text
 
 
@@ -361,13 +370,13 @@ def aggregate_question_options(data):
     return list_of_options
 
 
-def aggregate_document_link(data):
+def aggregate_document_link(self, data):
     try:
         if data['type'] != 'Link.document' or data['value']['isBroken']:
             return None
         return data['value']['document'] if data['value']['document'] else None
     except Exception as error:
-        raise Exception('Could not aggregate document link data.', error)
+        self.stdout.write(self.style.ERROR(f'Could not aggregate document link data. {error}'))
         return None
 
 
@@ -380,7 +389,7 @@ def aggregate_theme_name(data):
     return remove_spaces
 
 
-def aggregate_lists(data, layout, native_page=False):
+def aggregate_lists(self, data, layout, native_page=False):
     try:
         items = []
         if not data or len(data) == 0:
@@ -406,8 +415,7 @@ def aggregate_lists(data, layout, native_page=False):
                 if i < len(data):
                     page_details = None
                     if data[i].get('page'):
-                        page_details = data[i]['page']if native_page else aggregate_document_link(data[i]
-                                                                                                               ['page'])
+                        page_details = data[i]['page']if native_page else aggregate_document_link(data[i]['page'])
                     row.append({
                         'icon': data[i]['icon'].get('main').get('url') if data[i].get('icon') else None,
                         'label': data[i]['label'][0]['text'] if data[i].get('label') else None,
@@ -452,8 +460,7 @@ def aggregate_lists(data, layout, native_page=False):
         return items
 
     except Exception as error:
-        raise Exception('Could not aggregate lists data.', error)
-
+        self.stdout.write(self.style.ERROR(f'Could not aggregate lists data. {error}'))
         return None
 
 
@@ -479,7 +486,7 @@ def aggregate_drop_down_data(data):
     return accordions
 
 
-def format_common_slice_data(item, pagesList=None, page=None):
+def format_common_slice_data(self, item, pagesList=None, page=None):
 
     try:
         if item['slice_type'] == 'video_area':
@@ -579,9 +586,5 @@ def format_common_slice_data(item, pagesList=None, page=None):
         else:
             return None
     except Exception as e:
-        print(f"Could not aggregate slice data {item['slice_type']}: {e}")
+        self.stdout.write(self.style.ERROR(f'Could not aggregate slice data {item["slice_type"]}: {e}'))
         return None
-
-
-class AggregatedMessagingContent():
-    pass
