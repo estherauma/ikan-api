@@ -370,7 +370,7 @@ def aggregate_question_options(data):
     return list_of_options
 
 
-def aggregate_document_link(self, data):
+def aggregate_document_link(data):
     try:
         if data['type'] != 'Link.document' or data['value']['isBroken']:
             return None
@@ -389,7 +389,7 @@ def aggregate_theme_name(data):
     return remove_spaces
 
 
-def aggregate_lists(self, data, layout, native_page=False):
+def aggregate_lists(data, layout, native_page=False):
     try:
         items = []
         if not data or len(data) == 0:
@@ -486,8 +486,7 @@ def aggregate_drop_down_data(data):
     return accordions
 
 
-def format_common_slice_data(self, item, pagesList=None, page=None):
-
+def format_common_slice_data(item, pagesList=None, page=None):
     try:
         if item['slice_type'] == 'video_area':
             return {
