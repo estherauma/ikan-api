@@ -376,7 +376,7 @@ def aggregate_document_link(self, data):
             return None
         return data['value']['document'] if data['value']['document'] else None
     except Exception as error:
-        self.stdout.write(self.style.ERROR(f'Could not aggregate document link data. {error}'))
+        print(f'Could not aggregate document link data. {error}')
         return None
 
 
@@ -460,7 +460,7 @@ def aggregate_lists(self, data, layout, native_page=False):
         return items
 
     except Exception as error:
-        self.stdout.write(self.style.ERROR(f'Could not aggregate lists data. {error}'))
+        print(f'Could not aggregate lists data. {error}')
         return None
 
 
@@ -586,5 +586,5 @@ def format_common_slice_data(self, item, pagesList=None, page=None):
         else:
             return None
     except Exception as e:
-        self.stdout.write(self.style.ERROR(f'Could not aggregate slice data {item["slice_type"]}: {e}'))
+        print(f'Could not aggregate slice data {item["slice_type"]}: {e}')
         return None
