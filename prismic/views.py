@@ -9,8 +9,9 @@ from prismic.fetch_data import PrismicAPI, PrismicMessagingAPI
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
-
 from .serializers import AggregatedContentSerializer, MessageContentSerializer
+from decouple import config
+import requests
 
 
 class AggregatedContentView(APIView):
@@ -77,13 +78,11 @@ def compare_content(request):
 class MessagingWebhookView(APIView):
     def get_messaging_repo_content(self, content):
         try:
-            print('reaching........')
             return MessagingContent.objects.get(content=content)
         except MessagingContent.DoesNotExist:
             return None
 
     def post(self, request):
-        print('Payload................', request.data)
         access_token = request.headers.get('token')
         if access_token is None:
             return Response({'status': 'FAIL'}, HTTPStatus.UNAUTHORIZED)
@@ -92,10 +91,7 @@ class MessagingWebhookView(APIView):
         hook_data = None
 
         try:
-            print('hook_data......mssgg....before......', hook_data)
             hook_data = messaging_content.get_published_content()
-            print('hook_data......mssgg......after.....', hook_data)
-            print('''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''')
         except Exception as e:
             print(e)
 
@@ -109,6 +105,8 @@ class MessagingWebhookView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            aggregated_content = hook_data.get('aggregated_content')
+            self.publish_notification(aggregated_content)
             return Response({
                 'status': 'OK',
                 'data': serializer.data,
@@ -119,3 +117,31 @@ class MessagingWebhookView(APIView):
                 'data': [],
                 'errors': serializer.errors
             }, HTTPStatus.BAD_REQUEST)
+
+    def get_push_notifications_base_url(self):
+        environment = config('ENVIRONMENT')
+
+        if environment == 'Development' or environment == 'development':
+            return config('JGW_DEV_PUSH_NOTIFICATION_API')
+        elif environment == 'Staging' or environment == 'staging':
+            return config('JGW_STAGING_PUSH_NOTIFICATION_API')
+        elif environment == 'Production' or environment == 'production':
+            return config('JGW_PROD_PUSH_NOTIFICATION_API')
+
+        return None
+
+    def publish_notification(self, message):
+        base_url = self.get_push_notifications_base_url()
+        if base_url is None:
+            return Response({
+                'status': 'FAIL',
+                'message': 'No push notifications url provided'
+            }, HTTPStatus.BAD_REQUEST)
+
+        url = f'{base_url}tuna/v1/message-notification'
+
+        try:
+            response = requests.post(url, json=message)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as error:
+            print(f"Could not publish notification. {error}")
