@@ -170,8 +170,8 @@ class PrismicMessagingAPI():
         }
 
     def format_aggregated_content(self, content_to_agg):
-        messaging_content = MessagingContent.objects.first()
-        saved_agg_content = getattr(messaging_content, 'aggregated_content') if messaging_content else None
+        db_messaging_content = MessagingContent.objects.first()
+        saved_agg_content = getattr(db_messaging_content, 'aggregated_content') if db_messaging_content else None
 
         if content_to_agg and saved_agg_content is None:
             result = self.aggregate_content(content_to_agg)

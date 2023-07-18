@@ -1,6 +1,4 @@
-# from django.shortcuts import render
 from django.utils.dateparse import parse_datetime
-from datetime import datetime
 from http import HTTPStatus
 from prismic.models import (
     AggregatedContent,
@@ -12,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 
-from .serializers import AggregatedContentSerializer
+from .serializers import AggregatedContentSerializer, MessageContentSerializer
 
 
 class AggregatedContentView(APIView):
@@ -38,7 +36,7 @@ class UpdatedContentView(APIView):
         log.save()
 
         # TODO use the notification object  master ref to fetch new updated contnet
-        # Right now, just fetch and aggregate all content. 
+        # Right now, just fetch and aggregate all content.
         content = PrismicAPI()
 
         return Response({
@@ -89,15 +87,8 @@ class MessagingWebhookView(APIView):
         access_token = request.headers.get('token')
         if access_token is None:
             return Response({'status': 'FAIL'}, HTTPStatus.UNAUTHORIZED)
-        # check this
-        saved_content = self.get_messaging_repo_content(request.data.get('content'))
-        print('saved_content......', saved_content)
-        # if saved_content is None:
-        #     print('nnnnnnnnnnnnnnnnnn..........')
-        #     return Response({'status': 'FAIL'}, HTTPStatus.NOT_FOUND)
 
-        messaging_content = PrismicMessagingAPI(
-            request, access_token, saved_content)
+        messaging_content = PrismicMessagingAPI(request, access_token)
         hook_data = None
 
         try:
@@ -106,9 +97,6 @@ class MessagingWebhookView(APIView):
             print('hook_data......mssgg......after.....', hook_data)
             print('''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''')
         except Exception as e:
-            # remote_error_handler(e) // look into this
-            # log error
-            # capture_exception(e)
             print(e)
 
             return Response({
@@ -116,18 +104,18 @@ class MessagingWebhookView(APIView):
                 'error': 'Internal server error'
             }, HTTPStatus.INTERNAL_SERVER_ERROR)
 
-        # serializer = PrismicRepoSerializer(
-        #     repo_db_content, data=hook_data, partial=True)
+        serializer = MessageContentSerializer(
+            data=hook_data, partial=True)
 
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response({
-        #         'status': 'OK',
-        #         'data': serializer.data,
-        #     }, HTTPStatus.OK)
-        # else:
-        #     return Response({
-        #         'status': 'FAIL',
-        #         'data': [],
-        #         'errors': serializer.errors
-        #     }, HTTPStatus.BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'OK',
+                'data': serializer.data,
+            }, HTTPStatus.OK)
+        else:
+            return Response({
+                'status': 'FAIL',
+                'data': [],
+                'errors': serializer.errors
+            }, HTTPStatus.BAD_REQUEST)
