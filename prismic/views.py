@@ -156,8 +156,5 @@ class MessagingWebhookView(APIView):
         try:
             response = requests.post(url, json=message)
             response.raise_for_status()
-            data = response.json()
-            print('response.json.........data......', data)
-            # # Process the response data as needed
         except requests.exceptions.RequestException as error:
             print(f"Could not publish notification. {error}")
