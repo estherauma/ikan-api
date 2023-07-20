@@ -2,7 +2,6 @@ from django.utils.dateparse import parse_datetime
 from http import HTTPStatus
 from prismic.models import (
     AggregatedContent,
-    MessagingContent,
     PrismicWebhookNotificationsLog
 )
 from prismic.fetch_data import PrismicAPI, PrismicMessagingAPI
@@ -76,14 +75,12 @@ def compare_content(request):
 
 
 class MessagingWebhookView(APIView):
-    def get_messaging_repo_content(self, content):
-        try:
-            return MessagingContent.objects.get(content=content)
-        except MessagingContent.DoesNotExist:
-            return None
 
     def post(self, request):
         access_token = request.headers.get('token')
+        domain = request.data.get('domain')
+        docs = request.data.get('documents')
+        doc_id = docs[0]
         if access_token is None:
             return Response({'status': 'FAIL'}, HTTPStatus.UNAUTHORIZED)
 
@@ -108,10 +105,20 @@ class MessagingWebhookView(APIView):
 
             # publish notification
             aggregated_content = hook_data.get('aggregated_content')
+
+            # TODO: Refactor this code to use selected language
+            stop_execution = False
             for lang in aggregated_content:
                 lang_data = aggregated_content.get(lang)
-                message = lang_data[0]
-                self.publish_notification(message)
+                for item in lang_data:
+                    if item['id'] == doc_id:
+                        message = item
+                        message['domain'] = domain
+                        self.publish_notification(message)
+                        stop_execution = True
+                        break
+                if stop_execution:
+                    break
 
             return Response({
                 'status': 'OK',
@@ -149,5 +156,8 @@ class MessagingWebhookView(APIView):
         try:
             response = requests.post(url, json=message)
             response.raise_for_status()
+            data = response.json()
+            print('response.json.........data......', data)
+            # # Process the response data as needed
         except requests.exceptions.RequestException as error:
             print(f"Could not publish notification. {error}")
