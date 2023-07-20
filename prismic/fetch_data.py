@@ -145,8 +145,8 @@ class PrismicMessagingAPI():
     # one doc is published at a time
     def get_published_content(self):
         masterRef = self.data.get('master_ref', None)
-        url = f'{self.messaging_api_url}/documents/search?ref={masterRef}&lang=*'
-        f'&q=[[at(document.id, "{self.doc_ref}")]]&access_token={self.access_token}'
+        url = f'{self.messaging_api_url}/documents/search?ref={masterRef}&lang=*'\
+            f'&q=[[at(document.id, "{self.doc_ref}")]]&access_token={self.access_token}'
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
@@ -319,7 +319,7 @@ def add_spans(text_data):
             if span['type'] == 'hyperlink':
                 paragraph = formated_text
                 link_text = paragraph[span['start']:span['end']]
-                html_link = f'<a href="{span["data"]["value"]["url"]}">{link_text}</a>'
+                html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
                 formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
             elif span['type'] == 'strong':
                 paragraph = formated_text
@@ -345,10 +345,10 @@ def aggregate_image_slider_data(data=[]):
 
 
 def aggregate_highlight_link(data):
-    if data['type'] == 'Link.web':
-        html_link = f'<a href="{data["value"]["url"]}">{data["value"]["url"]}</a>'
+    if 'type' in data and data['type'] == 'Link.web':
+        html_link = f'<a href="{data["url"]}">{data["url"]}</a>'
     else:
-        html_link = data["value"]["url"]
+        html_link = data["url"]
     return html_link
 
 
