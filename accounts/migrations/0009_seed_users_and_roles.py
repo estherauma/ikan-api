@@ -7,40 +7,43 @@ from accounts.models import User
 from decouple import config
 
 
-def construct_email(name):
-    return f'{name}_test@50eight.com'
+users = ['taien+technology', 'cici+technology', 'farah+technology', 'budi+technology', 'tony+technology']
+
+
+def construct_email(role):
+    return f'{role}@50eight.com'
 
 
 def seed_users_and_roles(apps, schema_editor):
     groups = Group.objects.bulk_create([
-        Group(name='vessel_owner'),
-        Group(name='taiwanese_agent'),
-        Group(name='indonesian_agent'),
-        Group(name='worker'),
-        Group(name='buyer'),
+        Group(name='Vessel Owners'),
+        Group(name='Taiwanese Agents'),
+        Group(name='Indonesian Agents'),
+        Group(name='Workers'),
+        Group(name='Buyers'),
     ])
 
     for i, group in enumerate(groups):
         role = Group.objects.get(name=group.name)
         user = User.objects.create_user(
             password=config('SEED_USERS_PASSWORD'),
-            email=construct_email(group.name),
-            first_name=group.name,
-            last_name='test'
+            email=construct_email(users[i]),
+            first_name='test',
+            last_name='user'
         )
         user.groups.add(role)
 
 
 def undo_seed_users_and_roles(apps, schema_editor):
     all_seeded_groups = Group.objects.filter(
-        Q(name='vessel_owner') |
-        Q(name='taiwanese_agent') |
-        Q(name='indonesian_agent') |
-        Q(name='worker') |
-        Q(name='buyer')
+        Q(name='Vessels Owners') |
+        Q(name='Taiwanese Agents') |
+        Q(name='Indonesian Agents') |
+        Q(name='Workers') |
+        Q(name='Buyers')
     )
     for i, group in enumerate(all_seeded_groups):
-        User.objects.filter(email=construct_email(group.name)).delete()
+        User.objects.filter(email=construct_email(users[i])).delete()
     all_seeded_groups.delete()
 
 

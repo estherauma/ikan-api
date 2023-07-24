@@ -1,13 +1,15 @@
-from asyncio.log import logger
 from accounts.models import LoginEvent, User
+from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from rest_framework.exceptions import AuthenticationFailed, ValidationError
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from rest_framework.views import APIView
 from accounts.serializers import LoginSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from decouple import config
+
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
