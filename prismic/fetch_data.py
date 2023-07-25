@@ -62,14 +62,22 @@ class PrismicAPI():
             question_data = []
             '''Aggregate form questions'''
             for question in form_data:
-                key, label, question_type, displayquestion, help_text, options = question['primary'].values()
+                key, label, question_type, displayquestion, help_text, options,\
+                    options_translations = question['primary'].values()
+                final_options_array = []
                 if options is not None:
                     options = options.split(',')
                     option_list = []
                     for option in options:
+                        # TODO: Leaving this for things entries we already have on prismic as a fall back.
+                        # Once all are updated, we can remove this
                         new_options_dict = {"value": option, "label": option}
                         option_list.append(new_options_dict)
-                        options = option_list
+                        final_options_array = option_list
+
+                if options_translations and options:
+                    final_options_array = [{"value": key, "label": value} for key, value
+                                           in zip(options_translations, options)]
 
                 question_data.append(
                     {
@@ -78,7 +86,7 @@ class PrismicAPI():
                         'question_type': question_type,
                         'displayquestion': displayquestion,
                         'help_text': help_text,
-                        'options': options
+                        'options': final_options_array,
                     })
             return question_data
 
