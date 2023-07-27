@@ -139,6 +139,10 @@ class PrismicAPI():
                     'data': agg_intro_content(item['data']['body'])
                 }
                 aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'create_content_area':
+                content = aggregate_content(data['results'])
+                aggregated_data = {**aggregated_data, **content}
         return aggregated_data
 
 
@@ -216,7 +220,8 @@ def aggregate_content(data):
     agg_data = {}
 
     for item in data:
-        if item['type'] == 'message':
+        if item['type'] == 'message' or\
+                item['type'] == 'create_content_area':
             page_data = {
                 'id': item['id'],
                 'page_name': item['uid'],
@@ -228,18 +233,26 @@ def aggregate_content(data):
                 if item['data'].get('title_audio') else None,
                 'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
                 if item['data'].get('page_icon') else None,
-                'userRole': item['data'].get('user_role') if item['data'].get('user_role') else None,
                 'pageContent': [],
             }
+
+            # Add userRole to message page_data
+            if item['type'] == 'message':
+                page_data['userRole'] = item['data'].get('user_role') if item['data'].get('user_role') else None,
+
             if 'body' in item['data'] and item['data']['body']:
                 page_content = item['data']['body']
-                for data in page_content:
-                    slice_data = format_common_slice_data(data, page_data, item)
+                for el in page_content:
+                    slice_data = format_common_slice_data(el, data, item)
                     page_data['pageContent'].append(slice_data)
             if item['uid'] is not None:
                 agg_data[item['uid']] = page_data
             else:
                 agg_data[item['id']] = page_data
+
+        if item['type'] == 'case_study':
+            case_study = format_case_study(item)
+            agg_data[item['uid']] = case_study
     return agg_data
 
 
@@ -491,6 +504,36 @@ def aggregate_drop_down_data(data):
     return accordions
 
 
+def format_case_study(page, sub_chapter=None, item=None):
+    case_study = {
+        'uid': page['uid'],
+        'id': page['id'],
+        'language': page['lang'],
+        'type': 'case_study',
+        'image': aggregate_media_data(page['data'].get('cover_image')) if page['data'].get('cover_image') else None,
+        'pageTitle': page['data'].get('page_title')[0].get('text') if page['data'].get('page_title')
+        else 'Message Title',
+        'description': [],
+        'pageTitleAudio': aggregate_media_data(page['data'].get('title_audio'))
+        if page['data'].get('title_audio') else None,
+        'pageContent': [],
+        'subChapter': sub_chapter,
+        'pageIcon': aggregate_media_data(page['data'].get('page_icon'))
+        if page['data'].get('page_icon') else None,
+    }
+
+    if 'body' in page['data'] and page['data']['body']:
+        slices = page['data']['body']
+
+        for el in slices:
+            slice_data = format_common_slice_data(el)
+            if slice_data['type'] == 'text_area' and not case_study['description']:
+                case_study['description'] = slice_data['description']
+            case_study['pageContent'].append(slice_data)
+
+    return case_study
+
+
 def format_common_slice_data(item, pagesList=None, page=None):
     try:
         if item['slice_type'] == 'video_area':
@@ -587,6 +630,11 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'type': 'drop_down_content',
                 'data': aggregate_drop_down_data(item),
             }
+        elif item['slice_type'] == 'case_study':
+            case_study_uid = item['primary']['link']['uid'] if item['primary']['link'] else None
+            case_study = next((e for e in pagesList if e['uid'] == case_study_uid), None) if case_study_uid else None
+            result = format_case_study(case_study, page['uid'], item) if case_study else None
+            return result
         else:
             return None
     except Exception as e:
