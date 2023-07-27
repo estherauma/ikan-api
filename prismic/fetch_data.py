@@ -183,68 +183,64 @@ class PrismicMessagingAPI():
         saved_agg_content = getattr(db_messaging_content, 'aggregated_content') if db_messaging_content else None
 
         if content_to_agg and saved_agg_content is None:
-            result = self.aggregate_content(content_to_agg)
+            result = {}
+            agg_content = aggregate_content(content_to_agg)
+            for key, value in agg_content.items():
+                lang = value['language']
+                if lang not in result:
+                    result[lang] = agg_content
+                else:
+                    result[lang] = {**result[lang], **agg_content}
             return result
 
         elif content_to_agg and saved_agg_content:
-            agg_content = self.aggregate_content(content_to_agg)
+            agg_content = aggregate_content(content_to_agg)
             if bool(agg_content):
-                final_data = None
-                for lang in agg_content:
-                    updated_lang_data = agg_content[lang]
-                    saved_lang_data = saved_agg_content.get(lang, None)
-                    if saved_lang_data:
-                        for doc in updated_lang_data:
-                            new_doc_id = doc["id"]
-                            # existing document index
-                            index = next(
-                                (i for i, item in enumerate(saved_lang_data)
-                                    if item["id"] == new_doc_id), None)
-                            if index is None:
-                                saved_lang_data.append(doc)
-                            else:
-                                saved_lang_data[index] = doc
+                final_data = {}
+                for el, value in agg_content.items():
+                    lang = value['language']
+                    updated_data = agg_content[el]
+                    saved_data = saved_agg_content.get(lang, None)
+                    saved_data[el] = updated_data
 
-                        new_lang_data = {}
-                        new_lang_data[lang] = saved_lang_data
-                        final_data = {**saved_agg_content, **new_lang_data}
+                    if lang not in final_data:
+                        final_data[lang] = saved_data
                     else:
-                        final_data = saved_agg_content
-                        final_data[lang] = updated_lang_data
+                        final_data[lang] = {**final_data[lang], **saved_data}
                 return final_data
             else:
                 return None
 
-    def aggregate_content(self, data):
-        agg_data = {}
 
-        for item in data:
-            if item['type'] == 'message':
-                page_data = {
-                    'id': item['id'],
-                    'page_name': item['uid'],
-                    'type': item['type'],
-                    'language': item['lang'],
-                    'pageTitle': item['data'].get('page_title')[0].get('text') if item['data'].get('page_title')
-                    else 'Message Title',
-                    'pageTitleAudio': aggregate_media_data(item['data'].get('title_audio'))
-                    if item['data'].get('title_audio') else None,
-                    'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
-                    if item['data'].get('page_icon') else None,
-                    'userRole': item['data'].get('user_role') if item['data'].get('user_role') else None,
-                    'pageContent': [],
-                }
-                if 'body' in item['data'] and item['data']['body']:
-                    page_content = item['data']['body']
-                    for data in page_content:
-                        slice_data = format_common_slice_data(data, page_data, item)
-                        page_data['pageContent'].append(slice_data)
+def aggregate_content(data):
+    agg_data = {}
 
-                if agg_data.get(item['lang']) is None:
-                    agg_data[item['lang']] = [page_data]
-                else:
-                    agg_data[item['lang']].append(page_data)
-        return agg_data
+    for item in data:
+        if item['type'] == 'message':
+            page_data = {
+                'id': item['id'],
+                'page_name': item['uid'],
+                'type': item['type'],
+                'language': item['lang'],
+                'pageTitle': item['data'].get('page_title')[0].get('text') if item['data'].get('page_title')
+                else 'Message Title',
+                'pageTitleAudio': aggregate_media_data(item['data'].get('title_audio'))
+                if item['data'].get('title_audio') else None,
+                'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
+                if item['data'].get('page_icon') else None,
+                'userRole': item['data'].get('user_role') if item['data'].get('user_role') else None,
+                'pageContent': [],
+            }
+            if 'body' in item['data'] and item['data']['body']:
+                page_content = item['data']['body']
+                for data in page_content:
+                    slice_data = format_common_slice_data(data, page_data, item)
+                    page_data['pageContent'].append(slice_data)
+            if item['uid'] is not None:
+                agg_data[item['uid']] = page_data
+            else:
+                agg_data[item['id']] = page_data
+    return agg_data
 
 
 def aggregate_media_data(data):
