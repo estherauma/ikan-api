@@ -140,7 +140,8 @@ class PrismicAPI():
                 }
                 aggregated_data[item['uid']] = page_data
 
-            if item['type'] == 'create_content_area':
+            if item['type'] == 'create_content_area' or\
+                    item['type'] == 'sub_chapter_list':
                 content = aggregate_content(data['results'])
                 aggregated_data = {**aggregated_data, **content}
         return aggregated_data
@@ -221,14 +222,15 @@ def aggregate_content(data):
 
     for item in data:
         if item['type'] == 'message' or\
-                item['type'] == 'create_content_area':
+                item['type'] == 'create_content_area' or\
+                item['type'] == 'sub_chapter_list':
             page_data = {
                 'id': item['id'],
                 'page_name': item['uid'],
                 'type': item['type'],
                 'language': item['lang'],
                 'pageTitle': item['data'].get('page_title')[0].get('text') if item['data'].get('page_title')
-                else 'Message Title',
+                else 'Title',
                 'pageTitleAudio': aggregate_media_data(item['data'].get('title_audio'))
                 if item['data'].get('title_audio') else None,
                 'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
@@ -512,7 +514,7 @@ def format_case_study(page, sub_chapter=None, item=None):
         'type': 'case_study',
         'image': aggregate_media_data(page['data'].get('cover_image')) if page['data'].get('cover_image') else None,
         'pageTitle': page['data'].get('page_title')[0].get('text') if page['data'].get('page_title')
-        else 'Message Title',
+        else 'Title',
         'description': [],
         'pageTitleAudio': aggregate_media_data(page['data'].get('title_audio'))
         if page['data'].get('title_audio') else None,
@@ -609,21 +611,21 @@ def format_common_slice_data(item, pagesList=None, page=None):
             return {
                 'type': 'list',
                 'layout': layout,
-                'list': aggregate_lists(item['repeat'], layout, True) if item.get('repeat') else None,
+                'list': aggregate_lists(item['items'], layout, True) if item.get('items') else None,
             }
         elif item['slice_type'] == 'clickable_list':
             layout = item['primary']['layout'].lower() if item['primary'].get('layout') else 'flow'
             return {
                 'type': 'clickable_list',
                 'layout': layout,
-                'list': aggregate_lists(item['repeat'], layout) if item.get('repeat') else None,
+                'list': aggregate_lists(item['items'], layout) if item.get('items') else None,
             }
         elif item['slice_type'] == 'non-clickable-list':
             return {
                 'type': 'non-clickable-list',
                 'heading': item['primary']['heading'][0]['text'] if item['primary'].get('heading')
                 else None,
-                'list': aggregate_non_click_lists(item['repeat']) if item.get('repeat') else None,
+                'list': aggregate_non_click_lists(item['items']) if item.get('items') else None,
             }
         elif item['slice_type'] == 'drop_down_content':
             return {
