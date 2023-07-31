@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>IKAN</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta content="IKAN" name="description" />
+        <meta content="FiftyEight" name="author" />
+
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="static/themes/v1/assets/images/favicon.ico">
+
+		<!-- Theme Config Js -->
+		<script src="static/themes/v1/assets/js/head.js"></script>
+
+		<!-- Bootstrap css -->
+		<link href="static/themes/v1/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="app-style" />
+
+		<!-- App css -->
+		<link href="static/themes/v1/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+
+		<!-- Icons css -->
+		<link href="static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    </head>
+
+    <body>
+        <!-- Begin page -->
+        <div id="wrapper">
+
+            
+            <!-- ========== Menu ========== -->
+            {% include './partials/sidenav.html' %}
+            <!-- ========== Left menu End ========== -->
+
+            <!-- Start Page Content here -->
+
+            <div class="content-page">
+
+                <!-- ========== Topbar Start ========== -->
+               {% include './partials/topbar.html' %}
+                <!-- ========== Topbar End ========== -->
+
+                <div class="content">
+
+                    <!-- Start Content-->
+                    <div class="container-fluid">
+                        
+                        <!-- start page title -->
+                        {% include './partials/bread-crumbs.html' %}
+                        <!-- end page title -->  
+                        
+                    </div> <!-- container -->
+
+                </div> <!-- content -->
+
+                {% include './partials/footer.html' %}
+
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- End Page content -->
+            <!-- ============================================================== -->
+        </div>
+        <!-- END wrapper -->
+
+        <!-- Vendor js -->
+        <script src="static/themes/v1/assets/js/vendor.min.js"></script>
+
+        <!-- App js -->
+        <script src="static/themes/v1/assets/js/app.min.js"></script>
+
+    </body>
+</html>

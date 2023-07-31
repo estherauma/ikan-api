@@ -4,6 +4,7 @@ from common.jwt_manager import JwtManager
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
+from django.shortcuts import render
 from rest_framework.views import APIView
 from accounts.serializers import LoginSerializer
 from rest_framework.response import Response
@@ -62,3 +63,6 @@ class LoginView(APIView):
         },
             status.HTTP_200_OK
         )
+
+def get_base(request):
+    return render(request, template_name="themes/v1/base.html")

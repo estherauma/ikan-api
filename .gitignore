@@ -63,7 +63,7 @@ db.sqlite3-journal
 
 # Flask stuff:
 instance/
-.webassets-cache
+.webtemplates/assets-cache
 
 # Scrapy stuff:
 .scrapy
@@ -164,3 +164,4 @@ cython_debug/
 
 .python-version
 dump.rdb
+staticfiles/*
