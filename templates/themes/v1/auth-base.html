@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Log In | IKAN</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta content="IKAN" name="description" />
+        <meta content="FiftyEight" name="author" />
+
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="static/themes/v1/assets/images/favicon.ico">
+
+		<!-- Theme Config Js -->
+		<script src="static/themes/v1/assets/js/head.js"></script>
+
+		<!-- Bootstrap css -->
+		<link href="static/themes/v1/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="app-style" />
+
+		<!-- App css -->
+		<link href="static/themes/v1/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+
+		<!-- Icons css -->
+		<link href="static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    </head>
+
+    <body class="authentication-bg authentication-bg-pattern">
+
+       
+       {% block content %} {% endblock %}
+
+
+        <footer class="footer footer-alt">
+            <script>document.write(new Date().getFullYear())</script>
+                    <a href="https://fiftyeight.io/" target="_blank">FiftyEight.io</a>
+        </footer>
+
+        <!-- Authentication js -->
+        <script src="static/themes/v1/assets/js/pages/authentication.init.js"></script>
+
+    </body>
+</html>

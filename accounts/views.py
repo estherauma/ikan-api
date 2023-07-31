@@ -66,3 +66,6 @@ class LoginView(APIView):
 
 def get_base(request):
     return render(request, template_name="themes/v1/base.html")
+
+def login(request):
+    return render(request, template_name="login.html")
