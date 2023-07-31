@@ -110,9 +110,9 @@ class MessagingWebhookView(APIView):
             stop_execution = False
             for lang in aggregated_content:
                 lang_data = aggregated_content.get(lang)
-                for item in lang_data:
-                    if item['id'] == doc_id:
-                        message = item
+                for item, value in lang_data.items():
+                    if value['id'] == doc_id:
+                        message = value
                         message['domain'] = domain
                         self.publish_notification(message)
                         stop_execution = True
