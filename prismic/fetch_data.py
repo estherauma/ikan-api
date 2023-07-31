@@ -374,19 +374,29 @@ def aggregate_highlight_link(data):
 def aggregate_question_options(data):
     list_of_options = []
     for option in data:
-        list_of_options.append({
-            'option': option['options'][0]['text'] if option.get('options') else None,
-            'description': add_spans(option['option_description'][0]) if option.get('option_description')
-            else None,
-            'followUpQuestion': {
-                'key': option['follow_up_question_key'] if option.get('follow_up_question_key') else None,
-                'question': option['follow_up_question'] if option.get('follow_up_question') else None,
-                'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
+        if len(option['options']) == 0:
+            pass
+        elif len(option['options']) > 1:
+            for item in option['options']:
+                list_of_options.append({
+                    'option': item['text'],
+                    'description': None,
+                    'followUpQuestion': None,
+                })
+        else:
+            list_of_options.append({
+                'option': option['options'][0]['text'] if option.get('options') else None,
+                'description': add_spans(option['option_description'][0]) if option.get('option_description')
                 else None,
-                'options': option['follow_up_question_options'] if option.get('follow_up_question_options')
-                else None,
-            } if option.get('follow_up_question') else None,
-        })
+                'followUpQuestion': {
+                    'key': option['follow_up_question_key'] if option.get('follow_up_question_key') else None,
+                    'question': option['follow_up_question'] if option.get('follow_up_question') else None,
+                    'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
+                    else None,
+                    'options': option['follow_up_question_options'] if option.get('follow_up_question_options')
+                    else None,
+                } if option.get('follow_up_question') else None,
+            })
     return list_of_options
 
 
@@ -496,7 +506,7 @@ def aggregate_non_click_lists(data):
 
 def aggregate_drop_down_data(data):
     accordions = []
-    for item in data['repeat']:
+    for item in data['items']:
         accordions.append({
             'title': item['title'][0]['text'] if item.get('title') else None,
             'titleAudio': aggregate_media_data(item['dd_title_audio']) if item.get('dd_title_audio') else None,
@@ -567,7 +577,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
         elif item['slice_type'] == 'images_slider':
             return {
                 'type': 'images_slider',
-                'sliderContent': aggregate_image_slider_data(item['repeat']),
+                'sliderContent': aggregate_image_slider_data(item['items']),
             }
         elif item['slice_type'] == 'text_area':
             return {
@@ -602,9 +612,10 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'type': 'questions',
                 'question': item['primary']['question'][0]['text']
                 if item['primary'].get('question') else None,
+                'questionType': item['primary']['question_type'] if item['primary'].get('question_type') else None,
                 'key': item['primary']['question_key'] if item['primary'].get('question_key')
                 else None,
-                'options': aggregate_question_options(item['repeat']) if item.get('repeat') else None,
+                'options': aggregate_question_options(item['items']) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':
             layout = item['primary']['layout'].lower() if item['primary'].get('layout') else 'grid'
