@@ -20,7 +20,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from accounts.views import get_base, login
+from accounts.views.web import get_base, login
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -40,10 +40,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include('tuna.urls_v1')),
-    path('api/v1/accounts/', include('accounts.urls')),
+    path('api/v1/accounts/', include('accounts.urls.api')),
     # api documentation
     path('api/docs/', schema_view.with_ui(
         'redoc',cache_timeout=0), name='schema-redoc'),
+
+    # web urls
     path('', get_base, name='base'),
-    path('login', login, name='login')
+    path('account/', include('accounts.urls.web')),
 ]
