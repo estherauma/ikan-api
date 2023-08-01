@@ -1,4 +1,8 @@
 from django.shortcuts import render
+from django.views.generic.list import ListView
+
+# models
+from accounts.models import User
 
 
 def get_base(request):
@@ -12,3 +16,9 @@ def request_password_reset(request):
 
 def reset_password(request):
     return render(request, template_name='password-reset/reset-password.html')
+
+
+class UserListView(ListView):
+    model = User
+    context_object_name = 'users'
+    template_name = 'user-list.html'
