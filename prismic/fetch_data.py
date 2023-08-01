@@ -402,9 +402,9 @@ def aggregate_question_options(data):
 
 def aggregate_document_link(data):
     try:
-        if data['type'] != 'Link.document' or data['value']['isBroken']:
+        if data['link_type'] != 'Document' or data['isBroken']:
             return None
-        return data['value']['document'] if data['value']['document'] else None
+        return data if data else None
     except Exception as error:
         print(f'Could not aggregate document link data. {error}')
         return None
