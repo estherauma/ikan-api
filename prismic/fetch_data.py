@@ -351,8 +351,8 @@ def add_spans(text_data):
     formated_text = text_data.get('text', '')
     if (text_data['type'] in ['paragraph', 'list-item', 'o-list-item']) and text_data.get('spans'):
         text_data['spans'].reverse()
-        # TODO: add implementation for paragraphs with both bold and hyperlinks
-        # 1.4,
+        # TODO: add implementation for paragraphs with both bold and hyperlinks or multiple hyperlinks
+        # 1.3, 1.4, 1.5, 1.9
         for span in text_data['spans']:
             if span['type'] == 'hyperlink':
                 paragraph = formated_text
