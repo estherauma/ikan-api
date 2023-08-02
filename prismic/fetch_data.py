@@ -258,29 +258,46 @@ def aggregate_content(data):
     return agg_data
 
 
-def aggregate_media_data(data):
+def aggregate_media_data(data, slice_type=''):
     if not data:
         return None
     aggregated_media_data = {}
-    if not data.get('type'):
-        return {}
-    media_type = data.get('type')
-    if media_type == 'Link.file':
-        aggregated_media_data = data.get('file')
-    elif media_type == 'Link.web':
-        aggregated_media_data = {
-            'name': 'unknown',
-            'kind': 'web',
-            'url': data.get('url'),
-            'size': 'unknown'
-        }
-    elif media_type == 'Image':
-        aggregated_media_data = {
-            'name': data.get('main').get('alt', 'unknown'),
-            'kind': 'image',
-            'url': data.get('main').get('url'),
-            'dimensions': data.get('main').get('dimensions')
-        }
+    media_type = data.get('type') if data.get('type') else None
+    link_type = data.get('link_type') if data.get('link_type') else None
+    if link_type:
+        if link_type == 'Media':
+            aggregated_media_data = {
+                'name': data.get('name', 'unknown'),
+                'kind': 'media',
+                'url': data.get('url', None),
+                'size': data.get('size', 'unknown')
+            }
+        pass
+    elif media_type:
+        if media_type == 'Link.file':
+            aggregated_media_data = data.get('file')
+        elif media_type == 'Link.web':
+            aggregated_media_data = {
+                'name': 'unknown',
+                'kind': 'web',
+                'url': data.get('url', None),
+                'size': 'unknown'
+            }
+        elif media_type == 'Image':
+            aggregated_media_data = {
+                'name': data.get('alt', 'unknown'),
+                'kind': 'image',
+                'url': data.get('url', None),
+                'dimensions': data.get('dimensions', None),
+            }
+    elif slice_type:
+        if slice_type == 'single_image':
+            aggregated_media_data = {
+                'name': data.get('alt', 'unknown'),
+                'kind': 'image',
+                'url': data.get('url', None),
+                'dimensions': data.get('dimensions', None),
+            }
     else:
         aggregated_media_data = None
     return aggregated_media_data
@@ -334,6 +351,8 @@ def add_spans(text_data):
     formated_text = text_data.get('text', '')
     if (text_data['type'] in ['paragraph', 'list-item', 'o-list-item']) and text_data.get('spans'):
         text_data['spans'].reverse()
+        # TODO: add implementation for paragraphs with both bold and hyperlinks or multiple hyperlinks
+        # 1.3, 1.4, 1.5, 1.9
         for span in text_data['spans']:
             if span['type'] == 'hyperlink':
                 paragraph = formated_text
@@ -402,9 +421,9 @@ def aggregate_question_options(data):
 
 def aggregate_document_link(data):
     try:
-        if data['type'] != 'Link.document' or data['value']['isBroken']:
+        if data['link_type'] != 'Document' or data['isBroken']:
             return None
-        return data['value']['document'] if data['value']['document'] else None
+        return data if data else None
     except Exception as error:
         print(f'Could not aggregate document link data. {error}')
         return None
@@ -571,7 +590,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'type': 'image',
                 'title': item['primary']['title'][0]['text'] if item['primary'].get('title')
                 else None,
-                'mediaData': aggregate_media_data(item['primary']['single_image'])
+                'mediaData': aggregate_media_data(item['primary']['single_image'], 'single_image')
                 if item['primary'].get('single_image') else None,
             }
         elif item['slice_type'] == 'images_slider':
