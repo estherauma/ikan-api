@@ -258,7 +258,7 @@ def aggregate_content(data):
     return agg_data
 
 
-def aggregate_media_data(data, slice_type=''):
+def aggregate_media_data(data):
     if not data:
         return None
     aggregated_media_data = {}
@@ -272,7 +272,6 @@ def aggregate_media_data(data, slice_type=''):
                 'url': data.get('url', None),
                 'size': data.get('size', 'unknown')
             }
-        pass
     elif media_type:
         if media_type == 'Link.file':
             aggregated_media_data = data.get('file')
@@ -290,14 +289,13 @@ def aggregate_media_data(data, slice_type=''):
                 'url': data.get('url', None),
                 'dimensions': data.get('dimensions', None),
             }
-    elif slice_type:
-        if slice_type == 'single_image':
-            aggregated_media_data = {
-                'name': data.get('alt', 'unknown'),
-                'kind': 'image',
-                'url': data.get('url', None),
-                'dimensions': data.get('dimensions', None),
-            }
+    elif data is not None:
+        aggregated_media_data = {
+            'name': data.get('alt', 'unknown'),
+            'kind': 'image',
+            'url': data.get('url', None),
+            'dimensions': data.get('dimensions', None),
+        }
     else:
         aggregated_media_data = None
     return aggregated_media_data
@@ -590,7 +588,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'type': 'image',
                 'title': item['primary']['title'][0]['text'] if item['primary'].get('title')
                 else None,
-                'mediaData': aggregate_media_data(item['primary']['single_image'], 'single_image')
+                'mediaData': aggregate_media_data(item['primary']['single_image'])
                 if item['primary'].get('single_image') else None,
             }
         elif item['slice_type'] == 'images_slider':
