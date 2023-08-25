@@ -5,7 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from rest_framework.views import APIView
-from accounts.serializers import LoginSerializer
+from accounts.serializers import LoginSerializer, RegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
@@ -13,7 +13,7 @@ from decouple import config
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         '''Login a user
@@ -28,7 +28,7 @@ class LoginView(APIView):
         email = data.get('email')
         password = data.get('password')
         user = User.objects.filter(email=email).first()
-        if user: 
+        if user:
             if user.is_active:
                 if user.check_password(password):
                     identity_manager = JwtManager()
@@ -45,10 +45,10 @@ class LoginView(APIView):
                     user.last_login = timezone.now()
                     user.save()
                     LoginEvent.objects.create(
-                    user=user, ip_address=request.META['REMOTE_ADDR'])
+                        user=user, ip_address=request.META['REMOTE_ADDR'])
                 else:
                     raise AuthenticationFailed('Invalid password, please try again', 401)
-            else: 
+            else:
                 raise AuthenticationFailed('User account is not activated, contact admin', 401)
         else:
             raise AuthenticationFailed('User does not exist', 401)
@@ -63,3 +63,33 @@ class LoginView(APIView):
             status.HTTP_200_OK
         )
 
+
+class RegisterView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
+
+    def post(self, request):
+        '''Register a user
+        Args:
+            request(Request): HTTP request
+        '''
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.create_user(
+            email=data.get('email'),
+            password=data.get('password'),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            is_active=False
+        )
+
+        # TODO: send verification email logic
+
+        return Response(
+            {
+                'status': 'OK',
+                'message': 'User created successfully'
+            },
+            status.HTTP_201_CREATED
+        )

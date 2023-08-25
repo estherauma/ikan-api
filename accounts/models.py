@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin
 from common.models import AuditableModel
 from django.utils.translation import gettext_lazy as _
-from common.models import BaseModel 
+from common.models import BaseModel
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -13,7 +13,7 @@ class UserManager(BaseUserManager):
         """
         Creates and saves a User with the given email and password.
         """
-        
+
         if not email:
             raise ValueError('Email field must be set')
 
@@ -46,7 +46,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     profile_image = models.URLField(null=True, blank=True)
 
     USERNAME_FIELD = 'email'
-        
+
     objects = UserManager()
 
     @property
