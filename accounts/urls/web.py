@@ -1,11 +1,12 @@
 from django.urls import path
 from accounts.views.web import login, request_password_reset, reset_password
-from accounts.views.web import UserListView
+from accounts.views.web import UserListView, RegisterWebView
 
 
 urlpatterns = [
     path('login', login, name='login'),
     path('request-password-reset', request_password_reset, name='request-password-reset'),
     path('reset-password', reset_password, name='reset-password'),
-    path('users', UserListView.as_view(), name='users')
+    path('users', UserListView.as_view(), name='users'),
+    path('register', RegisterWebView.as_view(), name='web-register')
 ]

@@ -15,14 +15,13 @@ class RegisterSerializer(serializers.Serializer):
     '''Register user serializer '''
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
-    confirm_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
     profile_image = serializers.URLField(required=False)
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('emailExists')
+            raise serializers.ValidationError('Email already exists.')
 
         try:
             validate_email(value)
@@ -38,12 +37,6 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(str(e))
         return value
 
-    def validate(self, data):
-        """
-        Check that the passwords match.
-        """
-        password = data.get('password')
-        confirm_password = data.get('confirm_password')
-        if password != confirm_password:
-            raise serializers.ValidationError("Passwords do not match.")
-        return data
+    class Meta:
+        model = User
+        fields = ('email', 'password', 'first_name', 'last_name', 'profile_image')
