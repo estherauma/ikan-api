@@ -9,6 +9,11 @@ from accounts.serializers import LoginSerializer, RegisterSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+import requests
+from django.template.loader import render_to_string
 
 
 class LoginView(APIView):
@@ -76,20 +81,45 @@ class RegisterView(APIView):
         data = request.data
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
-        user = User.objects.create_user(
-            email=data.get('email'),
-            password=data.get('password'),
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name'),
-            is_active=False
-        )
+        user = serializer.save(is_active=False)
 
-        # TODO: send verification email logic
+        # Send verification email
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+
+        # Using send_mail
+        # email_helper = TunaEmailHelper()
+        # email_helper.tuna_send_email(
+        #     to_emails=[user.email],
+        #     subject='Verify your email to start using Ikan',
+        #     body={
+        #         'first_name': user.first_name,
+        #         'verification_link': verification_link,
+        #     },
+        #     template=EmailTemplate.VERIFY_EMAIL.value,
+        # )
+
+        # Using mailgun
+        template = EmailTemplate.VERIFY_EMAIL.value
+        body = {
+            'first_name': user.first_name,
+            'verification_link': verification_link,
+        }
+        requests.post(
+                    f"{config('MAILGUN_BASE_URL')}/messages",
+                    auth=("api", config('MAILGUN_API_KEY')),
+                    data={"from": config("APPLICATION_FROM_EMAIL"),
+                          "to": user.email,
+                          "subject": "Verify your email to start using Ikan",
+                          "html": render_to_string(f'emails/{template}', {"body": body})
+                          }
+                    )
 
         return Response(
             {
                 'status': 'OK',
-                'message': 'User created successfully'
+                'message': 'Account created successfully. Please check your email to verify your account.'
             },
             status.HTTP_201_CREATED
         )
