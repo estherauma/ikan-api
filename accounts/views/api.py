@@ -1,3 +1,4 @@
+from django.shortcuts import redirect, render
 from accounts.models import LoginEvent, User
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
@@ -11,9 +12,7 @@ from rest_framework import status
 from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-import requests
-from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_str
 
 
 class LoginView(APIView):
@@ -87,34 +86,16 @@ class RegisterView(APIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
-
-        # Using send_mail
-        # email_helper = TunaEmailHelper()
-        # email_helper.tuna_send_email(
-        #     to_emails=[user.email],
-        #     subject='Verify your email to start using Ikan',
-        #     body={
-        #         'first_name': user.first_name,
-        #         'verification_link': verification_link,
-        #     },
-        #     template=EmailTemplate.VERIFY_EMAIL.value,
-        # )
-
-        # Using mailgun
-        template = EmailTemplate.VERIFY_EMAIL.value
-        body = {
-            'first_name': user.first_name,
-            'verification_link': verification_link,
-        }
-        requests.post(
-                    f"{config('MAILGUN_BASE_URL')}/messages",
-                    auth=("api", config('MAILGUN_API_KEY')),
-                    data={"from": config("APPLICATION_FROM_EMAIL"),
-                          "to": user.email,
-                          "subject": "Verify your email to start using Ikan",
-                          "html": render_to_string(f'emails/{template}', {"body": body})
-                          }
-                    )
+        email_helper = TunaEmailHelper()
+        email_helper.tuna_send_email(
+            to_emails=[user.email],
+            subject='Verify your email to start using Ikan',
+            body={
+                'first_name': user.first_name,
+                'verification_link': verification_link,
+            },
+            template=EmailTemplate.VERIFY_EMAIL.value,
+        )
 
         return Response(
             {
@@ -123,3 +104,33 @@ class RegisterView(APIView):
             },
             status.HTTP_201_CREATED
         )
+
+
+def verify_email(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        if default_token_generator.check_token(user, token):
+            notify_admin(user)
+            return redirect('verify-email-success')
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        pass
+    return redirect('verify-email-failure')
+
+
+def notify_admin(user):
+    message = f"A new user {user.email} has registered and needs activation."
+    email_helper = TunaEmailHelper()
+    email_helper.tuna_send_email(
+        to_emails=[config('ADMIN_EMAIL')],
+        subject='Ikan: New user registration',
+        body=message,
+    )
+
+
+def verify_email_success(request):
+    return render(request, template_name='verify-email/success.html')
+
+
+def verify_email_failure(request):
+    return render(request, template_name='verify-email/failure.html')
