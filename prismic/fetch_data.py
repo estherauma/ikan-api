@@ -62,7 +62,7 @@ class PrismicAPI():
             question_data = []
             '''Aggregate form questions'''
             for question in form_data:
-                key, label, question_type, displayquestion, help_text, options,\
+                key, label, placeholder, question_type, displayquestion, help_text, options,\
                     options_translations = question['primary'].values()
                 final_options_array = []
                 if options is not None:
@@ -83,6 +83,7 @@ class PrismicAPI():
                     {
                         'key': key,
                         'label': label,
+                        'placeholder': placeholder,
                         'question_type': question_type,
                         'displayquestion': displayquestion,
                         'help_text': help_text,
