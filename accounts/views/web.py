@@ -68,7 +68,7 @@ class RegisterWebView(View):
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
-            subject='Verify your email to start using Ikan',
+            subject='Verify your email to start using IKAN',
             body={
                 'first_name': user.first_name,
                 'verification_link': verification_link,

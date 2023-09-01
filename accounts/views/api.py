@@ -89,7 +89,7 @@ class RegisterView(APIView):
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
-            subject='Verify your email to start using Ikan',
+            subject='Verify your email to start using IKAN',
             body={
                 'first_name': user.first_name,
                 'verification_link': verification_link,
@@ -123,7 +123,7 @@ def notify_admin(user):
     email_helper = TunaEmailHelper()
     email_helper.tuna_send_email(
         to_emails=[config('ADMIN_EMAIL')],
-        subject='Ikan: New user registration',
+        subject='IKAN: New user registration',
         body=message,
     )
 
