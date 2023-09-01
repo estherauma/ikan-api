@@ -44,6 +44,8 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     reset_password_token = models.CharField(
         unique=True, null=True, max_length=125)
     profile_image = models.URLField(null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+    access_code = models.CharField(_('access_code'), null=True, blank=True, max_length=30)
 
     USERNAME_FIELD = 'email'
         
