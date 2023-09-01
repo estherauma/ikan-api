@@ -111,6 +111,8 @@ def verify_email(request, uidb64, token):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
+            user.is_verified = True
+            user.save()
             notify_admin(user)
             return redirect('verify-email-success')
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
