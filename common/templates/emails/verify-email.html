@@ -1,29 +1,25 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Verify Email Template</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
-  </head>
-  <body style="background-color: #EAEDF6; padding: 20px; margin: 0px; font-family: 'Roboto', sans-serif;">
-    <div>
-      <p style="color:#121a24;font-size:20px;line-height:28px;font-family:Helvetica,Arial,Verdana,sans-serif;margin:8px 0;padding:0;text-align:left;margin-bottom:8px"><strong>Welcome!</strong></p>
-      <p style="color:#121a24;font-size: 13px">Click the button below to verify your email and finish creating your Ikan account.</p>
-    </div>
-    <div style="display:block">
-      <a 
-        class="button" 
-        title="Verify Email" 
-        href={{body.verification_link}}
-        style="border-radius:8px;color:#ffffff;background:#3565FF;padding:8px 16px 8px 16px;font-weight:bold;letter-spacing:normal;line-height:100%;text-align:center;text-decoration:none;display:inline-block;margin:8px 0px;font-size:15px"
-        target="_blank"
-      >
-        Verify email
-      </a>
-    </div>
-    <div style="display:block">
-      <p style="color:#121a24;font-size: 13px">If you didn't sign up for Ikan, you can safely ignore this email.</p>
-    </div>
-  </body>
-</html>
+{% extends "themes/v1/auth-base.html" %}
+
+{% block title %}Verify Email | IKAN{% endblock %}
+
+{% block body_class %}verify-email-content{% endblock %}
+
+{% block content %}
+  <div class="section-wrapper">
+    <p class="welcome-text"><strong>Welcome!</strong></p>
+    <p>Click the button below to verify your email and finish creating your IKAN account.</p>
+  </div>
+  <div class="section-wrapper" style="display:block">
+    <a 
+      class="button" 
+      title="Verify Email" 
+      href={{body.verification_link}}
+      target="_blank"
+    >
+      Verify email
+    </a>
+  </div>
+  <div class="section-wrapper">
+    <p>If you didn't sign up for IKAN, you can safely ignore this email.</p>
+  </div>
+{% endblock %}

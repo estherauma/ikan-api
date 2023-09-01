@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="utf-8" />
-        <title>Log In | IKAN</title>
+        <title>{% block title %}Log In | IKAN{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="IKAN" name="description" />
         <meta content="FiftyEight" name="author" />
@@ -19,12 +19,13 @@
 
 		<!-- App css -->
 		<link href="/static/themes/v1/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+		<link href="/static/themes/v1/assets/css/auth.css" rel="stylesheet" type="text/css" />
 
 		<!-- Icons css -->
 		<link href="/static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
     </head>
 
-    <body class="authentication-bg authentication-bg-pattern">
+    <body class="{% block body_class %}authentication-bg authentication-bg-pattern{% endblock %}">
        
        {% block content %} {% endblock %}
 
