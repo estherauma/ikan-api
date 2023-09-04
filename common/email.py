@@ -8,6 +8,7 @@ from decouple import config
 
 class EmailTemplate(Enum):
     APPLICATION = 'application.html'
+    VERIFY_EMAIL = 'verify-email.html'
 
 
 class TunaEmailHelper:
@@ -17,7 +18,7 @@ class TunaEmailHelper:
 
         if template is None:
             return send_mail(subject, body, from_email, to_emails)
-        
+
         html_message = render_to_string(f'emails/{template}', {"body": body})
         plain_message = strip_tags(html_message)
 
