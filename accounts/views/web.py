@@ -9,6 +9,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from common.email import TunaEmailHelper, EmailTemplate
+from common.access_code import get_access_code
+from django.contrib import messages
 
 # models
 from accounts.models import User
@@ -41,6 +43,7 @@ class UserListView(ListView):
         return context
 
 def invite_user(request):
+    print(request.method)
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
@@ -48,8 +51,25 @@ def invite_user(request):
                 email=form.cleaned_data.get('email'),
                 first_name=form.cleaned_data.get('first_name'),
                 last_name=form.cleaned_data.get('last_name'),
-                is_active=False
+                is_active=False,
+                # generate random access code
+                access_code=get_access_code()
             )
+            # Send verification email with access code
+            email = TunaEmailHelper()
+            success = email.tuna_send_email(
+                to_emails=[user.email],
+                subject='Your IKAN access token',
+                body={
+                    'first_name': user.first_name,
+                    'access_token': user.access_code,
+                }
+            )
+            if success:
+                 messages.success(request, 'Your message was sent successfully.')
+            else:
+                 messages.error(request, 'An error occurred while sending the user an email.')
+            return redirect('/account/users')
 
 def reg(request):
     return render(request, template_name='register.html')
@@ -77,6 +97,21 @@ class RegisterWebView(View):
             last_name=form.cleaned_data.get('last_name'),
             is_active=False
         )
+        email_helper = TunaEmailHelper()
+        try:
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject='Your IKAN access token',
+                body={
+                    'first_name': user.first_name,
+                    'access_token': user.access_code,
+                },
+                template=EmailTemplate.VERIFY_EMAIL.value,
+            )
+        except Exception as e:
+            print(e)
+            print('Email sending failed')
+       
 
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))

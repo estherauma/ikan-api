@@ -2,7 +2,17 @@
 
 {% block content %}
 <div class="container-fluid">
-    
+    <div class="row">
+        <div class="col">
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        </div>
+    </div>
 
     <div class="row action-buttons mb-1">
         <div class="row">
@@ -66,8 +76,8 @@
                 </div>
 
                 <div class="modal-body">
-                    <form  action="{% url 'invite-user' %}">
-
+                    <form  action="{% url 'invite-user' %}" method="POST">
+                        {% csrf_token %}
                         {{invite_user_form}}
 
                         <div class="mb-3 text-center">
