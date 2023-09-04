@@ -82,4 +82,6 @@ class InviteUser(forms.Form):
             'placeholder': 'Enter your last name (Optional)'
         }),
         max_length=30,
-        required=False,
+                required=False,
+    )
+    
