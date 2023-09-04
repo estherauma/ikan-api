@@ -1,0 +1,25 @@
+{% extends "themes/v1/auth-base.html" %}
+
+{% block title %}Verify Email | IKAN{% endblock %}
+
+{% block body_class %}verify-email-content{% endblock %}
+
+{% block content %}
+  <div class="section-wrapper">
+    <p class="welcome-text"><strong>Welcome!</strong></p>
+    <p>Click the button below to verify your email and finish creating your IKAN account.</p>
+  </div>
+  <div class="section-wrapper" style="display:block">
+    <a 
+      class="button" 
+      title="Verify Email" 
+      href={{body.verification_link}}
+      target="_blank"
+    >
+      Verify email
+    </a>
+  </div>
+  <div class="section-wrapper">
+    <p>If you didn't sign up for IKAN, you can safely ignore this email.</p>
+  </div>
+{% endblock %}
