@@ -9,6 +9,7 @@ from decouple import config
 class EmailTemplate(Enum):
     APPLICATION = 'application.html'
     VERIFY_EMAIL = 'verify-email.html'
+    ACCESS_TOKEN = 'access-code.html'
 
 
 class TunaEmailHelper:
@@ -27,5 +28,6 @@ class TunaEmailHelper:
             return True  # Email sent successfully
         except Exception as e:
             # Handle the exception and log or display an error message
-            print(f"Error sending email: {str(e)}")
+            # TODO: Send to sentry
+            print(e)
             return False  # Email sending failed

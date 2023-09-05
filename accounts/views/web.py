@@ -43,7 +43,6 @@ class UserListView(ListView):
         return context
 
 def invite_user(request):
-    print(request.method)
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
@@ -52,7 +51,6 @@ def invite_user(request):
                 first_name=form.cleaned_data.get('first_name'),
                 last_name=form.cleaned_data.get('last_name'),
                 is_active=False,
-                # generate random access code
                 access_code=get_access_code()
             )
             # Send verification email with access code
@@ -61,9 +59,10 @@ def invite_user(request):
                 to_emails=[user.email],
                 subject='Your IKAN access token',
                 body={
-                    'first_name': user.first_name,
+                    'email': user.email,
                     'access_token': user.access_code,
-                }
+                },
+                template=EmailTemplate.ACCESS_TOKEN.value,
             )
             if success:
                  messages.success(request, 'Your message was sent successfully.')

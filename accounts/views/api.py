@@ -164,6 +164,7 @@ class VerifyAndSetPassword(APIView):
         try:
             user = User.objects.get(access_code=access_code)
             user.is_verified = True
+            user.is_active = True
             if data.get('password') == data.get('password_confirm'):
                 user.set_password(data.get('password'))
                 user.access_code = None
