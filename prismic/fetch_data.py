@@ -93,14 +93,15 @@ class PrismicAPI():
                             'options': final_options_array,
                         })
                 elif question['slice_type'] == 'additional_text':
-                    slice_data = aggregate_text_data(question['primary']['value'])
-                    for entry in slice_data:
-                        for content_type, value in entry.items():
-                            additional_text.append({
-                                'label': question['primary']['key'],
-                                'value': value,
-                                'type': content_type
-                            })
+                    for entry in question['items']:
+                        slice_data = aggregate_text_data(entry['value'])
+                        for x in slice_data:
+                            for content_type, value in x.items():
+                                additional_text.append({
+                                    'label': entry['key'],
+                                    'value': value,
+                                    'type': content_type
+                                })
             return question_data, additional_text
 
         def agg_common_text(common_text_data):
