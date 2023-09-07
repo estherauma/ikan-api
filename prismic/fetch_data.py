@@ -345,24 +345,63 @@ def aggregate_text_data(data):
 
 
 def add_spans(text_data):
+    def text_formats_overlap(indices):
+        """
+            Checks if there is overlapping text formats in a given text
+            Returns True if there is overlapping text formats, False otherwise
+        """
+        sorted_indices = sorted(indices, key=lambda x: x['start'])
+
+        for i in range(1, len(indices)):
+            current_start, current_end = sorted_indices[i]['start'], sorted_indices[i]['end']
+            previous_start, previous_end = sorted_indices[i - 1]['start'], sorted_indices[i - 1]['end']
+
+            if current_start <= previous_end:
+                return True
+        return False
+
     if not text_data:
         return None
     formated_text = text_data.get('text', '')
     if (text_data['type'] in ['paragraph', 'list-item', 'o-list-item']) and text_data.get('spans'):
-        text_data['spans'].reverse()
+        print('text_data...............', text_data)
+        print('text_data............................', text_data['spans'])
         # TODO: add implementation for paragraphs with both bold and hyperlinks or multiple hyperlinks
         # 1.3, 1.4, 1.5, 1.9
-        for span in text_data['spans']:
-            if span['type'] == 'hyperlink':
-                paragraph = formated_text
-                link_text = paragraph[span['start']:span['end']]
-                html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
-                formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
-            elif span['type'] == 'strong':
-                paragraph = formated_text
-                text_to_bold = paragraph[span['start']:span['end']]
-                bold_text = f'<strong>{text_to_bold}</strong>'
-                formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+
+        if len(text_data['spans']) == 1:
+            for span in text_data['spans']:
+                if span['type'] == 'hyperlink':
+                    paragraph = formated_text
+                    link_text = paragraph[span['start']:span['end']]
+                    html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
+                    formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
+                elif span['type'] == 'strong':
+                    paragraph = formated_text
+                    text_to_bold = paragraph[span['start']:span['end']]
+                    bold_text = f'<strong>{text_to_bold}</strong>'
+                    formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+        elif len(text_data['spans']) > 1:
+            if text_formats_overlap(text_data['spans']):
+                print('overlapiing.................................')
+                pass
+            else:
+                diff = 0
+                for span in text_data['spans']:
+                    start_idx = span['start'] + diff
+                    end_idx = span['end'] + diff
+                    if span['type'] == 'hyperlink':
+                        paragraph = formated_text
+                        link_text = paragraph[start_idx:end_idx]
+                        html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
+                        formated_text = paragraph[:start_idx] + html_link + paragraph[end_idx:]
+                        diff = len(html_link) - len(link_text)
+                    elif span['type'] == 'strong':
+                        paragraph = formated_text
+                        text_to_bold = paragraph[start_idx:end_idx]
+                        bold_text = f'<strong>{text_to_bold}</strong>'
+                        formated_text = paragraph[:start_idx] + bold_text + paragraph[end_idx:]
+                        diff = len(bold_text) - len(text_to_bold)
     return formated_text
 
 
