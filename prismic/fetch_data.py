@@ -345,24 +345,62 @@ def aggregate_text_data(data):
 
 
 def add_spans(text_data):
+    def text_format_is_subset(current, prev):
+        """
+            Checks if there is a text format that is a subset of another text format
+            Returns True if there is a subset, False otherwise
+        """
+        current_start, current_end = current['start'], current['end']
+        previous_start, previous_end = prev['start'], prev['end']
+
+        if current_start > previous_start and current_end < previous_end:
+            return True
+        return False
+
     if not text_data:
         return None
+
+    orginal_text = text_data.get('text', '')
     formated_text = text_data.get('text', '')
     if (text_data['type'] in ['paragraph', 'list-item', 'o-list-item']) and text_data.get('spans'):
-        text_data['spans'].reverse()
-        # TODO: add implementation for paragraphs with both bold and hyperlinks or multiple hyperlinks
-        # 1.3, 1.4, 1.5, 1.9
-        for span in text_data['spans']:
-            if span['type'] == 'hyperlink':
-                paragraph = formated_text
-                link_text = paragraph[span['start']:span['end']]
-                html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
-                formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
-            elif span['type'] == 'strong':
-                paragraph = formated_text
-                text_to_bold = paragraph[span['start']:span['end']]
-                bold_text = f'<strong>{text_to_bold}</strong>'
-                formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+        if len(text_data['spans']) == 1:
+            for span in text_data['spans']:
+                if span['type'] == 'hyperlink':
+                    paragraph = formated_text
+                    link_text = paragraph[span['start']:span['end']]
+                    html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
+                    formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
+                elif span['type'] == 'strong':
+                    paragraph = formated_text
+                    text_to_bold = paragraph[span['start']:span['end']]
+                    bold_text = f'<strong>{text_to_bold}</strong>'
+                    formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+        elif len(text_data['spans']) > 1:
+            prev_start_idx = 0
+            diff = 0
+            for i, span in enumerate(text_data['spans']):
+                if i > 0 and text_format_is_subset(span, text_data['spans'][i - 1]):
+                    substring = orginal_text[span['start']:span['end']]
+                    start_idx = formated_text.find(substring, prev_start_idx)
+                    end_idx = start_idx + len(substring)
+                else:
+                    start_idx = span['start'] + diff
+                    end_idx = span['end'] + diff
+
+                if span['type'] == 'hyperlink':
+                    paragraph = formated_text
+                    link_text = paragraph[start_idx:end_idx]
+                    html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
+                    formated_text = paragraph[:start_idx] + html_link + paragraph[end_idx:]
+                    diff = len(html_link) - len(link_text)
+                    prev_start_idx = start_idx
+                elif span['type'] == 'strong':
+                    paragraph = formated_text
+                    text_to_bold = paragraph[start_idx:end_idx]
+                    bold_text = f'<strong>{text_to_bold}</strong>'
+                    formated_text = paragraph[:start_idx] + bold_text + paragraph[end_idx:]
+                    diff = len(bold_text) - len(text_to_bold)
+                    prev_start_idx = start_idx
     return formated_text
 
 
