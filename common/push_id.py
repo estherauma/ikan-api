@@ -65,4 +65,6 @@ class PushID(object):
         return unique_id
 
 
-push_id = PushID()
+#  push_id = PushID()
+def push_id():
+    return PushID().next_id()
