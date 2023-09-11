@@ -9,6 +9,7 @@ from decouple import config
 class EmailTemplate(Enum):
     APPLICATION = 'application.html'
     VERIFY_EMAIL = 'verify-email.html'
+    PASSWORD_RESET_REQUEST = 'password-reset-request.html'
 
 
 class TunaEmailHelper:

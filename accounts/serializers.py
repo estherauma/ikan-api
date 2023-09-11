@@ -43,3 +43,38 @@ class RegisterSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ('email', 'password', 'first_name', 'last_name', 'profile_image')
+
+
+class PasswordResetCheckTokenSerializer(serializers.Serializer):
+    email = serializers.CharField(write_only=True)
+    reset_password_token = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        email = data.get('email')
+        reset_password_token = data.get('reset_password_token')
+        try:
+            user = User.objects.get(email=email)
+            if user.reset_password_token != reset_password_token:
+                raise serializers.ValidationError("Invalid reset password token.")
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid reset password token.")
+        return data
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.CharField(write_only=True)
+    reset_password_token = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        email = data.get('email')
+        reset_password_token = data.get('reset_password_token')
+        password = data.get('password')
+        try:
+            user = User.objects.get(email=email)
+            if user.reset_password_token != reset_password_token:
+                raise serializers.ValidationError("Invalid reset password token.")
+            validate_password(password)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid reset password token.")
+        return data

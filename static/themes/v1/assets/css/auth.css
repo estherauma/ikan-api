@@ -15,6 +15,10 @@ body.verify-email-content .section-wrapper p {
   font-size: 13px
 }
 
+body.verify-email-content .section-wrapper .reset-token{
+  font-size: 25px
+}
+
 body.verify-email-content .section-wrapper .welcome-text {
   font-size:20px !important;
   line-height:28px;
@@ -54,3 +58,5 @@ body.authentication-bg .register-output-wrapper h1 {
 body.authentication-bg .register-output-wrapper p {
   font-size: 1rem;
 }
+
+

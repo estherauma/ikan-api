@@ -6,13 +6,15 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from rest_framework.views import APIView
-from accounts.serializers import LoginSerializer, RegisterSerializer
+from accounts.serializers import LoginSerializer, RegisterSerializer, \
+    PasswordResetCheckTokenSerializer, PasswordResetSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+import random
 
 
 class LoginView(APIView):
@@ -136,3 +138,101 @@ def verify_email_success(request):
 
 def verify_email_failure(request):
     return render(request, template_name='verify-email/failure.html')
+
+
+class RequestPasswordReset(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({
+                'status': 'FAIL',
+                'message': 'Email is required',
+            }, status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if user:
+            password_rest_token = random.randrange(11111, 99999,)
+            user.reset_password_token = password_rest_token
+            user.save()
+
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject='Reset your IKAN password',
+                body={
+                    'first_name': user.first_name,
+                    'password_rest_token': password_rest_token,
+                },
+                template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+            )
+
+        return Response(
+            {
+                'status': 'OK',
+                'message': 'Password reset request was successful. Please check your email for the password reset code.'
+            },
+            status.HTTP_200_OK
+        )
+
+
+class PasswordResetCheckToken(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        try:
+            data = request.data
+            serializer = PasswordResetCheckTokenSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+
+            return Response(
+                {
+                    'status': 'OK',
+                    'message': 'Password reset token confirmed'
+                },
+                status.HTTP_200_OK
+            )
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            pass
+        return Response(
+            {
+                'status': 'ERROR',
+                'message': 'Password reset failed.'
+            },
+            status.HTTP_400_BAD_REQUEST
+        )
+
+
+class ResetPassword(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        try:
+            data = request.data
+            serializer = PasswordResetSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+
+            email = request.data.get('email')
+            password = request.data.get('password')
+            user = User.objects.filter(email=email).first()
+            user.set_password(password)
+            user.reset_password_token = None
+            user.save()
+            return Response(
+                {
+                    'status': 'OK',
+                    'message': 'Password reset successful.'
+                },
+                status.HTTP_200_OK
+            )
+
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist, Exception):
+            pass
+        return Response(
+            {
+                'status': 'ERROR',
+                'message': 'Password reset failed.'
+            },
+            status.HTTP_400_BAD_REQUEST
+        )
