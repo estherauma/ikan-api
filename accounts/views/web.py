@@ -1,12 +1,14 @@
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
-from accounts.forms import RegistrationForm
+from accounts.forms import RegistrationForm, PasswordResetForm, RequestPasswordResetForm
 from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from common.email import TunaEmailHelper, EmailTemplate
+import random
+from django.contrib import messages
 
 # models
 from accounts.models import User
@@ -34,12 +36,14 @@ class UserListView(ListView):
     template_name = 'user-list.html'
 
 
-def reg(request):
-    return render(request, template_name='register.html')
+class Reg(View):
+    def get(request):
+        return render(request, template_name='register.html')
 
 
-def register_success(request):
-    return render(request, template_name="register-success.html")
+class RegisterSuccess(View):
+    def get(request):
+        return render(request, template_name="register-success.html")
 
 
 class RegisterWebView(View):
@@ -78,3 +82,58 @@ class RegisterWebView(View):
         # messages.success(request, 'Account created successfully. Please check your email to verify your account.')
 
         return redirect('/account/register-success')
+
+
+class RequestPasswordReset(View):
+    def get(self, request):
+        form = RequestPasswordResetForm()
+        return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+
+    def post(self, request):
+        form = RequestPasswordResetForm(data=request.POST)
+        if not form.is_valid():
+            return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+
+        user = User.objects.get(email=form.cleaned_data.get('email'))
+        if user:
+            password_rest_token = random.randrange(11111, 99999,)
+            user.reset_password_token = password_rest_token
+            user.save()
+
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject='Reset your IKAN password',
+                body={
+                    'first_name': user.first_name,
+                    'password_rest_token': password_rest_token,
+                },
+                template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+            )
+            messages.success(request, 'Please check your email for the password reset code.')
+            return redirect('reset-password')
+        else:
+            messages.error(request, 'Invalid email address.')
+            return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+
+
+class ResetPassword(View):
+    def get(self, request):
+        form = PasswordResetForm()
+        return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+
+    def post(self, request):
+        form = PasswordResetForm(data=request.POST)
+        if not form.is_valid():
+            return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+
+        user = User.objects.get(email=form.cleaned_data.get('email'))
+        if user:
+            user.set_password(form.cleaned_data.get('password1'))
+            user.reset_password_token = None
+            user.save()
+            messages.success(request, 'Password reset successfully. Please login with your new password.')
+            return redirect('login')
+        else:
+            messages.error(request, 'Invalid email address.')
+            return render(request, template_name='password-reset/reset-password.html', context={'form': form})
