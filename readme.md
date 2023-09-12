@@ -52,3 +52,9 @@ TunaEmailHelper.tuna_send_email(
    body='Application for the above position'
 )
 ```
+
+## Test users and roles
+The app mobile depends on the roles defined in `accounts.management.commands` to work correctly.
+The management command above creates the default roles  and some users to begin with.
+If you are setting up a new installation, ensure that you set up those roles.
+To run the command, just run `python manage.py seedusersandroles`
