@@ -5,7 +5,7 @@ from django.db import models
 class BaseModel(models.Model):
     '''Base model'''
     id = models.CharField(max_length=20, primary_key=True,
-                          default=push_id.next_id)
+                          default=push_id)
     deleted = models.BooleanField(default=False)
 
     class Meta:

@@ -13,6 +13,8 @@ from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from rest_framework.decorators import api_view
+from django.shortcuts import Http404
 
 
 class LoginView(APIView):
@@ -122,6 +124,7 @@ def verify_email(request, uidb64, token):
 
 def notify_admin(user):
     message = f"A new user {user.email} has registered and needs activation."
+    admin_email = config('ADMIN_EMAIL')
     email_helper = TunaEmailHelper()
     email_helper.tuna_send_email(
         to_emails=[config('ADMIN_EMAIL')],
@@ -136,3 +139,57 @@ def verify_email_success(request):
 
 def verify_email_failure(request):
     return render(request, template_name='verify-email/failure.html')
+
+class VerifyAndSetPassword(APIView):
+    def post(self, request):
+        '''Verify a user and set password
+        Args:
+            request(Request): HTTP request
+        '''
+        data = request.data
+        access_code = data.get('access_code')
+        ''' 
+            access code field on the db can be blank or null. 
+            So we need to check for None so we don't get back all records for users
+            who have already verified and set their passwords
+        '''
+        if access_code is None:
+            return Response(
+                {
+                    'status': 'Failed',
+                    'message': 'Access code is required.'
+                },
+                status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            user = User.objects.get(access_code=access_code)
+            user.is_verified = True
+            user.is_active = True
+            if data.get('password') == data.get('password_confirm'):
+                user.set_password(data.get('password'))
+                user.access_code = None
+                user.save()
+                notify_admin(user)
+                return Response(
+                    {
+                        'status': 'OK',
+                        'message': 'Account verified and password set successfully.'
+                    },
+                    status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {
+                        'status': 'ERROR',
+                        'message': 'Passwords do not match.'
+                    },
+                    status.HTTP_400_BAD_REQUEST
+                )    
+        except User.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'Invalid access code.'
+                },
+                status.HTTP_400_BAD_REQUEST
+            )

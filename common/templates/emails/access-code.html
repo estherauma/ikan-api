@@ -1,0 +1,18 @@
+{% extends "themes/v1/auth-base.html" %}
+
+{% block title %}Your access code | IKAN{% endblock %}
+
+{% block body_class %}verify-email-content{% endblock %}
+
+{% block content %}
+  <div class="section-wrapper">
+    <p class="welcome-text"><strong>Welcome to IKAN!</strong></p>
+    <p>Hello {{body.email}}, please find you access token below</p>
+  </div>
+  <div class="section-wrapper" style="display:block">
+      Access Token: {{body.access_token}}
+  </div>
+  <div class="section-wrapper">
+    <p>If you didn't sign up for IKAN, you can safely ignore this email.</p>
+  </div>
+{% endblock %}
