@@ -1,6 +1,7 @@
 import requests
 from decouple import config
 from prismic.models import AggregatedContent, MessagingContent
+from common.utils import write_json_to_file
 
 
 class PrismicAPI():
@@ -60,36 +61,48 @@ class PrismicAPI():
 
         def agg_form_questions(form_data):
             question_data = []
-            '''Aggregate form questions'''
+            additional_text = []
             for question in form_data:
-                key, label, placeholder, question_type, displayquestion, help_text, options,\
-                    options_translations = question['primary'].values()
-                final_options_array = []
-                if options is not None:
-                    options = options.split(',')
-                    option_list = []
-                    for option in options:
-                        # TODO: Leaving this for things entries we already have on prismic as a fall back.
-                        # Once all are updated, we can remove this
-                        new_options_dict = {"value": option, "label": option}
-                        option_list.append(new_options_dict)
-                        final_options_array = option_list
 
-                if options_translations and options:
-                    options_translations = options_translations.split(',')
-                    final_options_array = [{"value": key, "label": value} for key, value
-                                           in zip(options_translations, options)]
-                question_data.append(
-                    {
-                        'key': key,
-                        'label': label,
-                        'placeholder': placeholder,
-                        'question_type': question_type,
-                        'displayquestion': displayquestion,
-                        'help_text': help_text,
-                        'options': final_options_array,
-                    })
-            return question_data
+                if question['slice_type'] == 'form_question':
+                    key, label, placeholder, question_type, displayquestion, help_text, options,\
+                        options_translations = question['primary'].values()
+                    final_options_array = []
+                    if options is not None:
+                        options = options.split(',')
+                        option_list = []
+                        for option in options:
+                            # TODO: Leaving this for things entries we already have on prismic as a fall back.
+                            # Once all are updated, we can remove this
+                            new_options_dict = {"value": option, "label": option}
+                            option_list.append(new_options_dict)
+                            final_options_array = option_list
+
+                    if options_translations and options:
+                        options_translations = options_translations.split(',')
+                        final_options_array = [{"value": key, "label": value} for key, value
+                                            in zip(options_translations, options)]
+                    question_data.append(
+                        {
+                            'key': key,
+                            'label': label,
+                            'placeholder': placeholder,
+                            'question_type': question_type,
+                            'displayquestion': displayquestion,
+                            'help_text': help_text,
+                            'options': final_options_array,
+                        })
+                elif question['slice_type'] == 'additional_text':
+                    for entry in question['items']:
+                        slice_data = aggregate_text_data(entry['value'])
+                        for x in slice_data:
+                            for content_type, value in x.items():
+                                additional_text.append({
+                                    'label': entry['key'],
+                                    'value': value,
+                                    'type': content_type
+                                })
+            return question_data, additional_text
 
         def agg_common_text(common_text_data):
             '''Aggregrate common text'''
@@ -106,11 +119,13 @@ class PrismicAPI():
 
         for item in data['results']:
             if item['type'] == 'form_questions':
+                aggregation_response = agg_form_questions(item['data']['body'])
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
-                    'form_questions': agg_form_questions(item['data']['body'])
+                    'form_questions': aggregation_response[0],
+                    'additional_text': aggregation_response[1],
                 }
                 aggregated_data[item['uid']] = page_data
 
