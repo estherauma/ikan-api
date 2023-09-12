@@ -96,22 +96,6 @@ class RegisterWebView(View):
             last_name=form.cleaned_data.get('last_name'),
             is_active=False
         )
-        email_helper = TunaEmailHelper()
-        try:
-            email_helper.tuna_send_email(
-                to_emails=[user.email],
-                subject='Your IKAN access token',
-                body={
-                    'first_name': user.first_name,
-                    'access_token': user.access_code,
-                },
-                template=EmailTemplate.VERIFY_EMAIL.value,
-            )
-        except Exception as e:
-            print(e)
-            print('Email sending failed')
-       
-
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
