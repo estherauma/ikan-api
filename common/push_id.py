@@ -64,5 +64,7 @@ class PushID(object):
             raise ValueError('Length should be 20.')
         return unique_id
 
+def push_id():
+    push_id_generator = PushID()  # Create an instance of PushID
+    return push_id_generator.next_id()  # Call next_id on the instance
 
-push_id = PushID()
