@@ -1,3 +1,4 @@
+from accounts.forms import InviteUser
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
@@ -8,6 +9,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from common.email import TunaEmailHelper, EmailTemplate
 import random
+from common.access_code import get_access_code
 from django.contrib import messages
 
 # models
@@ -34,6 +36,40 @@ class UserListView(ListView):
     model = User
     context_object_name = 'users'
     template_name = 'user-list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['invite_user_form'] = InviteUser()
+        return context
+
+
+def invite_user(request):
+    if request.method == 'POST':
+        form = InviteUser(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+                email=form.cleaned_data.get('email'),
+                first_name=form.cleaned_data.get('first_name'),
+                last_name=form.cleaned_data.get('last_name'),
+                is_active=False,
+                access_code=get_access_code()
+            )
+            # Send verification email with access code
+            email = TunaEmailHelper()
+            success = email.tuna_send_email(
+                to_emails=[user.email],
+                subject='Your IKAN access token',
+                body={
+                    'email': user.email,
+                    'access_token': user.access_code,
+                },
+                template=EmailTemplate.ACCESS_TOKEN.value,
+            )
+            if success:
+                messages.success(request, 'Your message was sent successfully.')
+            else:
+                messages.error(request, 'An error occurred while sending the user an email.')
+            return redirect('/account/users')
 
 
 class Reg(View):
@@ -64,7 +100,6 @@ class RegisterWebView(View):
             last_name=form.cleaned_data.get('last_name'),
             is_active=False
         )
-
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
@@ -79,7 +114,7 @@ class RegisterWebView(View):
             },
             template=EmailTemplate.VERIFY_EMAIL.value,
         )
-        # messages.success(request, 'Account created successfully. Please check your email to verify your account.')
+        messages.success(request, 'Account created successfully. Please check your email to verify your account.')
 
         return redirect('/account/register-success')
 

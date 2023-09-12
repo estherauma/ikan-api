@@ -1,6 +1,7 @@
 import requests
 from decouple import config
 from prismic.models import AggregatedContent, MessagingContent
+from common.utils import write_json_to_file
 
 
 class PrismicAPI():
@@ -60,36 +61,48 @@ class PrismicAPI():
 
         def agg_form_questions(form_data):
             question_data = []
-            '''Aggregate form questions'''
+            additional_text = []
             for question in form_data:
-                key, label, placeholder, question_type, displayquestion, help_text, options,\
-                    options_translations = question['primary'].values()
-                final_options_array = []
-                if options is not None:
-                    options = options.split(',')
-                    option_list = []
-                    for option in options:
-                        # TODO: Leaving this for things entries we already have on prismic as a fall back.
-                        # Once all are updated, we can remove this
-                        new_options_dict = {"value": option, "label": option}
-                        option_list.append(new_options_dict)
-                        final_options_array = option_list
 
-                if options_translations and options:
-                    options_translations = options_translations.split(',')
-                    final_options_array = [{"value": key, "label": value} for key, value
-                                           in zip(options_translations, options)]
-                question_data.append(
-                    {
-                        'key': key,
-                        'label': label,
-                        'placeholder': placeholder,
-                        'question_type': question_type,
-                        'displayquestion': displayquestion,
-                        'help_text': help_text,
-                        'options': final_options_array,
-                    })
-            return question_data
+                if question['slice_type'] == 'form_question':
+                    key, label, placeholder, question_type, displayquestion, help_text, options,\
+                        options_translations = question['primary'].values()
+                    final_options_array = []
+                    if options is not None:
+                        options = options.split(',')
+                        option_list = []
+                        for option in options:
+                            # TODO: Leaving this for things entries we already have on prismic as a fall back.
+                            # Once all are updated, we can remove this
+                            new_options_dict = {"value": option, "label": option}
+                            option_list.append(new_options_dict)
+                            final_options_array = option_list
+
+                    if options_translations and options:
+                        options_translations = options_translations.split(',')
+                        final_options_array = [{"value": key, "label": value} for key, value
+                                            in zip(options_translations, options)]
+                    question_data.append(
+                        {
+                            'key': key,
+                            'label': label,
+                            'placeholder': placeholder,
+                            'question_type': question_type,
+                            'displayquestion': displayquestion,
+                            'help_text': help_text,
+                            'options': final_options_array,
+                        })
+                elif question['slice_type'] == 'additional_text':
+                    for entry in question['items']:
+                        slice_data = aggregate_text_data(entry['value'])
+                        for x in slice_data:
+                            for content_type, value in x.items():
+                                additional_text.append({
+                                    'label': entry['key'],
+                                    'value': value,
+                                    'type': content_type
+                                })
+            return question_data, additional_text
 
         def agg_common_text(common_text_data):
             '''Aggregrate common text'''
@@ -106,11 +119,13 @@ class PrismicAPI():
 
         for item in data['results']:
             if item['type'] == 'form_questions':
+                aggregation_response = agg_form_questions(item['data']['body'])
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
-                    'form_questions': agg_form_questions(item['data']['body'])
+                    'form_questions': aggregation_response[0],
+                    'additional_text': aggregation_response[1],
                 }
                 aggregated_data[item['uid']] = page_data
 
@@ -345,24 +360,62 @@ def aggregate_text_data(data):
 
 
 def add_spans(text_data):
+    def text_format_is_subset(current, prev):
+        """
+            Checks if there is a text format that is a subset of another text format
+            Returns True if there is a subset, False otherwise
+        """
+        current_start, current_end = current['start'], current['end']
+        previous_start, previous_end = prev['start'], prev['end']
+
+        if current_start > previous_start and current_end < previous_end:
+            return True
+        return False
+
     if not text_data:
         return None
+
+    orginal_text = text_data.get('text', '')
     formated_text = text_data.get('text', '')
     if (text_data['type'] in ['paragraph', 'list-item', 'o-list-item']) and text_data.get('spans'):
-        text_data['spans'].reverse()
-        # TODO: add implementation for paragraphs with both bold and hyperlinks or multiple hyperlinks
-        # 1.3, 1.4, 1.5, 1.9
-        for span in text_data['spans']:
-            if span['type'] == 'hyperlink':
-                paragraph = formated_text
-                link_text = paragraph[span['start']:span['end']]
-                html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
-                formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
-            elif span['type'] == 'strong':
-                paragraph = formated_text
-                text_to_bold = paragraph[span['start']:span['end']]
-                bold_text = f'<strong>{text_to_bold}</strong>'
-                formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+        if len(text_data['spans']) == 1:
+            for span in text_data['spans']:
+                if span['type'] == 'hyperlink':
+                    paragraph = formated_text
+                    link_text = paragraph[span['start']:span['end']]
+                    html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
+                    formated_text = paragraph[:span['start']] + html_link + paragraph[span['end']:]
+                elif span['type'] == 'strong':
+                    paragraph = formated_text
+                    text_to_bold = paragraph[span['start']:span['end']]
+                    bold_text = f'<strong>{text_to_bold}</strong>'
+                    formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+        elif len(text_data['spans']) > 1:
+            prev_start_idx = 0
+            diff = 0
+            for i, span in enumerate(text_data['spans']):
+                if i > 0 and text_format_is_subset(span, text_data['spans'][i - 1]):
+                    substring = orginal_text[span['start']:span['end']]
+                    start_idx = formated_text.find(substring, prev_start_idx)
+                    end_idx = start_idx + len(substring)
+                else:
+                    start_idx = span['start'] + diff
+                    end_idx = span['end'] + diff
+
+                if span['type'] == 'hyperlink':
+                    paragraph = formated_text
+                    link_text = paragraph[start_idx:end_idx]
+                    html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
+                    formated_text = paragraph[:start_idx] + html_link + paragraph[end_idx:]
+                    diff = len(html_link) - len(link_text)
+                    prev_start_idx = start_idx
+                elif span['type'] == 'strong':
+                    paragraph = formated_text
+                    text_to_bold = paragraph[start_idx:end_idx]
+                    bold_text = f'<strong>{text_to_bold}</strong>'
+                    formated_text = paragraph[:start_idx] + bold_text + paragraph[end_idx:]
+                    diff = len(bold_text) - len(text_to_bold)
+                    prev_start_idx = start_idx
     return formated_text
 
 

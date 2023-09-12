@@ -119,3 +119,32 @@ class PasswordResetForm(forms.Form):
         if password1 != password2:
             raise forms.ValidationError('Passwords do not match.')
         return password2
+
+
+class InviteUser(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control mb-3',
+            'id': 'email',
+            'placeholder': 'Enter your email'
+        }),
+        required=True
+    )
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control mb-3',
+            'id': 'first_name',
+            'placeholder': 'Enter your first name (Optional)'
+        }),
+        max_length=30,
+        required=False,
+    )
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control mb-3',
+            'id': 'last_name',
+            'placeholder': 'Enter your last name (Optional)'
+        }),
+        max_length=30,
+        required=False,
+    )
