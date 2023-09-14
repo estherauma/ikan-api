@@ -217,23 +217,32 @@ class ResetPassword(APIView):
             email = request.data.get('email')
             password = request.data.get('password')
             user = User.objects.filter(email=email).first()
-            user.set_password(password)
-            user.reset_password_token = None
-            user.save()
-            return Response(
-                {
-                    'status': 'OK',
-                    'message': 'Password reset successful.'
-                },
-                status.HTTP_200_OK
-            )
+            if user:
+                user.set_password(password)
+                user.reset_password_token = None
+                user.save()
+                return Response(
+                    {
+                        'status': 'OK',
+                        'message': 'Password reset successful.'
+                    },
+                    status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {
+                        'status': 'ERROR',
+                        'error': 'User does not exist'
+                    },
+                    status.HTTP_400_BAD_REQUEST
+                )
 
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist, Exception):
+        except (TypeError, ValueError, OverflowError):
             pass
         return Response(
             {
                 'status': 'ERROR',
-                'message': 'Password reset failed.'
+                'message': 'Password reset failed.',
             },
             status.HTTP_400_BAD_REQUEST
         )
@@ -283,7 +292,7 @@ class VerifyAndSetPassword(APIView):
                         'message': 'Passwords do not match.'
                     },
                     status.HTTP_400_BAD_REQUEST
-                )    
+                )
         except User.DoesNotExist:
             return Response(
                 {

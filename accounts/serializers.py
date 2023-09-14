@@ -57,7 +57,7 @@ class PasswordResetCheckTokenSerializer(serializers.Serializer):
             if user.reset_password_token != reset_password_token:
                 raise serializers.ValidationError("Invalid reset password token.")
         except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid reset password token.")
+            raise serializers.ValidationError("User does not exist.")
         return data
 
 
@@ -69,12 +69,17 @@ class PasswordResetSerializer(serializers.Serializer):
     def validate(self, data):
         email = data.get('email')
         reset_password_token = data.get('reset_password_token')
-        password = data.get('password')
         try:
             user = User.objects.get(email=email)
             if user.reset_password_token != reset_password_token:
                 raise serializers.ValidationError("Invalid reset password token.")
-            validate_password(password)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid reset password token.")
+            raise serializers.ValidationError("User does not exist.")
         return data
+
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+        return value
