@@ -12,7 +12,11 @@ body.verify-email-content .section-wrapper {
 
 body.verify-email-content .section-wrapper p {
   color:#121a24;
-  font-size: 13px
+  font-size: 13px;
+}
+
+body.verify-email-content .section-wrapper .reset-token{
+  font-size: 25px;
 }
 
 body.verify-email-content .section-wrapper .welcome-text {
@@ -22,7 +26,7 @@ body.verify-email-content .section-wrapper .welcome-text {
   margin:8px 0;
   padding:0;
   text-align:left;
-  margin-bottom:8px
+  margin-bottom:8px;
 }
 
 body.verify-email-content .section-wrapper a {
