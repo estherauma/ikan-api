@@ -11,18 +11,42 @@ from common.email import TunaEmailHelper, EmailTemplate
 import random
 from common.access_code import get_access_code
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import authenticate, login, logout
 
 # models
 from accounts.models import User
 
+# forms
+from accounts.forms import LoginForm
 
+@login_required(login_url='/account/login')
 def get_base(request):
     return render(request, template_name="themes/v1/base.html")
 
 
-def login(request):
-    return render(request, template_name="login.html")
+class LoginView(View):
+    def get(self, request):
+        form = LoginForm()
+        context = {'form': form}
+        return render(request, template_name='login.html', context=context)
 
+    def post(self, request):
+        form = LoginForm(data=request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            password = form.cleaned_data.get("password")
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect("/")
+            else:
+                messages.error(request, "Can not log in with provided credentials!")
+        else:
+            messages.error(request, "Error validating form!")
+            return render(request, template_name='login.html')
+            
 
 def request_password_reset(request):
     return render(request, template_name='password-reset/request-password-reset.html')
@@ -31,8 +55,7 @@ def request_password_reset(request):
 def reset_password(request):
     return render(request, template_name='password-reset/reset-password.html')
 
-
-class UserListView(ListView):
+class UserListView(LoginRequiredMixin, ListView):
     model = User
     context_object_name = 'users'
     template_name = 'user-list.html'
@@ -42,7 +65,7 @@ class UserListView(ListView):
         context['invite_user_form'] = InviteUser()
         return context
 
-
+@login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
         form = InviteUser(request.POST)
@@ -151,7 +174,6 @@ class RequestPasswordReset(View):
             messages.error(request, 'Invalid email address.')
             return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
 
-
 class ResetPassword(View):
     def get(self, request):
         form = PasswordResetForm()
@@ -172,3 +194,9 @@ class ResetPassword(View):
         else:
             messages.error(request, 'Invalid email address.')
             return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+
+
+@login_required
+def logout_user(request):
+    logout(request)
+    return redirect("/account/login")
