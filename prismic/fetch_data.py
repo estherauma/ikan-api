@@ -1,7 +1,6 @@
 import requests
 from decouple import config
 from prismic.models import AggregatedContent, MessagingContent
-from common.utils import write_json_to_file
 
 
 class PrismicAPI():
@@ -81,7 +80,7 @@ class PrismicAPI():
                     if options_translations and options:
                         options_translations = options_translations.split(',')
                         final_options_array = [{"value": key, "label": value} for key, value
-                                            in zip(options_translations, options)]
+                                               in zip(options_translations, options)]
                     question_data.append(
                         {
                             'key': key,
@@ -103,6 +102,21 @@ class PrismicAPI():
                                     'type': content_type
                                 })
             return question_data, additional_text
+
+        def agg_page(page_data):
+            additional_text = []
+            for data in page_data:
+                if data['slice_type'] == 'additional_text':
+                    for entry in data['items']:
+                        slice_data = aggregate_text_data(entry['value'])
+                        for x in slice_data:
+                            for content_type, value in x.items():
+                                additional_text.append({
+                                    'label': entry['key'],
+                                    'value': value,
+                                    'type': content_type
+                                })
+            return additional_text
 
         def agg_common_text(common_text_data):
             '''Aggregrate common text'''
@@ -160,6 +174,17 @@ class PrismicAPI():
                     item['type'] == 'sub_chapter_list':
                 content = aggregate_content(data['results'])
                 aggregated_data = {**aggregated_data, **content}
+
+            if item['type'] == 'page':
+                agg_page_res = agg_page(item['data']['body'])
+                page_data = {
+                    'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
+                    'last_updated': item['last_publication_date'],
+                    'additional_text': agg_page_res[0]
+                }
+                aggregated_data[item['uid']] = page_data
+
         return aggregated_data
 
 
