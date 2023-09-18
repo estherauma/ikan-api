@@ -181,7 +181,7 @@ class PrismicAPI():
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
-                    'additional_text': agg_page_res[0]
+                    'additional_text': agg_page_res
                 }
                 aggregated_data[item['uid']] = page_data
 
