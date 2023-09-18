@@ -76,7 +76,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <form  action="{% url 'invite-user' %}" method="POST">
+                    <form  action="{% url 'accounts:invite-user' %}" method="POST">
                         {% csrf_token %}
                         {{invite_user_form}}
 
