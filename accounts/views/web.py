@@ -11,11 +11,13 @@ from common.email import TunaEmailHelper, EmailTemplate
 import random
 from common.access_code import get_access_code
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # models
 from accounts.models import User
 
-
+@login_required(login_url='/account/login')
 def get_base(request):
     return render(request, template_name="themes/v1/base.html")
 
@@ -31,8 +33,7 @@ def request_password_reset(request):
 def reset_password(request):
     return render(request, template_name='password-reset/reset-password.html')
 
-
-class UserListView(ListView):
+class UserListView(LoginRequiredMixin, ListView):
     model = User
     context_object_name = 'users'
     template_name = 'user-list.html'
@@ -42,7 +43,7 @@ class UserListView(ListView):
         context['invite_user_form'] = InviteUser()
         return context
 
-
+@login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
         form = InviteUser(request.POST)
