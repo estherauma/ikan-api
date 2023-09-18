@@ -148,3 +148,15 @@ class InviteUser(forms.Form):
         max_length=30,
         required=False,
     )
+
+
+class LoginForm(forms.Form):
+    email = forms.EmailField()
+    password = forms.CharField()
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        self.fields["password"].widget = forms.PasswordInput(attrs={"autocomplete": "new-password"})
+        for field in self.fields:
+            self.fields[field].widget.attrs["class"] = "form-control"
+        
