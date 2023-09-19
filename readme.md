@@ -58,3 +58,7 @@ The app mobile depends on the roles defined in `accounts.management.commands` to
 The management command above creates the default roles  and some users to begin with.
 If you are setting up a new installation, ensure that you set up those roles.
 To run the command, just run `python manage.py seedusersandroles`
+
+
+# API documentation
+Currently, the API documentation is done using swagger. To access the documentation, run the app and navigate to `/api/docs/`
