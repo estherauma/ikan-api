@@ -63,6 +63,7 @@ class UserListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
+        context['page_title'] = 'User List'
         return context
 
 @login_required(login_url='/account/login')

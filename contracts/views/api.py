@@ -1,10 +1,9 @@
-from requests import Response
-
 # rest_framework imports
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework.response import Response
 
 # Model imports
 from contracts.models import Contract
@@ -14,14 +13,14 @@ from contracts.serializers import ContractSerializer
 
 
 class ContractListView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated)
+    permission_classes = ([IsAuthenticated,])
     serializer_class = ContractSerializer
     queryset = Contract.objects.all()
 
     def list(self, request):
         queryset = self.get_queryset()
-        serializer = ContractSerializer(queryset, many=True)
-        return Response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'statis': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
     
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -34,7 +33,7 @@ class ContractListView(ListCreateAPIView):
 
 
 class ContractDetailsView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated)
+    permission_classes = ([IsAuthenticated,])
     serializer_class = ContractSerializer
     queryset = Contract.objects.all()
 
@@ -46,10 +45,10 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, id):
         contract = self.get_item(id)
-        serialzer = self.serializer_class(contract)
+        serializer = self.serializer_class(contract)
         return Response({
             'status': 'Ok',
-            'data': serialzer.data
+            'data': serializer.data
         }, status=status.HTTP_200_OK)
 
     def update(self, request, id):

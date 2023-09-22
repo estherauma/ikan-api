@@ -51,4 +51,7 @@ urlpatterns = [
     # web urls
     path('', get_base, name='base'),
     path('account/', include('accounts.urls.web')),
+
+    # Dasbhboard urls
+    path('dashboards/', include('dashboards.urls')),
 ]

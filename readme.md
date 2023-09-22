@@ -62,3 +62,5 @@ To run the command, just run `python manage.py seedusersandroles`
 
 # API documentation
 Currently, the API documentation is done using swagger. To access the documentation, run the app and navigate to `/api/docs/`
+
+The app also includes a  collection that can be used to test the API endpoints. The collection is located at the root of the project and is named `api-collection.json`. If you've never used thunderclient, watch this quick video to get started [here](https://www.youtube.com/watch?v=AbCTlemwZ1k&t=57s&pp=ygUNdGh1bmRlcmNsaWVudA%3D%3D) or this one [here](https://www.youtube.com/watch?v=ubLtI8N6Fq0&pp=ygUNdGh1bmRlcmNsaWVudA%3D%3D)

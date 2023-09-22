@@ -1,0 +1,76 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "Tuna",
+    "dateExported": "2023-09-21T07:32:12.354Z",
+    "version": "1.1",
+    "folders": [
+        {
+            "_id": "50b316ed-186e-4bf3-afd7-51717355688f",
+            "name": "auth",
+            "containerId": "",
+            "created": "2023-09-05T07:46:31.953Z",
+            "sortNum": 10000
+        },
+        {
+            "_id": "b89b88e5-9e84-4d63-bcbc-cfd3426ca5ef",
+            "name": "contracts",
+            "containerId": "",
+            "created": "2023-09-21T06:39:30.830Z",
+            "sortNum": 20000
+        }
+    ],
+    "requests": [
+        {
+            "_id": "fe77a958-7290-44d4-8669-bff2cf4acab8",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "50b316ed-186e-4bf3-afd7-51717355688f",
+            "name": "verify-token",
+            "url": "http://127.0.0.1:8000/api/v1/accounts/verify-access-token/",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2023-09-05T07:46:44.645Z",
+            "modified": "2023-09-05T08:26:44.762Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"accessCode\": \"1WLBYQKB\",\n  \"password\": \"S0DOIPLPY\",\n  \"passwordConfirm\": \"S0DOIPLPY\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "9946833c-4b57-46dc-af64-6424f84edb55",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "b89b88e5-9e84-4d63-bcbc-cfd3426ca5ef",
+            "name": "get-all",
+            "url": "{{api-url}}/api/v1/contracts",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2023-09-21T06:39:43.550Z",
+            "modified": "2023-09-21T06:43:27.563Z",
+            "headers": [],
+            "params": [],
+            "tests": []
+        },
+        {
+            "_id": "e92b0747-f4b2-48e0-9eb8-eb420017f1fc",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "50b316ed-186e-4bf3-afd7-51717355688f",
+            "name": "login",
+            "url": "{{api-url}}/api/v1/accounts/login",
+            "method": "POST",
+            "sortNum": 30000,
+            "created": "2023-09-21T06:48:49.924Z",
+            "modified": "2023-09-21T06:53:50.192Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"email\": \"samsonkapeyi@fiftyeight.io\",\n  \"password\": \"Admin@!23\"\n}",
+                "form": []
+            },
+            "tests": []
+        }
+    ]
+}

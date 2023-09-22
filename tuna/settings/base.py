@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework',
     'prismic',
-    'contracts'
+    'contracts',
+    'dashboards'
 ]
 AUTH_USER_MODEL="accounts.User"
 
