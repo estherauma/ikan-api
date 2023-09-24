@@ -1,7 +1,7 @@
 from django.db import models
-from common.models import BaseModel
+from common.models import BaseModel, AuditableModel
 
-class Contract(BaseModel):
+class Contract(AuditableModel):
     name = models.CharField(max_length=255, null=False, blank=False)
     app_ref = models.CharField(max_length=255, null=False, blank=False)
     internal_ref = models.CharField(max_length=255, null=False, blank=False)
@@ -16,7 +16,7 @@ class Contract(BaseModel):
     kind = models.CharField(max_length=255, null=False, blank=False)
     
 
-class ContractDocument(BaseModel):
+class ContractDocument(AuditableModel):
     contract_id = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='contract_document')
     name = models.CharField(max_length=255, null=False, blank=False)
     url = models.CharField(max_length=255, null=False, blank=False)

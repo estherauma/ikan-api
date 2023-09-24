@@ -13,8 +13,8 @@ class BaseModel(models.Model):
 
 class AuditableModel(BaseModel):
     ''' Auditable base model '''
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
     created_by = models.CharField(max_length=256, null=True, blank=True)
     updated_by = models.CharField(max_length=256, null=True, blank=True)
