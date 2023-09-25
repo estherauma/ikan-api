@@ -13,7 +13,7 @@ class ContractsView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'contracts.html')
     
-class ContractsDataView(View):
+class ContractsDataView(LoginRequiredMixin, View):
     def get(self, request):
         contracts = Contract.objects.all()
         contracts_list = []
