@@ -42,7 +42,7 @@ class ContractDocumentSerializer(serializers.ModelSerializer):
     
 
 class contractClauseSerializer(serializers.ModelSerializer):
-    contract_id = serializers.CharField(required=True)
+    contract = serializers.CharField(required=True)
     name = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
     order = serializers.IntegerField(required=True)
@@ -53,9 +53,11 @@ class contractClauseSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def create(self, validated_data):
+        instance = Contract.objects.get(id=validated_data['contract'])
+        validated_data['contract'] = instance
         return ContractClause.objects.create(**validated_data)
     
-    def validate_contract(self, contract_id):
-        if not Contract.objects.filter(id=contract_id).exists():
+    def validate_contract(self, contract):
+        if not Contract.objects.filter(id=contract).exists():
             raise serializers.ValidationError("Contract does not exist")
-        return contract_id
+        return contract

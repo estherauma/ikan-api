@@ -17,14 +17,14 @@ class Contract(AuditableModel):
     
 
 class ContractDocument(AuditableModel):
-    contract_id = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='contract_document')
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='contract_document')
     name = models.CharField(max_length=255, null=False, blank=False)
     url = models.CharField(max_length=255, null=False, blank=False)
     status = models.CharField(max_length=255, null=False, blank=False)
 
 
 class ContractClause(AuditableModel):
-    contract_id = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='contract_clause')
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='contract_clause')
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
     order = models.IntegerField(null=False, blank=False)
