@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'rest_framework',
-    'prismic'
+    'prismic',
+    'contracts',
+    'dashboards'
 ]
 AUTH_USER_MODEL="accounts.User"
 
@@ -136,6 +138,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR.parent, "staticfiles")
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR.parent, 'static'),
+    os.path.join(BASE_DIR.parent, 'contracts/static'),
 )
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

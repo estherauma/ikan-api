@@ -22,10 +22,32 @@ class LoginView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        '''Login a user
-        Args:
-            request(Request): HTTP request
-        '''
+        """
+            Log in a user using their email and password.
+
+            :param request: The HTTP request object.
+            :type request: HttpRequest
+
+            :param email: The email address of the user.
+            :type email: str
+
+            :param password: The user's password.
+            :type password: str
+
+            :return: The HTTP response.
+            :rtype: HttpResponse
+
+            **Sample Request**:
+
+                POST /login/ HTTP/1.1
+                Host: example.com
+                Content-Type: application/json
+
+                {
+                    "email": "user@example.com",
+                    "password": "securepassword"
+                }
+        """
         data = request.data
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)

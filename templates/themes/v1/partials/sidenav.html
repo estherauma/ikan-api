@@ -69,42 +69,43 @@
             <li class="menu-title">Agents</li>
 
             <li class="menu-item">
-                <a href="#" class="menu-link">
+                <a href="{% url 'dashboards:agent-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-calendar"></i></span>
-                    <span class="menu-text"> Calendar </span>
+                    <span class="menu-text"> Dashboard </span>
                 </a>
             </li>
 
-            <li class="menu-item">
-                <a href="#" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-forum-outline"></i></span>
-                    <span class="menu-text"> Chat </span>
-                </a>
-            </li>
+           
 
     
             <li class="menu-title">Vessel Owners</li>
           
             <li class="menu-item">
-                <a href="#" class="menu-link">
+                <a href="{% url 'dashboards:vesselowner-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-forum-outline"></i></span>
-                    <span class="menu-text"> Chat </span>
+                    <span class="menu-text"> Dashboard </span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'contracts-web:contracts' %}" class="menu-link">
+                    <span class="menu-icon"><i class="mdi mdi-file-document-outline"></i></span>
+                    <span class="menu-text"> Contracts </span>
                 </a>
             </li>
             
             <li class="menu-title">Workers</li>
 
             <li class="menu-item">
-                <a href="#" class="menu-link">
+                <a href="{% url 'dashboards:worker-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
-                    <span class="menu-text"> Example </span>
+                    <span class="menu-text"> Dashboard </span>
                 </a>
             </li>
             
             <li class="menu-title">Super Admin</li>
 
             <li class="menu-item">
-                <a href="/account/users" class="menu-link">
+                <a href="{% url 'accounts:users' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
                     <span class="menu-text"> Users </span>
                 </a>
