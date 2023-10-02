@@ -43,15 +43,17 @@ urlpatterns = [
     path('api/v1/accounts/', include('accounts.urls.api')),
     # api documentation
     path('api/docs/', schema_view.with_ui(
-        'redoc',cache_timeout=0), name='schema-redoc'),
+        'redoc', cache_timeout=0), name='schema-redoc'),
 
     # api urls
     path('api/v1/', include('contracts.urls.api')),
+    path('api/v1/', include('agents.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
     path('account/', include('accounts.urls.web')),
     path('contracts/', include('contracts.urls.web')),
+    path('agents/', include('agents.urls.web')),
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),
