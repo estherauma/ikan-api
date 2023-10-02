@@ -48,7 +48,6 @@ urlpatterns = [
     # api urls
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('agents.urls.api')),
-    path('api/v1/', include('agents.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
 
     # web urls
