@@ -59,7 +59,7 @@ class AgentApiDetailView(RetrieveUpdateDestroyAPIView):
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
-        agent = self.get_item(id)
+        agent = self.get_agent(req=request, id=id)
         serializer = self.serializer_class(agent, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(updated_by=request.user.id)
@@ -69,7 +69,7 @@ class AgentApiDetailView(RetrieveUpdateDestroyAPIView):
         }, status.HTTP_202_ACCEPTED)
 
     def destroy(self, request, id):
-        agent = self.get_agent(id)
+        agent = self.get_agent(req=request, id=id)
         user_id = request.user.id
 
         if user_id != agent.created_by.id:

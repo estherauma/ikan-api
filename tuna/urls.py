@@ -48,12 +48,15 @@ urlpatterns = [
     # api urls
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('agents.urls.api')),
+    path('api/v1/', include('agents.urls.api')),
+    path('api/v1/', include('vessels.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
     path('account/', include('accounts.urls.web')),
     path('contracts/', include('contracts.urls.web')),
     path('agents/', include('agents.urls.web')),
+    path('vessels/', include('vessels.urls.web')),
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),
