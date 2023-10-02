@@ -12,7 +12,8 @@ class AgentsView(LoginRequiredMixin, View):
 
 class AgentsDataView(LoginRequiredMixin, View):
     def get(self, request):
-        agents = Agent.objects.all()
+        super_user = self.request.user.is_superuser
+        agents = Agent.objects.all() if super_user else Agent.objects.filter(created_by=request.user.id)
         agents_list = []
         for item in agents:
             agent = {

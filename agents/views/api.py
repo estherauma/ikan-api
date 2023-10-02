@@ -13,7 +13,8 @@ class AgentsApiListView(ListCreateAPIView):
     queryset = Agent.objects.all()
 
     def list(self, request):
-        agents = Agent.objects.filter(created_by=request.user.id)
+        super_user = self.request.user.is_superuser
+        agents = self.get_queryset() if super_user else Agent.objects.filter(created_by=request.user.id)
         serializer = self.get_serializer(agents, many=True)
         return Response(
             {
@@ -38,14 +39,19 @@ class AgentApiDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = AgentSerializer
     queryset = Agent.objects.all()
 
-    def get_agent(self, id):
+    def get_agent(self, req, id):
         try:
-            return Agent.objects.get(pk=id)
+
+            super_user = self.request.user.is_superuser
+            if super_user:
+                return Agent.objects.get(pk=id, created_by=req.user.id)
+            else:
+                return Agent.objects.get(pk=id)
         except Agent.DoesNotExist:
             raise ValidationError('Agent does not exist')
 
     def retrieve(self, request, id):
-        agent = self.get_agent(id)
+        agent = self.get_agent(req=request, id=id)
         serializer = self.serializer_class(agent)
         return Response({
             'status': 'Ok',
