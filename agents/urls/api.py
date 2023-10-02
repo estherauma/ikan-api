@@ -5,5 +5,5 @@ app_name = 'agents'
 
 urlpatterns = [
     path('agents', AgentsApiListView.as_view(), name='agent-list'),
-    path('agents/<int:pk>', AgentApiDetailView.as_view(), name='agent-detail'),
+    path('agents/<int:id>', AgentApiDetailView.as_view(), name='agent-detail'),
 ]

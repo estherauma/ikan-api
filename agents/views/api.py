@@ -44,9 +44,9 @@ class AgentApiDetailView(RetrieveUpdateDestroyAPIView):
 
             super_user = self.request.user.is_superuser
             if super_user:
-                return Agent.objects.get(pk=id, created_by=req.user.id)
+                return Agent.objects.get(app_ref=id, created_by=req.user.id)
             else:
-                return Agent.objects.get(pk=id)
+                return Agent.objects.get(app_ref=id)
         except Agent.DoesNotExist:
             raise ValidationError('Agent does not exist')
 
