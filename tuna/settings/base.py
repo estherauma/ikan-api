@@ -45,9 +45,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'prismic',
     'contracts',
-    'dashboards'
+    'dashboards',
+    'agents',
+    'vessels'
 ]
-AUTH_USER_MODEL="accounts.User"
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
