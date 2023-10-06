@@ -20,7 +20,7 @@ class ContractListView(ListCreateAPIView):
     def list(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'statis': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'status': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
     
     def create(self, request):
         serializer = self.serializer_class(data=request.data)

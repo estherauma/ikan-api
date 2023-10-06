@@ -46,8 +46,9 @@ urlpatterns = [
         'redoc', cache_timeout=0), name='schema-redoc'),
 
     # api urls
-    path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('agents.urls.api')),
+    path('api/v1/', include('contracts.urls.api')),
+    path('api/v1/', include('organizations.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
 
     # web urls
