@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "Tuna",
-    "dateExported": "2023-09-24T08:11:42.308Z",
+    "dateExported": "2023-10-09T11:53:31.112Z",
     "version": "1.1",
     "folders": [
         {
@@ -12,11 +12,39 @@
             "sortNum": 10000
         },
         {
+            "_id": "b97b4b5e-bd8b-4ad2-a722-de6cc5f15b98",
+            "name": "agents",
+            "containerId": "",
+            "created": "2023-10-05T10:57:24.572Z",
+            "sortNum": 15000
+        },
+        {
             "_id": "b89b88e5-9e84-4d63-bcbc-cfd3426ca5ef",
             "name": "contracts",
             "containerId": "",
             "created": "2023-09-21T06:39:30.830Z",
             "sortNum": 20000
+        },
+        {
+            "_id": "3923d248-3e63-452f-bb2c-651fabba8b5b",
+            "name": "contract-clauses",
+            "containerId": "",
+            "created": "2023-09-25T13:25:48.793Z",
+            "sortNum": 22500
+        },
+        {
+            "_id": "c2b29a4a-0cd8-48b9-bb3b-b60af12414c0",
+            "name": "organizations",
+            "containerId": "",
+            "created": "2023-10-08T15:07:40.565Z",
+            "sortNum": 25000
+        },
+        {
+            "_id": "069d7b89-7154-4c16-bb29-d08d9f1a7246",
+            "name": "vessels",
+            "containerId": "",
+            "created": "2023-10-05T10:50:11.817Z",
+            "sortNum": 40000
         }
     ],
     "requests": [
@@ -40,6 +68,52 @@
             "tests": []
         },
         {
+            "_id": "ebe58812-f443-4ff7-a48f-fec2a99bf028",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "069d7b89-7154-4c16-bb29-d08d9f1a7246",
+            "name": "create",
+            "url": "{{api-url}}/api/v1/vessels",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2023-10-05T10:50:18.045Z",
+            "modified": "2023-10-05T10:56:59.891Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"name\": \"Sample vessel\",\n  \"regNo\": \"XDADEV123\",\n  \"vesselType\": \"Type\",\n  \"status\": \"Working\",\n  \"capacity\": \"123\",\n  \"commissioningDate\": \"2023-12-12\",\n  \"appRef\": \"XD\"\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "ba0c42ba-3d87-4507-b203-6943b726e0a4",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "b97b4b5e-bd8b-4ad2-a722-de6cc5f15b98",
+            "name": "create",
+            "url": "{{api-url}}/api/v1/agents",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2023-10-05T10:57:24.572Z",
+            "modified": "2023-10-05T11:00:34.419Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"contactName\": \"Sample vessel\",\n  \"telephone\": \"Type\",\n  \"logoUrl\": \"Working\",\n  \"country\": \"123\",\n  \"zip\": \"2023-12-12\",\n  \"town\": \"XD\",\n  \"appRef\": \"XWER\",\n  \"email\": \"email@gmail.com\",\n  \"status\": \"active\",\n  \"name\": \"Sample\",\n  \"buildingName\": \"buidling\",\n  \"road\": \"road\"\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
             "_id": "9946833c-4b57-46dc-af64-6424f84edb55",
             "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
             "containerId": "b89b88e5-9e84-4d63-bcbc-cfd3426ca5ef",
@@ -49,6 +123,24 @@
             "sortNum": 20000,
             "created": "2023-09-21T06:39:43.550Z",
             "modified": "2023-09-21T07:53:17.708Z",
+            "headers": [],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "d41a29cd-f795-4e91-beb2-da54d41370de",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "c2b29a4a-0cd8-48b9-bb3b-b60af12414c0",
+            "name": "get-all",
+            "url": "{{api-url}}/api/v1/organizations",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2023-10-08T15:07:40.565Z",
+            "modified": "2023-10-08T15:09:33.128Z",
             "headers": [],
             "params": [],
             "auth": {
@@ -72,6 +164,29 @@
             "body": {
                 "type": "json",
                 "raw": "{\n  \"name\": \"Sample Contract\",\n  \"appRef\": \"Sample Ref\",\n  \"internalRef\": \"Internal Ref\",\n  \"startDate\": \"2023-09-24\",\n  \"endDate\": \"2023-09-24\",\n  \"description\": \"Contract description\",\n  \"indonesianCompany\": \"1\",\n  \"taiwaneseCompany\": \"1\",\n  \"kind\": \"Company\"\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "da109a9e-d3aa-4e9b-9785-ca72641feae4",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "c2b29a4a-0cd8-48b9-bb3b-b60af12414c0",
+            "name": "create",
+            "url": "{{api-url}}/api/v1/organizations",
+            "method": "POST",
+            "sortNum": 25000,
+            "created": "2023-10-08T15:07:40.566Z",
+            "modified": "2023-10-08T16:07:27.637Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n \"name\": \"Test organization\",\n \"status\": \"Active\",\n \"country\": \"Uganda\",\n \"description\": \"Sample desc\",\n \"telephone\": \"+256782123456\",\n \"email\": \"testorg@email.com\",\n \"city\": \"Liverpool\",\n \"addressLine1\": \"Liverpool\"\n}",
                 "form": []
             },
             "auth": {
@@ -111,6 +226,47 @@
             "modified": "2023-09-21T08:12:37.642Z",
             "headers": [],
             "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "4f17247e-d44b-43db-9d4e-ba4b02afc19d",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "c2b29a4a-0cd8-48b9-bb3b-b60af12414c0",
+            "name": "get-one",
+            "url": "{{api-url}}/api/v1/contracts/1",
+            "method": "GET",
+            "sortNum": 30000,
+            "created": "2023-10-08T15:07:40.567Z",
+            "modified": "2023-10-08T15:07:40.565Z",
+            "headers": [],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "747abbf6-ed2f-4541-aa4a-37237cbd9941",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "3923d248-3e63-452f-bb2c-651fabba8b5b",
+            "name": "create",
+            "url": "{{api-url}}/api/v1/contracts/clauses",
+            "method": "POST",
+            "sortNum": 40000,
+            "created": "2023-09-25T13:26:00.431Z",
+            "modified": "2023-09-26T11:14:25.233Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"contract\": \"-NfGB-M9xdeyNUqYtunV\",\n  \"name\": \"Fees and wages\",\n  \"description\": \"Add a lot of information about the contract\",\n  \"order\": \"1\",\n  \"status\": \"draft\"\n}",
+                "form": []
+            },
             "auth": {
                 "type": "bearer",
                 "bearer": "{{api-token}}"

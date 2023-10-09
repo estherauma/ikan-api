@@ -20,7 +20,7 @@ class OrganizationDataView(LoginRequiredMixin, View):
                 'app_ref': organization.app_ref,
                 'description': organization.description,
                 'logo': organization.logo,
-                'status': organization.description,
+                'status': organization.status,
                 'country': organization.country,
                 'city': organization.city,
                 'telephone': organization.telephone,
