@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'contracts',
     'dashboards',
     'agents',
-    'vessels'
+    'vessels',
+    'organizations'
 ]
 AUTH_USER_MODEL = "accounts.User"
 

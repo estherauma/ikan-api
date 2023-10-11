@@ -3,7 +3,7 @@ from common.models import AuditableModel
 
 
 class Agent(AuditableModel):
-    app_ref = models.CharField(max_length=255, null=False, blank=False)
+    app_ref = models.CharField(max_length=255, null=True, blank=False)
     name = models.CharField(max_length=255, null=False, blank=False)
     contact_name = models.CharField(max_length=255, null=False, blank=False)
     email = models.EmailField(unique=True)
