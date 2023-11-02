@@ -64,7 +64,7 @@ class PrismicAPI():
             for question in form_data:
 
                 if question['slice_type'] == 'form_question':
-                    key, label, placeholder, question_type, displayquestion, help_text, options,\
+                    key, label, placeholder, question_type, displayquestion, help_text, options, \
                         options_translations = question['primary'].values()
                     final_options_array = []
                     if options is not None:
@@ -449,7 +449,7 @@ def aggregate_image_slider_data(data=[]):
     for slide in data:
         if slide.get('image'):
             slides.append({
-                'imageUrl': slide['image'].get('main').get('url') if slide['image'] else None,
+                'imageUrl': slide['image'].get('url') if slide['image'] else None,
                 'title': slide['title'][0]['text'] if slide['title'] else None,
                 'description': aggregate_text_data(slide['description']) if slide['description'] else None,
                 'audio': aggregate_media_data(slide['audio']) if slide.get('audio') else None,
@@ -525,7 +525,7 @@ def aggregate_lists(data, layout, native_page=False):
             i = 0
             while i < len(data):
                 row = []
-                icon = data[i]['icon'].get('main').get('url') if data[i].get('icon') else None
+                icon = data[i]['icon'].get('url') if data[i].get('icon') else None
                 label = data[i]['label'][0]['text'] if data[i].get('label') else None
                 navigation_page = data[i]['navigation_page'] if data[i].get('navigation_page') else None
                 page = None
@@ -543,7 +543,7 @@ def aggregate_lists(data, layout, native_page=False):
                     if data[i].get('page'):
                         page_details = data[i]['page']if native_page else aggregate_document_link(data[i]['page'])
                     row.append({
-                        'icon': data[i]['icon'].get('main').get('url') if data[i].get('icon') else None,
+                        'icon': data[i]['icon'].get('url') if data[i].get('icon') else None,
                         'label': data[i]['label'][0]['text'] if data[i].get('label') else None,
                         'navigationPage': data[i]['navigation_page'] if data[i].get('navigation_page')
                         else None,
@@ -559,10 +559,10 @@ def aggregate_lists(data, layout, native_page=False):
                     if page and page.get('uid'):
                         page['uid'] = page['uid'].split('.')[0]
                     items.append({
-                        'icon': item['icon'].get('main').get('url') if item.get('icon') else None,
+                        'icon': item['icon'].get('url') if item.get('icon') else None,
                         'label': item['label'][0]['text'] if item.get('label') else None,
                         'theme': aggregate_theme_name(item['theme']) if item.get('theme') else None,
-                        'illustration': item['illustration'].get('main').get('url')
+                        'illustration': item['illustration'].get('url')
                         if item.get('illustration') else None,
                         'navigationPage': item['navigation_page'] if item.get('navigation_page') else None,
                         'page': page,
@@ -577,7 +577,7 @@ def aggregate_lists(data, layout, native_page=False):
             for item in data:
                 page = aggregate_document_link(item['page']) if item.get('page') else None
                 items.append({
-                    'icon': item['icon'].get('main').get('url') if item.get('icon') else None,
+                    'icon': item['icon'].get('url') if item.get('icon') else None,
                     'label': item['label'][0]['text'] if item.get('label') else None,
                     'navigationPage': item['navigation_page'] if item.get('navigation_page') else None,
                     'page': page,
@@ -594,7 +594,7 @@ def aggregate_non_click_lists(data):
     items = []
     for item in data:
         items.append({
-            'icon': item['icon'].get('main').get('url') if item.get('icon') else None,
+            'icon': item['icon'].get('url') if item.get('icon') else None,
             'description': aggregate_text_data(item['description']) if item.get('description') else None,
         })
     return items
