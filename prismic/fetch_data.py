@@ -79,7 +79,7 @@ class PrismicAPI():
 
                     if options_translations and options:
                         options_translations = options_translations.split(',')
-                        final_options_array = [{"value": key, "label": value} for key, value
+                        final_options_array = [{"value": value, "label": key} for key, value
                                                in zip(options_translations, options)]
                     question_data.append(
                         {
