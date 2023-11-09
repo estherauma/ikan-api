@@ -64,7 +64,7 @@ class PrismicAPI():
             for question in form_data:
 
                 if question['slice_type'] == 'form_question':
-                    key, label, placeholder, question_type, displayquestion, help_text, options, \
+                    category, key, label, placeholder, question_type, displayquestion, help_text, options, \
                         options_translations = question['primary'].values()
                     final_options_array = []
                     if options is not None:
@@ -83,6 +83,7 @@ class PrismicAPI():
                                                in zip(options_translations, options)]
                     question_data.append(
                         {
+                            'category': category,
                             'key': key,
                             'label': label,
                             'placeholder': placeholder,
