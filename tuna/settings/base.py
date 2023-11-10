@@ -43,10 +43,11 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'rest_framework',
+    'agents',
     'prismic',
+    'companies',
     'contracts',
     'dashboards',
-    'agents',
     'vessels',
     'organizations'
 ]

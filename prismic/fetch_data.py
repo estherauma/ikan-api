@@ -160,6 +160,7 @@ class PrismicAPI():
                     'last_updated': item['last_publication_date'],
                     'data': agg_side_menu(item['data']['body'])
                 }
+                print(page_data)
                 aggregated_data[item['uid']] = page_data
 
             if item['type'] == 'intro_content':
