@@ -60,20 +60,23 @@ class LoginView(APIView):
             if user.is_active:
                 if user.check_password(password):
                     identity_manager = JwtManager()
-                    payload = {
-                        'email': user.email,
-                        'id': user.pk,
-                        'firstName': user.first_name,
-                        'lastName': user.last_name,
-                        'isAdmin': user.is_admin,
-                        'role': list(user.groups.values_list('name', flat=True))[0]
-                    }
-                    token = identity_manager.encode(payload)
-                    is_first_login = user.last_login is None
-                    user.last_login = timezone.now()
-                    user.save()
-                    LoginEvent.objects.create(
-                        user=user, ip_address=request.META['REMOTE_ADDR'])
+                    if user.groups.exists():
+                        payload = {
+                            'email': user.email,
+                            'id': user.pk,
+                            'firstName': user.first_name,
+                            'lastName': user.last_name,
+                            'isAdmin': user.is_admin,
+                            'role': list(user.groups.values_list('name', flat=True))[0]
+                        }
+                        token = identity_manager.encode(payload)
+                        is_first_login = user.last_login is None
+                        user.last_login = timezone.now()
+                        user.save()
+                        LoginEvent.objects.create(
+                            user=user, ip_address=request.META['REMOTE_ADDR'])
+                    else:
+                        raise AuthenticationFailed('Authentication failed, contact admin', 401)
                 else:
                     raise AuthenticationFailed('Invalid password, please try again', 401)
             else:
@@ -278,8 +281,8 @@ class VerifyAndSetPassword(APIView):
         '''
         data = request.data
         access_code = data.get('access_code')
-        ''' 
-            access code field on the db can be blank or null. 
+        '''
+            access code field on the db can be blank or null.
             So we need to check for None so we don't get back all records for users
             who have already verified and set their passwords
         '''
