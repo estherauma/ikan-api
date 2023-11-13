@@ -21,6 +21,7 @@ from accounts.models import User
 # forms
 from accounts.forms import LoginForm
 
+
 @login_required(login_url='/account/login')
 def get_base(request):
     return render(request, template_name="themes/v1/base.html")
@@ -46,7 +47,7 @@ class LoginView(View):
         else:
             messages.error(request, "Error validating form!")
             return render(request, template_name='login.html')
-            
+
 
 def request_password_reset(request):
     return render(request, template_name='password-reset/request-password-reset.html')
@@ -54,6 +55,7 @@ def request_password_reset(request):
 
 def reset_password(request):
     return render(request, template_name='password-reset/reset-password.html')
+
 
 class UserListView(LoginRequiredMixin, ListView):
     model = User
@@ -66,18 +68,27 @@ class UserListView(LoginRequiredMixin, ListView):
         context['page_title'] = 'User List'
         return context
 
+
+# TODO: assign role to invited user
 @login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(
-                email=form.cleaned_data.get('email'),
-                first_name=form.cleaned_data.get('first_name'),
-                last_name=form.cleaned_data.get('last_name'),
-                is_active=False,
-                access_code=get_access_code()
-            )
+            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
+            if not user_exists:
+                user = User.objects.create_user(
+                    email=form.cleaned_data.get('email'),
+                    first_name=form.cleaned_data.get('first_name'),
+                    last_name=form.cleaned_data.get('last_name'),
+                    is_active=False,
+                    access_code=get_access_code()
+                )
+            else:
+                user = User.objects.get(email=form.cleaned_data.get('email'))
+                user.access_code = get_access_code()
+                user.save()
+
             # Send verification email with access code
             email = TunaEmailHelper()
             success = email.tuna_send_email(
@@ -174,6 +185,7 @@ class RequestPasswordReset(View):
         else:
             messages.error(request, 'Invalid email address.')
             return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+
 
 class ResetPassword(View):
     def get(self, request):
