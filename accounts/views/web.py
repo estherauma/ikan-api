@@ -1,4 +1,4 @@
-from accounts.forms import InviteUser
+from accounts.forms import InviteUser, ResendTokenForm
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
@@ -14,6 +14,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import Group
 
 # models
 from accounts.models import User
@@ -66,10 +67,10 @@ class UserListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
         context['page_title'] = 'User List'
+        context['resend_token_form'] = ResendTokenForm()
         return context
 
 
-# TODO: assign role to invited user
 @login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
@@ -84,10 +85,46 @@ def invite_user(request):
                     is_active=False,
                     access_code=get_access_code()
                 )
+                # Save user group/role
+                group = Group.objects.get(name=form.cleaned_data.get('role'))
+                user.groups.add(group)
+
+                # Send verification email with access code
+                email = TunaEmailHelper()
+                success = email.tuna_send_email(
+                    to_emails=[user.email],
+                    subject='Your IKAN access token',
+                    body={
+                        'email': user.email,
+                        'access_token': user.access_code,
+                    },
+                    template=EmailTemplate.ACCESS_TOKEN.value,
+                )
+                if success:
+                    messages.success(request, 'Your message was sent successfully.')
+                else:
+                    messages.error(request, 'An error occurred while sending the user an email.')
             else:
                 user = User.objects.get(email=form.cleaned_data.get('email'))
-                user.access_code = get_access_code()
-                user.save()
+                if not user.is_active:
+                    messages.info(request, 'User already exists. Please resend invite token.')
+                messages.info(request, 'User already exists.')
+
+            return redirect('/account/users')
+
+
+class ResendAcessCode(View):
+    def get(self, request):
+        form = ResendTokenForm()
+        return render(request, 'user-list.html', {'form': form})
+
+    def post(self, request):
+        form = ResendTokenForm(data=request.POST)
+
+        if form.is_valid():
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+            user.access_code = get_access_code()
+            user.save()
 
             # Send verification email with access code
             email = TunaEmailHelper()
@@ -101,9 +138,10 @@ def invite_user(request):
                 template=EmailTemplate.ACCESS_TOKEN.value,
             )
             if success:
-                messages.success(request, 'Your message was sent successfully.')
+                messages.success(request, 'The access code was resent successfully.')
             else:
-                messages.error(request, 'An error occurred while sending the user an email.')
+                messages.error(request, 'An error occurred while resending the user acess code.')
+
             return redirect('/account/users')
 
 
