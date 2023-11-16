@@ -108,7 +108,8 @@ def invite_user(request):
                 user = User.objects.get(email=form.cleaned_data.get('email'))
                 if not user.is_active:
                     messages.info(request, 'User already exists. Please resend invite token.')
-                messages.info(request, 'User already exists.')
+                else:
+                    messages.info(request, 'User already exists.')
 
             return redirect('/account/users')
 
