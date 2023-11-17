@@ -83,3 +83,9 @@ class PasswordResetSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(str(e))
         return value
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'first_name', 'last_name')
