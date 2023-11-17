@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from rest_framework.views import APIView
 from accounts.serializers import LoginSerializer, RegisterSerializer, \
-    PasswordResetCheckTokenSerializer, PasswordResetSerializer
+    PasswordResetCheckTokenSerializer, PasswordResetSerializer, UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
@@ -326,3 +326,20 @@ class VerifyAndSetPassword(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST
             )
+
+
+class UserDetailView(APIView):
+    def get_user(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        user = self.get_user(pk)
+        serializer = UserSerializer(user)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        })

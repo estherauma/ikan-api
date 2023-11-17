@@ -59,12 +59,19 @@
                                     <button class="btn btn-danger btn-sm">Delete</button>
                                     <!-- Resend Code button -->
                                     {% if user.access_code %}
-                                    <button id="td-resend-code" class="btn btn-blue btn-sm" data-bs-toggle="modal" data-bs-target="#resend-code-modal">
+                                    <button
+                                        id="btn-resend-code"
+                                        class="btn btn-blue btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#resend-code-modal-{{user.id}}"
+                                        data-user-id="{{ user.pk }}"
+                                        data-url="{% url 'accounts-api:user-detail' pk=user.id %}"
+                                        >
                                         Resend Code
                                     </button>
 
                                     <!-- Resend user token modal -->
-                                    <div id="resend-code-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div id="resend-code-modal-{{user.id}}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header">

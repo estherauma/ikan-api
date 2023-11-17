@@ -115,6 +115,14 @@ def invite_user(request):
 
 
 class ResendAcessCode(View):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        user = User.objects.get(pk=pk)
+        context['form'] = ResendTokenForm()
+        context['user'] = user
+        return context
+
     def get(self, request):
         form = ResendTokenForm()
         return render(request, 'user-list.html', {'form': form})
