@@ -2,7 +2,8 @@ from django.urls import path
 from accounts.views.web import invite_user, logout_user
 from accounts.views.web import \
     UserListView, RegisterWebView, RegisterSuccess, \
-    RequestPasswordReset, ResetPassword, LoginView
+    RequestPasswordReset, ResetPassword, LoginView, \
+    ResendAcessCode
 
 app_name = 'accounts'
 
@@ -12,6 +13,7 @@ urlpatterns = [
     path('reset-password', ResetPassword.as_view(), name='reset-password'),
     path('users', UserListView.as_view(), name='users'),
     path('users/invite', invite_user, name='invite-user'),
+    path('users/resend-access-code', ResendAcessCode.as_view(), name='resend-access-code'),
     path('register', RegisterWebView.as_view(), name='web-register'),
     path('register-success', RegisterSuccess.as_view(), name='register-success'),
     path("logout", logout_user, name="logout"),

@@ -1,4 +1,4 @@
-from accounts.forms import InviteUser
+from accounts.forms import InviteUser, ResendTokenForm
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
@@ -14,12 +14,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import Group
 
 # models
 from accounts.models import User
 
 # forms
 from accounts.forms import LoginForm
+
 
 @login_required(login_url='/account/login')
 def get_base(request):
@@ -46,7 +48,7 @@ class LoginView(View):
         else:
             messages.error(request, "Error validating form!")
             return render(request, template_name='login.html')
-            
+
 
 def request_password_reset(request):
     return render(request, template_name='password-reset/request-password-reset.html')
@@ -54,6 +56,7 @@ def request_password_reset(request):
 
 def reset_password(request):
     return render(request, template_name='password-reset/reset-password.html')
+
 
 class UserListView(LoginRequiredMixin, ListView):
     model = User
@@ -64,20 +67,74 @@ class UserListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
         context['page_title'] = 'User List'
+        context['resend_token_form'] = ResendTokenForm()
         return context
+
 
 @login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(
-                email=form.cleaned_data.get('email'),
-                first_name=form.cleaned_data.get('first_name'),
-                last_name=form.cleaned_data.get('last_name'),
-                is_active=False,
-                access_code=get_access_code()
-            )
+            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
+            if not user_exists:
+                user = User.objects.create_user(
+                    email=form.cleaned_data.get('email'),
+                    first_name=form.cleaned_data.get('first_name'),
+                    last_name=form.cleaned_data.get('last_name'),
+                    is_active=False,
+                    access_code=get_access_code()
+                )
+                # Save user group/role
+                group = Group.objects.get(name=form.cleaned_data.get('role'))
+                user.groups.add(group)
+
+                # Send verification email with access code
+                email = TunaEmailHelper()
+                success = email.tuna_send_email(
+                    to_emails=[user.email],
+                    subject='Your IKAN access token',
+                    body={
+                        'email': user.email,
+                        'access_token': user.access_code,
+                    },
+                    template=EmailTemplate.ACCESS_TOKEN.value,
+                )
+                if success:
+                    messages.success(request, 'Your message was sent successfully.')
+                else:
+                    messages.error(request, 'An error occurred while sending the user an email.')
+            else:
+                user = User.objects.get(email=form.cleaned_data.get('email'))
+                if not user.is_active:
+                    messages.info(request, 'User already exists. Please resend invite token.')
+                else:
+                    messages.info(request, 'User already exists.')
+
+            return redirect('/account/users')
+
+
+class ResendAcessCode(View):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pk = self.kwargs['pk']
+        user = User.objects.get(pk=pk)
+        context['form'] = ResendTokenForm()
+        context['user'] = user
+        return context
+
+    def get(self, request):
+        form = ResendTokenForm()
+        return render(request, 'user-list.html', {'form': form})
+
+    def post(self, request):
+        form = ResendTokenForm(data=request.POST)
+
+        if form.is_valid():
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+            user.access_code = get_access_code()
+            user.save()
+
             # Send verification email with access code
             email = TunaEmailHelper()
             success = email.tuna_send_email(
@@ -90,9 +147,10 @@ def invite_user(request):
                 template=EmailTemplate.ACCESS_TOKEN.value,
             )
             if success:
-                messages.success(request, 'Your message was sent successfully.')
+                messages.success(request, 'The access code was resent successfully.')
             else:
-                messages.error(request, 'An error occurred while sending the user an email.')
+                messages.error(request, 'An error occurred while resending the user acess code.')
+
             return redirect('/account/users')
 
 
@@ -174,6 +232,7 @@ class RequestPasswordReset(View):
         else:
             messages.error(request, 'Invalid email address.')
             return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+
 
 class ResetPassword(View):
     def get(self, request):

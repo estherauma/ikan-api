@@ -1,7 +1,7 @@
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-
+from django.contrib.auth.models import Group
 from accounts.models import User
 
 
@@ -149,6 +149,24 @@ class InviteUser(forms.Form):
         required=False,
     )
 
+    def __init__(self, *args, **kwargs):
+        super(InviteUser, self).__init__(*args, **kwargs)
+        group_choices = [(group.name, group.name) for group in Group.objects.all()]
+        group_choices.insert(0, ('', 'Select a role'))
+
+        self.fields['role'] = forms.ChoiceField(
+            choices=group_choices,
+            widget=forms.Select(attrs={
+                'class': 'form-control mb-3',
+                'id': 'role',
+            }),
+            required=True
+        )
+
+
+class ResendTokenForm(forms.Form):
+    email = forms.EmailField(widget=forms.HiddenInput())
+
 
 class LoginForm(forms.Form):
     email = forms.EmailField()
@@ -159,4 +177,3 @@ class LoginForm(forms.Form):
         self.fields["password"].widget = forms.PasswordInput(attrs={"autocomplete": "new-password"})
         for field in self.fields:
             self.fields[field].widget.attrs["class"] = "form-control"
-        

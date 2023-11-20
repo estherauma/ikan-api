@@ -7,7 +7,7 @@
             {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
@@ -18,7 +18,7 @@
         <div class="row">
             <div class="col">
                 <div class="button-list">
-                    <button type="button" class="btn btn-info btn-large waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#create-user-modal">
+                    <button type="button" class="btn btn-info btn-large waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
                         Invite User
                     </button>
                 </div>
@@ -57,6 +57,45 @@
                                     <button class="btn btn-primary btn-sm">Edit</button>
                                     <!-- Delete Button -->
                                     <button class="btn btn-danger btn-sm">Delete</button>
+                                    <!-- Resend Code button -->
+                                    {% if user.access_code %}
+                                    <button
+                                        id="btn-resend-code"
+                                        class="btn btn-blue btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#resend-code-modal-{{user.id}}"
+                                        data-user-id="{{ user.pk }}"
+                                        data-url="{% url 'accounts-api:user-detail' pk=user.id %}"
+                                        >
+                                        Resend Code
+                                    </button>
+
+                                    <!-- Resend user token modal -->
+                                    <div id="resend-code-modal-{{user.id}}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="myLargeModalLabel">Resend Acess Code</h4>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+
+                                                <div class="modal-body">
+                                                    <form method="POST" action="{% url 'accounts:resend-access-code' %}">
+                                                        {% csrf_token %}
+                                                        <div class="mb-3 text-center">
+                                                            Resend code to user <span class="fw-bold">{{ user.email }}</span>
+                                                            <input id="email" type="hidden" name="email" value="{{ user.email }}">
+                                                        </div>
+                                                        <div class="mb-3 text-center">
+                                                            <button class="btn btn-info" type="submit">Resend Code</button>
+                                                        </div>
+                                                    </form>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -68,8 +107,8 @@
         </div><!-- end col-->
     </div>
 
-    <!-- create user modal -->
-    <div id="create-user-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Invite user modal -->
+    <div id="invite-user-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
