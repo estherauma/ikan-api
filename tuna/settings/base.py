@@ -175,7 +175,7 @@ REST_FRAMEWORK = {
 
 # jwt token settings
 TOKEN_ISSUER = config('TOKEN_ISSUER', '50Eight')
-TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=360000)
+TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=10520064)
 
 
 # cors settings
