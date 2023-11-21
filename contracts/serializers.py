@@ -10,8 +10,8 @@ class ContractSerializer(serializers.ModelSerializer):
     start_date = serializers.DateField(required=True)
     end_date = serializers.DateField(required=True)
     description = serializers.CharField(required=True)
-    taiwanese_company = serializers.IntegerField(required=True)
-    indonesian_company = serializers.IntegerField(required=True)
+    taiwanese_company = serializers.CharField(required=True)
+    indonesian_company = serializers.CharField(required=True)
     kind = serializers.CharField(required=True)
 
     class Meta:
