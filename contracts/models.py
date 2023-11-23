@@ -11,8 +11,8 @@ class Contract(AuditableModel):
     # TODO: Add foreigh keys when the company model is created 
     # taiwanese_company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='taiwanese_company')
     # indonesian_company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='indonesia_company')
-    taiwanese_company = models.IntegerField(null=True, blank=True)
-    indonesian_company = models.IntegerField(null=True, blank=True)
+    taiwanese_company = models.CharField(null=True, blank=True, max_length=255)
+    indonesian_company = models.CharField(null=True, blank=True, max_length=255)
     kind = models.CharField(max_length=255, null=False, blank=False)
     
 
