@@ -50,6 +50,7 @@ urlpatterns = [
     path('api/v1/', include('companies.urls.api')),
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('organizations.urls.api')),
+    path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
 
     # web urls
@@ -58,6 +59,7 @@ urlpatterns = [
     path('agents/', include('agents.urls.web')),
     path('contracts/', include('contracts.urls.web')),
     path('organizations/', include('organizations.urls.web')),
+    path('surveys/', include('survey.urls.web')),
     path('vessels/', include('vessels.urls.web')),
 
     # Dasbhboard urls

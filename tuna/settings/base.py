@@ -32,8 +32,12 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.spl
 
 INSTALLED_APPS = [
     'accounts',
+    'agents',
+    'companies',
+    'contracts',
     'corsheaders',
     'common',
+    'dashboards',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,14 +46,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_filters',
     'drf_yasg',
-    'rest_framework',
-    'agents',
+    'organizations',
     'prismic',
-    'companies',
-    'contracts',
-    'dashboards',
+    'rest_framework',
+    'survey',
     'vessels',
-    'organizations'
 ]
 AUTH_USER_MODEL = "accounts.User"
 
