@@ -59,6 +59,7 @@ urlpatterns = [
     path('agents/', include('agents.urls.web')),
     path('contracts/', include('contracts.urls.web')),
     path('organizations/', include('organizations.urls.web')),
+    path('surveys/', include('survey.urls.web')),
     path('vessels/', include('vessels.urls.web')),
 
     # Dasbhboard urls

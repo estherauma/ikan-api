@@ -10,7 +10,7 @@ class Survey(AuditableModel):
     question_response = models.TextField(null=False, blank=False)
     
     def __str__(self):
-        return self.name
+        return self.question_text
 
     def get_question_response(self):
         return json.loads(self.question_response)
