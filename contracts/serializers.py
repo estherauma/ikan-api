@@ -44,9 +44,8 @@ class ContractDocumentSerializer(serializers.ModelSerializer):
 class contractClauseSerializer(serializers.ModelSerializer):
     contract = serializers.CharField(required=True)
     name = serializers.CharField(required=True)
-    description = serializers.CharField(required=True)
-    order = serializers.IntegerField(required=True)
-    status = serializers.CharField(required=True)
+    order = serializers.IntegerField(required=False)
+    status = serializers.CharField(required=False)
 
     class Meta:
         model = ContractClause
