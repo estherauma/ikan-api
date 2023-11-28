@@ -50,6 +50,7 @@ urlpatterns = [
     path('api/v1/', include('companies.urls.api')),
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('organizations.urls.api')),
+    path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
 
     # web urls

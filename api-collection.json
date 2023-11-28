@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "Tuna",
-    "dateExported": "2023-10-09T11:53:31.112Z",
+    "dateExported": "2023-11-28T09:26:50.000Z",
     "version": "1.1",
     "folders": [
         {
@@ -45,6 +45,13 @@
             "containerId": "",
             "created": "2023-10-05T10:50:11.817Z",
             "sortNum": 40000
+        },
+        {
+            "_id": "cd658a8a-8d31-4489-8a71-078af178ce97",
+            "name": "surveys",
+            "containerId": "",
+            "created": "2023-11-28T09:06:01.775Z",
+            "sortNum": 50000
         }
     ],
     "requests": [
@@ -196,6 +203,29 @@
             "tests": []
         },
         {
+            "_id": "1ad0f49e-cfbe-403b-a3c8-18189652b1a1",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "cd658a8a-8d31-4489-8a71-078af178ce97",
+            "name": "create",
+            "url": "{{api-url}}/api/v1/surveys",
+            "method": "POST",
+            "sortNum": 25000,
+            "created": "2023-11-28T09:20:49.605Z",
+            "modified": "2023-11-28T09:25:32.603Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"appRef\": \"XD\",\n  \"surveyDate\": \"2023-09-08\",\n  \"questionKey\": \"name_of_recruitment_agency_used\",\n  \"questionText\": \"Name of recruitment agency used\",\n  \"questionResponse\": \"Abc Recruitment\"\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
             "_id": "e92b0747-f4b2-48e0-9eb8-eb420017f1fc",
             "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
             "containerId": "50b316ed-186e-4bf3-afd7-51717355688f",
@@ -204,12 +234,12 @@
             "method": "POST",
             "sortNum": 30000,
             "created": "2023-09-21T06:48:49.924Z",
-            "modified": "2023-09-21T06:53:50.192Z",
+            "modified": "2023-11-28T09:12:07.035Z",
             "headers": [],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"email\": \"samsonkapeyi@fiftyeight.io\",\n  \"password\": \"Admin@!23\"\n}",
+                "raw": "{\n  \"email\": \"{{api-username}}\",\n  \"password\": \"{{api-password}}\"\n}",
                 "form": []
             },
             "tests": []
@@ -267,6 +297,29 @@
                 "raw": "{\n  \"contract\": \"-NfGB-M9xdeyNUqYtunV\",\n  \"name\": \"Fees and wages\",\n  \"description\": \"Add a lot of information about the contract\",\n  \"order\": \"1\",\n  \"status\": \"draft\"\n}",
                 "form": []
             },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "81d060b2-8ba7-4137-807e-4c94197b1bf0",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "cd658a8a-8d31-4489-8a71-078af178ce97",
+            "name": "get-all",
+            "url": "{{api-url}}/api/v1/surveys",
+            "method": "GET",
+            "sortNum": 50000,
+            "created": "2023-11-28T09:06:12.481Z",
+            "modified": "2023-11-28T09:20:36.885Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer {{auth-token}}"
+                }
+            ],
+            "params": [],
             "auth": {
                 "type": "bearer",
                 "bearer": "{{api-token}}"
