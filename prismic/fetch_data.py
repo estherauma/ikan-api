@@ -314,6 +314,13 @@ def aggregate_media_data(data):
                 'url': data.get('url', None),
                 'size': data.get('size', 'unknown')
             }
+        elif link_type == 'Web':
+            aggregated_media_data = {
+                'name': 'unknown',
+                'kind': 'web',
+                'url': data.get('url', None),
+                'size': 'unknown'
+            }
     elif media_type:
         if media_type == 'Link.file':
             aggregated_media_data = data.get('file')
