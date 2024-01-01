@@ -29,6 +29,7 @@ class ContractsDataView(LoginRequiredMixin, View):
                 'taiwanese_company': contract.taiwanese_company,
                 'indonesian_company': contract.indonesian_company,
                 'kind': contract.kind,
+                'something': '<a href="/contracts/edit/' + str(contract.id) + '" class="btn btn-primary btn-sm">Edit</a>' 
             }
             contracts_list.append(contract_dict)
         return JsonResponse({'data': contracts_list})   
