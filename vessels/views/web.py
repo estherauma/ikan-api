@@ -24,7 +24,7 @@ class VesselsDataView(LoginRequiredMixin, View):
                 "status": item.status,
                 "capacity": item.capacity,
                 "commissioning_date": item.commissioning_date,
-                'actions': '<a href="/vessels/view/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> View</a> <a href="/vessels/edit/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-pen"></i> Edit</a>'
+                'actions': '<a href="/vessels/view/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> View</a>  <a href="/vessels/edit/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-pen"></i> Edit</a>'
             }
             vessels_list.append(vessel)
         return JsonResponse({'data': vessels_list})

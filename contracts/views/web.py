@@ -15,21 +15,22 @@ class ContractsView(LoginRequiredMixin, View):
     
 class ContractsDataView(LoginRequiredMixin, View):
     def get(self, request):
-        contracts = Contract.objects.all()
+        super_user = self.request.user.is_superuser
+        contracts = Contract.objects.all() if super_user else Contract.objects.filter(created_by=request.user.id)
         contracts_list = []
         for contract in contracts:
-            contract_dict = {
-                'id': contract.id,
-                'name': contract.name,
-                'app_ref': contract.app_ref,
-                'internal_ref': contract.internal_ref,
-                'start_date': contract.start_date,
-                'end_date': contract.end_date,
-                'description': contract.description,
-                'taiwanese_company': contract.taiwanese_company,
-                'indonesian_company': contract.indonesian_company,
-                'kind': contract.kind,
-                'something': '<a href="/contracts/edit/' + str(contract.id) + '" class="btn btn-primary btn-sm">Edit</a>' 
+            contract = {
+                "id": contract.id,
+                "name": contract.name,
+                "app_ref": contract.app_ref,
+                "internal_ref": contract.internal_ref,
+                "start_date": contract.start_date,
+                "end_date": contract.end_date,
+                "description": contract.description,
+                "taiwanese_company": contract.taiwanese_company,
+                "indonesian_company": contract.indonesian_company,
+                "kind": contract.kind,
+                "actions": "<a href='/contracts/view/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-eye'></i> View</a>  <a href='/contracts/edit/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-pen'></i> Edit</a>"
             }
-            contracts_list.append(contract_dict)
+            contracts_list.append(contract)
         return JsonResponse({'data': contracts_list})   
