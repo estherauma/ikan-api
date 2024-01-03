@@ -7,8 +7,12 @@ from vessels.models import Vessel
 
 class VesselsView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'vessels.html')
+        return render(request, 'vessels/list.html')
 
+class VesselDetailView(LoginRequiredMixin, View):
+    def get(self, request, id):
+        vessel = Vessel.objects.get(id=id)
+        return render(request, 'vessels/view.html', {'vessel': vessel})
 
 class VesselsDataView(LoginRequiredMixin, View):
     def get(self, request):

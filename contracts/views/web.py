@@ -11,7 +11,12 @@ import json
 
 class ContractsView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'contracts.html')
+        return render(request, 'contracts/list.html')
+    
+class ContractsDetailView(LoginRequiredMixin, View):
+    def get(self, request, id):
+        contract = Contract.objects.get(id=id)
+        return render(request, 'contracts/view.html', {'contract': contract})
     
 class ContractsDataView(LoginRequiredMixin, View):
     def get(self, request):
@@ -30,7 +35,7 @@ class ContractsDataView(LoginRequiredMixin, View):
                 "taiwanese_company": contract.taiwanese_company,
                 "indonesian_company": contract.indonesian_company,
                 "kind": contract.kind,
-                "actions": "<a href='/contracts/view/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-eye'></i> View</a>  <a href='/contracts/edit/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-pen'></i> Edit</a>"
+                "actions": "<a href='/contracts/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-eye'></i> View</a>  <a href='/contracts/edit/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-pen'></i> Edit</a>"
             }
             contracts_list.append(contract)
         return JsonResponse({'data': contracts_list})   

@@ -3,6 +3,8 @@ $(document).ready(function () {
         { data: 'name', title: 'Name' },
         { data: 'start_date', title: 'Start Date' },
         { data: 'end_date', title: 'End Date' },
+        { data: 'kind', title: 'Kind' },
+        { data: 'actions', title: 'Actions'}
     ];
     $('#contracts-table').DataTable({
         ajax: '/contracts/data',
