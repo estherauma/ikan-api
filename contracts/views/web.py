@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
+from django.views import generic
 
 
 # mode imports
@@ -13,10 +14,12 @@ class ContractsView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'contracts/list.html')
     
-class ContractsDetailView(LoginRequiredMixin, View):
-    def get(self, request, id):
-        contract = Contract.objects.get(id=id)
-        return render(request, 'contracts/view.html', {'contract': contract})
+class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
+    model = Contract
+    template_name = 'contracts/view.html'
+
+
+
     
 class ContractsDataView(LoginRequiredMixin, View):
     def get(self, request):

@@ -3,16 +3,16 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 from vessels.models import Vessel
+from django.views import generic
 
 
 class VesselsView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'vessels/list.html')
 
-class VesselDetailView(LoginRequiredMixin, View):
-    def get(self, request, id):
-        vessel = Vessel.objects.get(id=id)
-        return render(request, 'vessels/view.html', {'vessel': vessel})
+class VesselDetailView(LoginRequiredMixin, generic.DetailView):
+    model = Vessel
+    template_name = 'vessels/view.html'
 
 class VesselsDataView(LoginRequiredMixin, View):
     def get(self, request):
@@ -28,7 +28,7 @@ class VesselsDataView(LoginRequiredMixin, View):
                 "status": item.status,
                 "capacity": item.capacity,
                 "commissioning_date": item.commissioning_date,
-                'actions': '<a href="/vessels/view/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> View</a>  <a href="/vessels/edit/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-pen"></i> Edit</a>'
+                'actions': '<a href="/vessels/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> View</a>  <a href="/vessels/edit/' + str(item.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-pen"></i> Edit</a>'
             }
             vessels_list.append(vessel)
         return JsonResponse({'data': vessels_list})
