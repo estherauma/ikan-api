@@ -8,7 +8,7 @@ from django.views import generic
 
 class OrganizationsView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'organizations.html')
+        return render(request, 'organizations/list.html')
     
 class OrganizationDetailView(LoginRequiredMixin, generic.DetailView):
     model = Organization
