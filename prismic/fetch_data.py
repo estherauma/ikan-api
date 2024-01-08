@@ -401,7 +401,7 @@ def add_spans(text_data):
         current_start, current_end = current['start'], current['end']
         previous_start, previous_end = prev['start'], prev['end']
 
-        if current_start > previous_start and current_end < previous_end:
+        if current_start >= previous_start and current_end <= previous_end:
             return True
         return False
 
@@ -425,30 +425,32 @@ def add_spans(text_data):
                     formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
         elif len(text_data['spans']) > 1:
             prev_start_idx = 0
-            diff = 0
+            prev_end_idx = 0
             for i, span in enumerate(text_data['spans']):
+                substring = orginal_text[span['start']:span['end']]
                 if i > 0 and text_format_is_subset(span, text_data['spans'][i - 1]):
-                    substring = orginal_text[span['start']:span['end']]
+                    # start checking from previous start position
                     start_idx = formated_text.find(substring, prev_start_idx)
                     end_idx = start_idx + len(substring)
                 else:
-                    start_idx = span['start'] + diff
-                    end_idx = span['end'] + diff
+                    # start checking from previous end position
+                    start_idx = formated_text.find(substring, prev_end_idx)
+                    end_idx = start_idx + len(substring)
 
                 if span['type'] == 'hyperlink':
                     paragraph = formated_text
                     link_text = paragraph[start_idx:end_idx]
                     html_link = f'<a href="{span["data"]["url"]}">{link_text}</a>'
                     formated_text = paragraph[:start_idx] + html_link + paragraph[end_idx:]
-                    diff = len(html_link) - len(link_text)
                     prev_start_idx = start_idx
+                    prev_end_idx = end_idx
                 elif span['type'] == 'strong':
                     paragraph = formated_text
                     text_to_bold = paragraph[start_idx:end_idx]
                     bold_text = f'<strong>{text_to_bold}</strong>'
                     formated_text = paragraph[:start_idx] + bold_text + paragraph[end_idx:]
-                    diff = len(bold_text) - len(text_to_bold)
                     prev_start_idx = start_idx
+                    prev_end_idx = end_idx
     return formated_text
 
 
