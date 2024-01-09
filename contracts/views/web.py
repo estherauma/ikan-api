@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -18,9 +19,12 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
     model = Contract
     template_name = 'contracts/view.html'
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['clauses'] = self.object.contract_clause.all()
+        return context
 
 
-    
 class ContractsDataView(LoginRequiredMixin, View):
     def get(self, request):
         super_user = self.request.user.is_superuser

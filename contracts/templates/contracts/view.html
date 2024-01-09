@@ -2,7 +2,92 @@
 {% load static %}
 
 {% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-light text-dark">
+                    <h5 class="card-title">{{contract.name}}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">App Ref</h5>
+                        </div>
+                        <p class="mb-1">{{contract.app_ref}}</p>
 
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Start Date</h5>
+                        </div>
+                        <p class="mb-1">{{contract.start_date}}</p>
+
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">End Date</h5>
+                        </div>
+                        <p class="mb-1">{{contract.end_date}}</p>
+
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Description</h5>
+                        </div>
+                        <p class="mb-1">{{contract.description}}</p>
+
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Taiwanese Company</h5>
+                        </div>
+                        <p class="mb-1">{{contract.City}}</p>
+
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Indonesian Company</h5>
+                        </div>
+                        <p class="mb-1">{{contract.indonesian_company}}</p>
+
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Kind</h5>
+                        </div>
+                        <p class="mb-1">{{contract.kind}}</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-light text-dark">
+                    <h5 class="card-ttile">Clauses</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="clauseAccordion">
+                        {% for clause in clauses %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
+                                    {{clause.name}}
+                                </button>
+                            </h2>
+                            
+                            <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
+                                <div class="accordion-body">
+                                   {{clause.content}}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light text-dark">
+                    <h5 class="card-ttile">Documents</h5>
+                </div>
+                <div class="card-body">
+                   !Not yet implemented
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
