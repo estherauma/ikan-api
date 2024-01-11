@@ -15,7 +15,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 import random
-from common.access_code import get_access_code
+from common.utils import get_access_code, send_email_invite
 from django.contrib.auth.models import Group
 
 
@@ -348,34 +348,6 @@ class UserDetailView(APIView):
 
 
 class InviteUser(APIView):
-    def send_email_invite(self, user):
-        email_helper = TunaEmailHelper()
-        send_success = email_helper.tuna_send_email(
-            to_emails=[user.email],
-            subject='IKAN: Invitation to join IKAN',
-            body={
-                'email': user.email,
-                'access_token': user.access_code,
-            },
-            template=EmailTemplate.ACCESS_TOKEN.value,
-        )
-        if send_success:
-            return Response(
-                {
-                    'status': 'OK',
-                    'message': 'User invited successfully.'
-                },
-                status.HTTP_200_OK
-            )
-        else:
-            return Response(
-                {
-                    'status': 'FAIL',
-                    'message': 'Failed to send invitation email.'
-                },
-                status.HTTP_400_BAD_REQUEST
-            )
-
     def post(self, request):
         '''Invite a user
         Args:
@@ -417,19 +389,12 @@ class InviteUser(APIView):
             group = Group.objects.get(name=data.get('role'))
             user.groups.add(group)
 
-            return self.send_email_invite(user)
+            return send_email_invite(user)
         else:
             user = User.objects.get(email=email)
 
             if not user.is_verified and not user.is_active:
-                return self.send_email_invite(user)
-                return Response(
-                    {
-                        'status': 'Failed',
-                        'message': 'User already exists. Send invitation email again.'
-                    },
-                    status.HTTP_400_BAD_REQUEST
-                )
+                return send_email_invite(user)
             else:
                 return Response(
                     {
