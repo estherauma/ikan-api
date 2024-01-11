@@ -9,7 +9,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from common.email import TunaEmailHelper, EmailTemplate
 import random
-from common.access_code import get_access_code
+from common.utils import get_access_code
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
