@@ -30,7 +30,7 @@ class OrganizationDataView(LoginRequiredMixin, View):
                 'city': organization.city,
                 'telephone': organization.telephone,
                 'email': organization.email,
-                'actions': '<a href="/organizations/' + str(organization.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> View</a>  <a href="/organizations/edit/' + str(organization.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-pen"></i> Edit</a>'
+                'actions': '<a href="/organizations/' + str(organization.id) + '" class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> View</a>'
             }
             organizations_list.append(organization_dict)
         return JsonResponse({'data': organizations_list})
