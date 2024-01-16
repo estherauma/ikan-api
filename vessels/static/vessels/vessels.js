@@ -6,6 +6,7 @@ $(document).ready(function () {
     { data: 'capacity', title: 'Capacity' },
     { data: 'commissioning_date', title: 'Commission Date' },
     { data: 'status', title: 'Status' },
+    { data: 'actions', title: 'Actions'}
   ];
   $('#vessels-table').DataTable({
       ajax: '/vessels/data',
