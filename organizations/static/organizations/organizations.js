@@ -4,7 +4,8 @@ $(document).ready(function () {
       { data: 'country', title: 'Country' },
       { data: 'city', title: 'City' },
       { data: 'status', title: 'Status' },
-      { data: 'description', title: 'Description'}
+      { data: 'description', title: 'Description'},
+      { data: 'actions', title: 'Actions'}
     ];
     $('#organizations-table').DataTable({
         ajax: '/organizations/data',
