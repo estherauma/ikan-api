@@ -7,8 +7,8 @@ $(document).ready(function () {
       { data: 'description', title: 'Description'},
       { data: 'actions', title: 'Actions'}
     ];
-    $('#organizations-table').DataTable({
-        ajax: '/organizations/data',
+    $('#companies-table').DataTable({
+        ajax: '/companies/data',
         columnDefs: [],
         columns: columns,
         dom: 'Bfrtipl',

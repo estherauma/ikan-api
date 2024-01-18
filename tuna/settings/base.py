@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_filters',
     'drf_yasg',
-    'organizations',
     'prismic',
     'rest_framework',
     'survey',
