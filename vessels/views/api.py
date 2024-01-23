@@ -13,6 +13,7 @@ class VesselApiListView(ListCreateAPIView):
     queryset = Vessel.objects.all()
 
     def list(self, request):
+        request.data.pop('id', None)
         super_user = self.request.user.is_superuser
         vessels = self.get_queryset() if super_user else Vessel.objects.filter(created_by=request.user.id)
         serializer = self.get_serializer(vessels, many=True)

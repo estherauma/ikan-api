@@ -23,6 +23,8 @@ class ContractListView(ListCreateAPIView):
         return Response({'status': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
     
     def create(self, request):
+        # remove the id field from request.data
+        request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user.id)
