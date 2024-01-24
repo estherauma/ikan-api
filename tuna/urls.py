@@ -51,7 +51,6 @@ urlpatterns = [
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
-    path('api/v1/', include('workers.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
