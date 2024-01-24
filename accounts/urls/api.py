@@ -10,7 +10,8 @@ from ..views.api import (
     verify_email_failure,
     VerifyAndSetPassword,
     UserDetailView,
-    InviteUser
+    InviteUser,
+    UserListView,
 )
 
 app_name = 'accounts-api'
@@ -27,4 +28,5 @@ urlpatterns = [
     path('reset-password', ResetPassword.as_view(), name='reset-password'),
     path('users/<str:pk>', UserDetailView.as_view(), name='user-detail'),
     path('invite-user', InviteUser.as_view(), name='invite-user'),
+    path('users', UserListView.as_view(), name='user-list'),
 ]

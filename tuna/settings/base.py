@@ -32,7 +32,6 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.spl
 
 INSTALLED_APPS = [
     'accounts',
-    'agents',
     'companies',
     'contracts',
     'corsheaders',
@@ -50,7 +49,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'survey',
     'vessels',
-    'workers',
 ]
 AUTH_USER_MODEL = "accounts.User"
 

@@ -1,23 +1,32 @@
-from django.shortcuts import redirect, render
 from accounts.models import LoginEvent, User
+from accounts.serializers import (
+    LoginSerializer, RegisterSerializer, 
+    PasswordResetCheckTokenSerializer,
+    PasswordResetSerializer,
+    UserSerializer
+)
+
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.permissions import AllowAny
+from common.utils import get_access_code, send_email_invite
+
+from decouple import config
+
+from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import redirect, render
 from django.utils import timezone
-from rest_framework.views import APIView
-from accounts.serializers import LoginSerializer, RegisterSerializer, \
-    PasswordResetCheckTokenSerializer, PasswordResetSerializer, UserSerializer
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from decouple import config
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-import random
-from common.utils import get_access_code, send_email_invite
-from django.contrib.auth.models import Group
+from rest_framework.views import APIView
 
+
+import random
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -346,7 +355,6 @@ class UserDetailView(APIView):
             'errors': []
         })
 
-
 class InviteUser(APIView):
     def post(self, request):
         '''Invite a user
@@ -403,3 +411,35 @@ class InviteUser(APIView):
                     },
                     status.HTTP_200_OK
                 )
+
+
+class UserListView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        role = request.GET.get('role')
+        if role is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'Role is required.'
+                },
+                status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            Group.objects.get(name=role)
+        except Group.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'Invalid role.'
+                },
+                status.HTTP_400_BAD_REQUEST
+            )
+        users = User.objects.filter(groups__name=role)
+        serializer = UserSerializer(users, many=True)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        })
+            

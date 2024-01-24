@@ -46,17 +46,14 @@ urlpatterns = [
         'redoc', cache_timeout=0), name='schema-redoc'),
 
     # api urls
-    path('api/v1/', include('agents.urls.api')),
     path('api/v1/', include('companies.urls.api')),
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
-    path('api/v1/', include('workers.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
     path('account/', include('accounts.urls.web')),
-    path('agents/', include('agents.urls.web')),
     path('contracts/', include('contracts.urls.web')),
     path('companies/', include('companies.urls.web')),
     path('surveys/', include('survey.urls.web')),
