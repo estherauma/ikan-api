@@ -13,6 +13,7 @@ class VesselApiListView(ListCreateAPIView):
     queryset = Vessel.objects.all()
 
     def list(self, request):
+        request.data.pop('id', None)
         super_user = self.request.user.is_superuser
         vessels = self.get_queryset() if super_user else Vessel.objects.filter(created_by=request.user.id)
         serializer = self.get_serializer(vessels, many=True)
@@ -25,6 +26,7 @@ class VesselApiListView(ListCreateAPIView):
         )
 
     def create(self, request):
+        request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user.id)
@@ -90,6 +92,7 @@ class VesselImageApiListView(ListCreateAPIView):
     queryset = VesselImage.objects.all()
 
     def create(self, request):
+        request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user.id)

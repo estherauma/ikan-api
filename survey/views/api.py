@@ -24,6 +24,7 @@ class SurveyApiListView(ListCreateAPIView):
         )
 
     def create(self, request):
+        request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user.id)

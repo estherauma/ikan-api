@@ -23,6 +23,12 @@ class ContractListView(ListCreateAPIView):
         return Response({'status': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
     
     def create(self, request):
+        # remove the id field from request.data so ids from the local db aren't used
+        # alternatively, update the serializer to ignore the id field on input
+        # extra_kwargs = {
+        # 'id': {'read_only': True}
+        # }
+        request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user.id)
@@ -71,6 +77,7 @@ class ContractClauseListView(ListCreateAPIView):
     queryset = ContractClause.objects.all()
 
     def create(self, request):
+        request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user.id)
