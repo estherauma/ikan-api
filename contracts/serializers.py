@@ -51,11 +51,19 @@ class contractClauseSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def create(self, validated_data):
-        instance = Contract.objects.get(id=validated_data['contract'])
-        validated_data['contract'] = instance
+        contract_instance = validated_data['contract']
+        if isinstance(contract_instance, Contract):
+            return ContractClause.objects.create(**validated_data)
+
+        try:
+            contract_instance = Contract.objects.get(id=contract_instance)
+        except Contract.DoesNotExist:
+            raise serializers.ValidationError("Contract with the specified ID does not exist")
+
+        validated_data['contract'] = contract_instance
         return ContractClause.objects.create(**validated_data)
-    
+
     def validate_contract(self, contract):
-        if not Contract.objects.filter(id=contract).exists():
-            raise serializers.ValidationError("Contract does not exist")
+        if not isinstance(contract, Contract):
+            raise serializers.ValidationError("Invalid contract data")
         return contract
