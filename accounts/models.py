@@ -45,6 +45,17 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     reset_password_token = models.CharField(null=True, max_length=125)
     profile_image = models.URLField(null=True, blank=True)
     access_code = models.CharField(_('access_code'), null=True, blank=True, max_length=30)
+    position = models.CharField(_('position'), null=True, blank=True, max_length=30)
+    telephone = models.CharField(_('telephone'), null=True, blank=True, max_length=30)
+    mobile = models.CharField(_('mobile'), null=True, blank=True, max_length=30)
+    address_line_1 = models.CharField(_('address_line_1'), null=True, blank=True, max_length=30)
+    address_line_2 = models.CharField(_('address_line_2'), null=True, blank=True, max_length=30)
+    address_line_3 = models.CharField(_('address_line_3'), null=True, blank=True, max_length=30)
+    city = models.CharField(_('city'), null=True, blank=True, max_length=30)
+    country = models.CharField(_('country'), null=True, blank=True, max_length=30)
+    postal_code = models.CharField(_('postal_code'), null=True, blank=True, max_length=30)
+    registration_number = models.CharField(_('registration_number'), null=True, blank=True, max_length=30)
+    passport_number = models.CharField(_('passport_number'), null=True, blank=True, max_length=30)
 
     USERNAME_FIELD = 'email'
 
@@ -69,3 +80,4 @@ class LoginEvent(BaseModel):
 
     def __str__(self) -> str:
         return f'{self.user.email}@{self.ip_address} logged in at {self.date_logged_in}'
+
