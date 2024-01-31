@@ -32,3 +32,4 @@ class UserCompany(AuditableModel):
 
     def __str__(self):
         return f'{self.user.email} {self.company.name}'
+    

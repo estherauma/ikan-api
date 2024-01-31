@@ -2,7 +2,7 @@ from accounts.models import LoginEvent, User
 from accounts.serializers import (
     LoginSerializer, RegisterSerializer, 
     PasswordResetCheckTokenSerializer,
-    PasswordResetSerializer,
+    PasswordResetSerializer, UserProfileSerializer,
     UserSerializer
 )
 
@@ -27,6 +27,9 @@ from rest_framework.views import APIView
 
 
 import random
+
+from companies.models import Company, UserCompany
+from companies.serializers import UserCompanySerializer
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -442,4 +445,99 @@ class UserListView(APIView):
             'data': serializer.data,
             'errors': []
         })
-            
+
+class UserProfileView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        # if request has a query param of user id, then get that user instead
+        user_id = request.GET.get('user_id')
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+        serializer = UserProfileSerializer(user)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        user = request.user
+        # if request data has a post parm of user id, then get that user instead
+        user_id = request.data['user_id']
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+        data = request.data
+        serializer = UserProfileSerializer(user, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
+
+class UpdateUserCompany(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user_id = request.data['user_id']
+        company_id = request.data['company_id']
+
+        # check if user exists and return if not
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        # check if company exists and return if not
+        try:
+            company = Company.objects.get(pk=company_id)
+        except Company.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'Company not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+
+        # add entry to Usercompany
+        user_company = UserCompany.objects.create(
+            user=user, 
+            company=company, 
+            role=request.data['role'], 
+            start_date=request.data['start_date'], 
+            end_date=request.data['end_date'],
+            )
+        user_company.save()
+        serializer = UserCompanySerializer(user_company)
+        return Response({  
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
