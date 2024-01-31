@@ -498,10 +498,24 @@ class UserProfileView(APIView):
             'errors': []
         }, status=status.HTTP_200_OK)
 
+
 class UpdateUserCompany(APIView):
+    """
+    API endpoint for updating user-company relationships.
+
+    Requires authentication.
+    """
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        """
+        Get user companies.
+
+        If a 'user_id' query parameter is provided, retrieve companies for that user.
+        If the user is not found, return a 404 response.
+
+        Returns a list of user companies along with their details.
+        """
         user = request.user.id
         # if request has a query param of user id, then get that user instead
         user_id = request.GET.get('user_id')
@@ -528,6 +542,16 @@ class UpdateUserCompany(APIView):
             
 
     def post(self, request):
+        """
+        Create or update a user-company relationship.
+
+        Requires 'user_id', 'company_id', 'role', 'start_date', and 'end_date' in the request data.
+        Check if the user and company exist, return a 404 response if not.
+        Check if the user is already linked to the company, return a 400 response if true.
+        If the user is linked to other companies, mark them as inactive.
+
+        Returns the details of the created or updated user-company relationship.
+        """
         user_id = request.data['user_id']
         company_id = request.data['company_id']
 
