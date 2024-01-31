@@ -465,6 +465,8 @@ class UserProfileView(APIView):
                     status.HTTP_404_NOT_FOUND
                 )
         serializer = UserProfileSerializer(user)
+
+       
         return Response({
             'status': 'OK',
             'data': serializer.data,
@@ -499,6 +501,32 @@ class UserProfileView(APIView):
 class UpdateUserCompany(APIView):
     permission_classes = (IsAuthenticated,)
 
+    def get(self, request):
+        user = request.user.id
+        # if request has a query param of user id, then get that user instead
+        user_id = request.GET.get('user_id')
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+       # get user companies
+        user_companies = UserCompany.objects.filter(user=user)
+        serializer = UserCompanySerializer(user_companies, many=True)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
+            
+            
+
     def post(self, request):
         user_id = request.data['user_id']
         company_id = request.data['company_id']
@@ -525,6 +553,24 @@ class UpdateUserCompany(APIView):
                 },
                 status.HTTP_404_NOT_FOUND
             )
+        
+        # check if user is already linked to company and if they are return
+        user_company_exists = UserCompany.objects.filter(user=user, company=company).exists()
+        if user_company_exists:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User already linked to company.'
+                },
+                status.HTTP_400_BAD_REQUEST
+            )
+    
+        # if not linked, check other company linkages and mark them as inactive
+        user_company_exists = UserCompany.objects.filter(user=user, is_active=True).exists()
+        if user_company_exists:
+            user_company = UserCompany.objects.get(user=user, is_active=True)
+            user_company.is_active = False
+            user_company.save()
 
         # add entry to Usercompany
         user_company = UserCompany.objects.create(

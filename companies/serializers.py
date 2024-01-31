@@ -9,4 +9,4 @@ class CompanySerializer(serializers.ModelSerializer):
 class UserCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserCompany
-        fields = '__all__' 
+        fields = '__all__'
