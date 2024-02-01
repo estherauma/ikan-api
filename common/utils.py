@@ -56,13 +56,14 @@ def send_email_invite(user):
 
 
 def get_user_from_post_request(request):
-    if request.data['user_id'] is not None:
-        try:
-            user = User.objects.get(pk=request.data['user_id'])
-            return user
-        except User.DoesNotExist:
-            return None
-    else:
+    try:
+        if request.data['user_id'] is not None:
+            try:
+                user = User.objects.get(pk=request.data['user_id'])
+                return user
+            except User.DoesNotExist:
+                return None
+    except KeyError:
         return request.user.id
 
 def get_user_from_get_request(request):

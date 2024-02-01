@@ -1,14 +1,14 @@
-from accounts.models import LoginEvent, User
+from accounts.models import LoginEvent, User, UserBank
 from accounts.serializers import (
     LoginSerializer, RegisterSerializer, 
     PasswordResetCheckTokenSerializer,
     PasswordResetSerializer, UserProfileSerializer,
-    UserSerializer
+    UserSerializer, UserBankDetailsSerializer
 )
 
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from common.utils import get_access_code, send_email_invite
+from common.utils import get_access_code, get_user_from_post_request, send_email_invite
 
 from decouple import config
 
@@ -632,7 +632,37 @@ class UserBankDetailsApiView(APIView):
         pass
 
     def post(self, request):
-        pass
+        user = get_user_from_post_request(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        else:
+            # save user bank details here
+            # use the serializer to validate data
+            request.data['user'] = user
+            serializer = UserBankDetailsSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'OK',
+                    'data': serializer.data,
+                    'errors': []
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'status': 'FAIL',
+                    'data': [],
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            
+        
 
 
 class UserBeneficiariesApiView(APIView):
@@ -640,9 +670,14 @@ class UserBeneficiariesApiView(APIView):
     Manage user beneficiaries
     Requires authentication
     """
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         pass
 
     def post(self, request):
-        pass
+        return Response({
+            'status': 'OK',
+            'data': [],
+            'errors': []
+        }, status=status.HTTP_200_OK)
