@@ -8,7 +8,7 @@ from accounts.serializers import (
 
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from common.utils import get_access_code, get_user_from_post_request, send_email_invite
+from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
 
 from decouple import config
 
@@ -629,7 +629,26 @@ class UserBankDetailsApiView(APIView):
         If a `user_id` param is passed, retrive the companies for that user.
         If not, it'll return companies of that user
         """
-        pass
+        user = get_user_from_get_request(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        else:
+            user_banks = UserBank.objects.filter(user=user)
+            serializer = UserBankDetailsSerializer(user_banks, many=True)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data,
+                'errors': []
+            }, status=status.HTTP_200_OK)
+        
+        
+    
 
     def post(self, request):
         user = get_user_from_post_request(request)
@@ -648,6 +667,12 @@ class UserBankDetailsApiView(APIView):
             serializer = UserBankDetailsSerializer(data=request.data)
             
             if serializer.is_valid():
+                # check if user already has account details and mark them as inactive
+                user_bank_exists = UserBank.objects.filter(user=user, is_active=True).exists()
+                if user_bank_exists:
+                    user_bank = UserBank.objects.get(user=user, is_active=True)
+                    user_bank.is_active = False
+                    user_bank.save()
                 serializer.save()
                 return Response({
                     'status': 'OK',
@@ -663,8 +688,6 @@ class UserBankDetailsApiView(APIView):
             
             
         
-
-
 class UserBeneficiariesApiView(APIView):
     """
     Manage user beneficiaries

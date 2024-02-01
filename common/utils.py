@@ -60,7 +60,7 @@ def get_user_from_post_request(request):
         if request.data['user_id'] is not None:
             try:
                 user = User.objects.get(pk=request.data['user_id'])
-                return user
+                return user.id
             except User.DoesNotExist:
                 return None
     except KeyError:
