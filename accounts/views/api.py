@@ -358,6 +358,7 @@ class UserDetailView(APIView):
             'errors': []
         })
 
+
 class InviteUser(APIView):
     def post(self, request):
         '''Invite a user
@@ -445,6 +446,7 @@ class UserListView(APIView):
             'data': serializer.data,
             'errors': []
         })
+
 
 class UserProfileView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -611,3 +613,36 @@ class UpdateUserCompany(APIView):
             'data': serializer.data,
             'errors': []
         }, status=status.HTTP_200_OK)
+
+
+class UserBankDetailsApiView(APIView):
+    """
+    Manage user bank account details
+        
+    Requires authentication
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request): 
+        """
+        Get user banks.
+        If a `user_id` param is passed, retrive the companies for that user.
+        If not, it'll return companies of that user
+        """
+        pass
+
+    def post(self, request):
+        pass
+
+
+class UserBeneficiariesApiView(APIView):
+    """
+    Manage user beneficiaries
+    Requires authentication
+    """
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
