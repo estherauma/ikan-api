@@ -38,5 +38,5 @@ urlpatterns = [
     path('profile', UserProfileView.as_view(), name='profile'),
     path('profile/companies', UpdateUserCompany.as_view(), name='profile-companies'),
     path('bank-details', UserBankDetailsApiView.as_view(), name='bank-details'),
-    path('beneficiaries-bank-details', UserBeneficiariesApiView.as_view(), 'beneficiaries-bank-details')
+    path('beneficiaries-bank-details', UserBeneficiariesApiView.as_view(), name='beneficiaries-bank-details')
 ]

@@ -123,3 +123,4 @@ class UserBeneficiarySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBeneficiaries
         fields = '__all__'
+

@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "Tuna",
-    "dateExported": "2024-01-31T10:13:00.996Z",
+    "dateExported": "2024-02-05T06:47:53.604Z",
     "version": "1.1",
     "folders": [
         {
@@ -422,20 +422,102 @@
             "tests": []
         },
         {
-            "_id": "d0b6c46f-d3bc-4264-b701-8b6861c3a959",
+            "_id": "a1fea500-45dc-43d8-b7ce-4dff10248a19",
             "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
             "containerId": "616f12fc-4466-48e4-9a84-2ab0bc9500c6",
-            "name": "update-company",
-            "url": "{{api-url}}/api/v1/accounts/profile/companies",
+            "name": "add-bank-details",
+            "url": "{{api-url}}/api/v1/accounts/bank-details",
             "method": "POST",
-            "sortNum": 80000,
-            "created": "2024-01-29T10:58:36.786Z",
-            "modified": "2024-01-31T09:22:45.148Z",
+            "sortNum": 75000,
+            "created": "2024-02-01T11:02:09.999Z",
+            "modified": "2024-02-01T12:01:53.564Z",
             "headers": [],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"userId\": \"-NebfSjSeJVw3OEPUQjT\",\n  \"companyId\": \"-NjleyQcE05iRzyxkwNy\",\n  \"startDate\": \"2023-01-12\",\n  \"endDate\": \"2024-12-30\",\n  \"role\": \"Boat Engineer\"\n}",
+                "raw": "{\n  \"user_id\": \"-NebfSjSeJVw3OEPUQjT\",\n  \"first_name\": \"Kapeyi\",\n  \"email\": \"samsonkapeyi@fiftyeight.io\",\n  \"country\": \"Rwanda\"\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "fbdfb413-02fd-4865-848c-bfd81d996f08",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "616f12fc-4466-48e4-9a84-2ab0bc9500c6",
+            "name": "add-beneficiaries",
+            "url": "{{api-url}}/api/v1/accounts/beneficiaries-bank-details",
+            "method": "POST",
+            "sortNum": 76250,
+            "created": "2024-02-05T06:17:28.185Z",
+            "modified": "2024-02-05T06:42:02.497Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_name\": \"sdaf\",\n  \"account_number\": \"asdfasdf\"\n}",
+                "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "8856ccac-bbb3-40e0-b220-632adec5e306",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "616f12fc-4466-48e4-9a84-2ab0bc9500c6",
+            "name": "get-beneficiaries",
+            "url": "{{api-url}}/api/v1/accounts/beneficiaries-bank-details",
+            "method": "GET",
+            "sortNum": 76875,
+            "created": "2024-02-05T06:21:56.642Z",
+            "modified": "2024-02-05T06:29:26.079Z",
+            "headers": [],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "67143c37-b14d-4fda-8c71-98a9ac1bb046",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "616f12fc-4466-48e4-9a84-2ab0bc9500c6",
+            "name": "get-user-banks",
+            "url": "{{api-url}}/api/v1/accounts/bank-details",
+            "method": "GET",
+            "sortNum": 77500,
+            "created": "2024-02-01T12:00:56.529Z",
+            "modified": "2024-02-01T12:09:18.643Z",
+            "headers": [],
+            "params": [],
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            },
+            "tests": []
+        },
+        {
+            "_id": "d0b6c46f-d3bc-4264-b701-8b6861c3a959",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "616f12fc-4466-48e4-9a84-2ab0bc9500c6",
+            "name": "update-company",
+            "url": "{{api-url}}/api/v1/accounts/bank-details",
+            "method": "POST",
+            "sortNum": 80000,
+            "created": "2024-01-29T10:58:36.786Z",
+            "modified": "2024-02-01T11:47:23.219Z",
+            "headers": [],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"accountName\": \"2123123123\",\n  \"accountNumber\": \"1231231141234\",\n  \"routingNumber\": \"asdf234\",\n  \"swiftCode\": \"2342SDF\",\n  \"bankName\": \"Bank Name\"\n}",
                 "form": []
             },
             "auth": {
