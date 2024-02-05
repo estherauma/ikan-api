@@ -465,8 +465,6 @@ class UserProfileView(APIView):
                     status.HTTP_404_NOT_FOUND
                 )
         serializer = UserProfileSerializer(user)
-
-       
         return Response({
             'status': 'OK',
             'data': serializer.data,
@@ -475,8 +473,16 @@ class UserProfileView(APIView):
     
     def post(self, request):
         user = request.user
-        # if request data has a post parm of user id, then get that user instead
-        user_id = request.data['user_id']
+        try:
+            if request.data['user_id'] is not None:
+                try:
+                    user = User.objects.get(pk=request.data['user_id'])
+                    user_id = user.id
+                except User.DoesNotExist:
+                    user_id = None
+        except KeyError:
+            user_id = request.user.id
+
         if user_id is not None:
             try:
                 user = User.objects.get(pk=user_id)
