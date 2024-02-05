@@ -476,7 +476,7 @@ class UserProfileView(APIView):
         try:
             if request.data['user_id'] is not None:
                 try:
-                    user = User.objects.get(pk=request.data['user_id'])
+                    user = User.objects.get(pk=request.data['user_id'], email=request.data['email'])
                     user_id = user.id
                 except User.DoesNotExist:
                     user_id = None
