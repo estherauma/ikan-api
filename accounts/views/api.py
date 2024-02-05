@@ -479,10 +479,15 @@ class UserProfileView(APIView):
                     user = User.objects.get(pk=request.data['user_id'], email=request.data['email'])
                     user_id = user.id
                 except User.DoesNotExist:
-                    user_id = None
+                    return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
         except KeyError:
             user_id = request.user.id
-
         if user_id is not None:
             try:
                 user = User.objects.get(pk=user_id)
