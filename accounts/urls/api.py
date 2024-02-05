@@ -5,6 +5,8 @@ from ..views.api import (
     RequestPasswordReset,
     ResetPassword,
     PasswordResetCheckToken,
+    UpdateUserCompany,
+    UserProfileView,
     verify_email,
     verify_email_success,
     verify_email_failure,
@@ -29,4 +31,6 @@ urlpatterns = [
     path('users/<str:pk>', UserDetailView.as_view(), name='user-detail'),
     path('invite-user', InviteUser.as_view(), name='invite-user'),
     path('users', UserListView.as_view(), name='user-list'),
+    path('profile', UserProfileView.as_view(), name='profile'),
+    path('profile/companies', UpdateUserCompany.as_view(), name='profile-companies'),
 ]

@@ -2,7 +2,7 @@ from accounts.models import LoginEvent, User
 from accounts.serializers import (
     LoginSerializer, RegisterSerializer, 
     PasswordResetCheckTokenSerializer,
-    PasswordResetSerializer,
+    PasswordResetSerializer, UserProfileSerializer,
     UserSerializer
 )
 
@@ -27,6 +27,9 @@ from rest_framework.views import APIView
 
 
 import random
+
+from companies.models import Company, UserCompany
+from companies.serializers import UserCompanySerializer
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -442,4 +445,180 @@ class UserListView(APIView):
             'data': serializer.data,
             'errors': []
         })
+
+class UserProfileView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        # if request has a query param of user id, then get that user instead
+        user_id = request.GET.get('user_id')
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+        serializer = UserProfileSerializer(user)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        user = request.user
+        try:
+            if request.data['user_id'] is not None:
+                try:
+                    user = User.objects.get(pk=request.data['user_id'], email=request.data['email'])
+                    user_id = user.id
+                except User.DoesNotExist:
+                    return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+        except KeyError:
+            user_id = request.user.id
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+        data = request.data
+        serializer = UserProfileSerializer(user, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
+
+
+class UpdateUserCompany(APIView):
+    """
+    API endpoint for updating user-company relationships.
+
+    Requires authentication.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        """
+        Get user companies.
+
+        If a 'user_id' query parameter is provided, retrieve companies for that user.
+        If the user is not found, return a 404 response.
+
+        Returns a list of user companies along with their details.
+        """
+        user = request.user.id
+        # if request has a query param of user id, then get that user instead
+        user_id = request.GET.get('user_id')
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(
+                    {
+                        'status': 'FAIL',
+                        'message': 'User not found.'
+                    },
+                    status.HTTP_404_NOT_FOUND
+                )
+       # get user companies
+        user_companies = UserCompany.objects.filter(user=user)
+        serializer = UserCompanySerializer(user_companies, many=True)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
             
+            
+
+    def post(self, request):
+        """
+        Create or update a user-company relationship.
+
+        Requires 'user_id', 'company_id', 'role', 'start_date', and 'end_date' in the request data.
+        Check if the user and company exist, return a 404 response if not.
+        Check if the user is already linked to the company, return a 400 response if true.
+        If the user is linked to other companies, mark them as inactive.
+
+        Returns the details of the created or updated user-company relationship.
+        """
+        user_id = request.data['user_id']
+        company_id = request.data['company_id']
+
+        # check if user exists and return if not
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        # check if company exists and return if not
+        try:
+            company = Company.objects.get(pk=company_id)
+        except Company.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'Company not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        
+        # check if user is already linked to company and if they are return
+        user_company_exists = UserCompany.objects.filter(user=user, company=company).exists()
+        if user_company_exists:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User already linked to company.'
+                },
+                status.HTTP_400_BAD_REQUEST
+            )
+    
+        # if not linked, check other company linkages and mark them as inactive
+        user_company_exists = UserCompany.objects.filter(user=user, is_active=True).exists()
+        if user_company_exists:
+            user_company = UserCompany.objects.get(user=user, is_active=True)
+            user_company.is_active = False
+            user_company.save()
+
+        # add entry to Usercompany
+        user_company = UserCompany.objects.create(
+            user=user, 
+            company=company, 
+            role=request.data['role'], 
+            start_date=request.data['start_date'], 
+            end_date=request.data['end_date'],
+            )
+        user_company.save()
+        serializer = UserCompanySerializer(user_company)
+        return Response({  
+            'status': 'OK',
+            'data': serializer.data,
+            'errors': []
+        }, status=status.HTTP_200_OK)
