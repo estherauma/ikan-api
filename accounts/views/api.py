@@ -672,10 +672,9 @@ class UserBankDetailsApiView(APIView):
                 status.HTTP_404_NOT_FOUND
             )
         else:
-            # save user bank details here
-            # use the serializer to validate data
             user = request.user.id
-            serializer = UserBankDetailsSerializer(data=request.data)
+            serializer_data = {**request.data, 'user': user}
+            serializer = UserBankDetailsSerializer(data=serializer_data)
             
             if serializer.is_valid():
                 # check if user already has account details and mark them as inactive
