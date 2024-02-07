@@ -683,6 +683,16 @@ class UserBankDetailsApiView(APIView):
                     user_bank = UserBank.objects.get(user=user, is_active=True)
                     user_bank.is_active = False
                     user_bank.save()
+                # check if user has account with the same account name and number
+                similar_bank_exists = UserBank.objects.filter(
+                    user=user, account_name=request.data['account_name'], 
+                    account_number=request.data['account_number']).exists()
+
+                if similar_bank_exists:
+                    return Response({
+                        'status': 'FAIL',
+                        'message': 'User bank account exists'
+                    }, status=status.HTTP_400_BAD_REQUEST)
                 serializer.save()
                 return Response({
                     'status': 'OK',
