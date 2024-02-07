@@ -1,4 +1,6 @@
 from django.urls import path
+
+from accounts.models import UserBeneficiaries
 from ..views.api import (
     LoginView,
     RegisterView,
@@ -6,6 +8,8 @@ from ..views.api import (
     ResetPassword,
     PasswordResetCheckToken,
     UpdateUserCompany,
+    UserBankDetailsApiView,
+    UserBeneficiariesApiView,
     UserProfileView,
     verify_email,
     verify_email_success,
@@ -33,4 +37,6 @@ urlpatterns = [
     path('users', UserListView.as_view(), name='user-list'),
     path('profile', UserProfileView.as_view(), name='profile'),
     path('profile/companies', UpdateUserCompany.as_view(), name='profile-companies'),
+    path('bank-details', UserBankDetailsApiView.as_view(), name='bank-details'),
+    path('beneficiaries-bank-details', UserBeneficiariesApiView.as_view(), name='beneficiaries-bank-details')
 ]

@@ -81,3 +81,26 @@ class LoginEvent(BaseModel):
     def __str__(self) -> str:
         return f'{self.user.email}@{self.ip_address} logged in at {self.date_logged_in}'
 
+class UserBank(AuditableModel):
+    app_ref = models.CharField(max_length=255, null=True, blank=False)
+    account_name = models.CharField(max_length=255, null=False, blank=False)
+    account_number = models.CharField(max_length=255, null=False, blank=False)
+    routing_number = models.CharField(max_length=255, null=True, blank=True)
+    swift_code = models.CharField(max_length=255, null=True, blank=True)
+    bank_name = models.CharField(max_length=255, null=True, blank=True)
+    bank_branch = models.CharField(max_length=255, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+
+class UserBeneficiaries(AuditableModel):
+    app_ref = models.CharField(max_length=255, null=True, blank=True)
+    f_name = models.CharField(max_length=255, null=True, blank=True)
+    l_name = models.CharField(max_length=255, null=True, blank=False)
+    account_name = models.CharField(max_length=255, null=False, blank=False)
+    account_number = models.CharField(max_length=255, null=False, blank=False)
+    routing_number = models.CharField(max_length=255, null=True, blank=True)
+    swift_code = models.CharField(max_length=255, null=True, blank=True)
+    bank_name = models.CharField(max_length=255, null=True, blank=True)
+    bank_branch = models.CharField(max_length=255, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)

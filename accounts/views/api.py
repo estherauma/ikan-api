@@ -1,14 +1,14 @@
-from accounts.models import LoginEvent, User
+from accounts.models import LoginEvent, User, UserBank, UserBeneficiaries
 from accounts.serializers import (
     LoginSerializer, RegisterSerializer, 
     PasswordResetCheckTokenSerializer,
-    PasswordResetSerializer, UserProfileSerializer,
-    UserSerializer
+    PasswordResetSerializer, UserBeneficiarySerializer, UserProfileSerializer,
+    UserSerializer, UserBankDetailsSerializer
 )
 
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from common.utils import get_access_code, send_email_invite
+from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
 
 from decouple import config
 
@@ -358,6 +358,7 @@ class UserDetailView(APIView):
             'errors': []
         })
 
+
 class InviteUser(APIView):
     def post(self, request):
         '''Invite a user
@@ -445,6 +446,7 @@ class UserListView(APIView):
             'data': serializer.data,
             'errors': []
         })
+
 
 class UserProfileView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -622,3 +624,151 @@ class UpdateUserCompany(APIView):
             'data': serializer.data,
             'errors': []
         }, status=status.HTTP_200_OK)
+
+
+class UserBankDetailsApiView(APIView):
+    """
+    Manage user bank account details
+        
+    Requires authentication
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request): 
+        """
+        Get user banks.
+        If a `user_id` param is passed, retrive the companies for that user.
+        If not, it'll return companies of that user
+        """
+        user = get_user_from_get_request(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        else:
+            user_banks = UserBank.objects.filter(user=user)
+            serializer = UserBankDetailsSerializer(user_banks, many=True)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data,
+                'errors': []
+            }, status=status.HTTP_200_OK)
+        
+        
+    
+
+    def post(self, request):
+        user = get_user_from_post_request(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        else:
+            user = request.user.id
+            serializer_data = {**request.data, 'user': user}
+            serializer = UserBankDetailsSerializer(data=serializer_data)
+            
+            if serializer.is_valid():
+                # check if user already has account details and mark them as inactive
+                user_bank_exists = UserBank.objects.filter(user=user, is_active=True).exists()
+                if user_bank_exists:
+                    user_bank = UserBank.objects.get(user=user, is_active=True)
+                    user_bank.is_active = False
+                    user_bank.save()
+                # check if user has account with the same account name and number
+                similar_bank_exists = UserBank.objects.filter(
+                    user=user, account_name=request.data['account_name'], 
+                    account_number=request.data['account_number']).exists()
+
+                if similar_bank_exists:
+                    return Response({
+                        'status': 'FAIL',
+                        'message': 'User bank account exists'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                serializer.save()
+                return Response({
+                    'status': 'OK',
+                    'data': serializer.data,
+                    'errors': []
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'status': 'FAIL',
+                    'data': [],
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            
+        
+class UserBeneficiariesApiView(APIView):
+    """
+    Manage user beneficiaries
+    Requires authentication
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = get_user_from_get_request(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        else:
+            user_beneficiaries = UserBeneficiaries.objects.filter(user=user)
+            serializer = UserBeneficiarySerializer(user_beneficiaries, many=True)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data,
+                'errors': []
+            }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        user = get_user_from_post_request(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        else:
+            user = request.user.id
+            serializer_data = {**request.data, 'user': user}
+            serializer = UserBeneficiarySerializer(data=serializer_data)
+            if serializer.is_valid():
+                # check if user has beneficiary with the same account number
+                beneficiary_exists = UserBeneficiaries.objects.filter(user=user, account_number=request.data['account_number']).exists()
+                if beneficiary_exists:
+                    return Response(
+                        {
+                            'status': 'FAIL',
+                            'message': 'Beneficiary with the same account number already exists.'
+                        },
+                        status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    serializer.save()
+                    return Response({
+                        'status': 'OK',
+                        'data': serializer.data,
+                        'errors': []
+                    }, status=status.HTTP_200_OK)
+            else: 
+                return Response({
+                    'status': 'FAIL',
+                    'data': [],
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)

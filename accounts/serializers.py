@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import User
+from accounts.models import User, UserBank, UserBeneficiaries
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 
@@ -93,5 +93,19 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ['password', 'reset_password_token', 'is_superuser', 'is_staff','groups', 'access_code', 'user_permissions']
-        read_only_fields = ['is_active', 'is_verified', 'is_staff', 'is_superuser', 'groups', 'user_permissions', 'access_code', 'reset_password_token', 'email']
+        exclude = ['password', 'reset_password_token', 'is_superuser',
+                   'is_staff','groups', 'access_code', 'user_permissions']
+        read_only_fields = ['is_active', 'is_verified', 'is_staff', 'is_superuser',
+                            'groups', 'user_permissions', 'access_code', 'reset_password_token', 'email']
+
+class UserBankDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserBank
+        fields = '__all__'
+    
+
+class UserBeneficiarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserBeneficiaries
+        fields = '__all__'
+        
