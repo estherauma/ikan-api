@@ -103,24 +103,6 @@ class UserBankDetailsSerializer(serializers.ModelSerializer):
         model = UserBank
         fields = '__all__'
     
-    def validate(self, data):
-        errors = {}
-        if not data.get('bank_name'):
-            errors['bank_name'] = "Bank name is required"
-        if not data.get('account_name'):
-            errors['account_name'] = "Account name is required"
-        if not data.get('account_number'):
-            errors['account_number'] = "Account number is required"
-        if not data.get('routing_number'):
-            errors['routing_number'] = "Routing number is required"
-        if not data.get('swift_code'):
-            errors['swift_code'] = "Swift code is required"
-
-        if errors:
-            raise serializers.ValidationError(errors)
-
-        return data
-
 
 class UserBeneficiarySerializer(serializers.ModelSerializer):
     class Meta:
