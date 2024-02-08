@@ -1,6 +1,7 @@
 import json
 import secrets
 import string
+from accounts.models import User
 from common.email import TunaEmailHelper, EmailTemplate
 from rest_framework.response import Response
 from rest_framework import status
@@ -52,3 +53,25 @@ def send_email_invite(user):
             },
             status.HTTP_400_BAD_REQUEST
         )
+
+
+def get_user_from_post_request(request):
+    try:
+        if request.data['user_id'] is not None:
+            try:
+                user = User.objects.get(pk=request.data['user_id'])
+                return user.id
+            except User.DoesNotExist:
+                return None
+    except KeyError:
+        return request.user.id
+
+def get_user_from_get_request(request):
+    if request.GET.get('user_id') is not None:
+        try:
+            user = User.objects.get(pk=request.GET.get('user_id'))
+            return user
+        except User.DoesNotExist:
+            return None
+    else:
+        return request.user.id
