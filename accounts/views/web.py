@@ -45,6 +45,8 @@ class LoginView(View):
                 return redirect("/")
             else:
                 messages.error(request, "Can not log in with provided credentials!")
+                # go back to login page
+                return render(request, template_name='login.html')
         else:
             messages.error(request, "Error validating form!")
             return render(request, template_name='login.html')
