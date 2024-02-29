@@ -38,7 +38,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last name'), max_length=30, null=True, blank=True)
     is_active = models.BooleanField(_('active'), default=True)
     is_verified = models.BooleanField(_('verified'), default=False)
     is_staff = models.BooleanField(default=False)
@@ -99,7 +99,7 @@ class UserBank(AuditableModel):
 class UserBeneficiaries(AuditableModel):
     app_ref = models.CharField(max_length=255, null=True, blank=True)
     f_name = models.CharField(max_length=255, null=True, blank=True)
-    l_name = models.CharField(max_length=255, null=True, blank=False)
+    l_name = models.CharField(max_length=255, null=True, blank=True)
     account_name = models.CharField(max_length=255, null=False, blank=False)
     account_number = models.CharField(max_length=255, null=False, blank=False)
     routing_number = models.CharField(max_length=255, null=True, blank=True)
