@@ -440,10 +440,16 @@ class UserListView(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
         users = User.objects.filter(groups__name=role)
-        serializer = UserSerializer(users, many=True)
+        serializer = UserProfileSerializer(users, many=True)
+        
+        # Add role to response data
+        resp_data = serializer.data
+        for user_data in resp_data:
+            user_data['user_role'] = role
+        
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': resp_data,
             'errors': []
         })
 
@@ -467,9 +473,14 @@ class UserProfileView(APIView):
                     status.HTTP_404_NOT_FOUND
                 )
         serializer = UserProfileSerializer(user)
+
+        # Add role to response data
+        role = list(user.groups.values_list('name', flat=True))[0] if user.groups.exists() else None
+        resp_data = {**serializer.data, 'user_role': role}
+
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': resp_data,
             'errors': []
         }, status=status.HTTP_200_OK)
     
@@ -505,9 +516,13 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(user, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Add role to response data
+        role = list(user.groups.values_list('name', flat=True))[0] if user.groups.exists() else None
+        resp_data = {**serializer.data, 'user_role': role}
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': resp_data,
             'errors': []
         }, status=status.HTTP_200_OK)
 
