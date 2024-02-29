@@ -441,15 +441,15 @@ class UserListView(APIView):
             )
         users = User.objects.filter(groups__name=role)
         serializer = UserProfileSerializer(users, many=True)
-        
-        # Add role to response data
-        resp_data = serializer.data
-        for user_data in resp_data:
-            user_data['user_role'] = role
-        
+
+        # get all roles for each user and add to response data
+        for user_data in serializer.data:
+            user = User.objects.get(id=user_data['id'])
+            user_data['roles'] = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else []
+
         return Response({
             'status': 'OK',
-            'data': resp_data,
+            'data': serializer.data,
             'errors': []
         })
 
@@ -475,8 +475,8 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(user)
 
         # Add role to response data
-        role = list(user.groups.values_list('name', flat=True))[0] if user.groups.exists() else None
-        resp_data = {**serializer.data, 'user_role': role}
+        roles = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else []
+        resp_data = {**serializer.data, 'roles': roles}
 
         return Response({
             'status': 'OK',
@@ -518,8 +518,8 @@ class UserProfileView(APIView):
         serializer.save()
 
         # Add role to response data
-        role = list(user.groups.values_list('name', flat=True))[0] if user.groups.exists() else None
-        resp_data = {**serializer.data, 'user_role': role}
+        roles = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else None
+        resp_data = {**serializer.data, 'roles': roles}
         return Response({
             'status': 'OK',
             'data': resp_data,
