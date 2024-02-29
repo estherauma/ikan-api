@@ -92,10 +92,14 @@ class UserBank(AuditableModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f'{self.user} - {self.account_number}'
+
+
 class UserBeneficiaries(AuditableModel):
     app_ref = models.CharField(max_length=255, null=True, blank=True)
     f_name = models.CharField(max_length=255, null=True, blank=True)
-    l_name = models.CharField(max_length=255, null=True, blank=False)
+    l_name = models.CharField(max_length=255, null=True, blank=True)
     account_name = models.CharField(max_length=255, null=False, blank=False)
     account_number = models.CharField(max_length=255, null=False, blank=False)
     routing_number = models.CharField(max_length=255, null=True, blank=True)
@@ -104,3 +108,6 @@ class UserBeneficiaries(AuditableModel):
     bank_branch = models.CharField(max_length=255, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'Beneficiary for {self.user.email} is {self.f_name} with account {self.account_number}'
