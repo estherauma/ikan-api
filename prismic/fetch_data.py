@@ -64,8 +64,8 @@ class PrismicAPI():
             for question in form_data:
 
                 if question['slice_type'] == 'form_question':
-                    category, key, label, placeholder, question_type, displayquestion, help_text, options, \
-                        options_translations = question['primary'].values()
+                    category, key, label, placeholder, question_type, is_required, displayquestion, \
+                        help_text, options, options_translations = question['primary'].values()
                     final_options_array = []
                     if options is not None:
                         options = options.split(',')
@@ -91,6 +91,7 @@ class PrismicAPI():
                             'displayquestion': displayquestion,
                             'help_text': help_text,
                             'options': final_options_array,
+                            'is_required': is_required
                         })
                 elif question['slice_type'] == 'additional_text':
                     for entry in question['items']:
@@ -499,6 +500,7 @@ def aggregate_question_options(data):
                     'question': option['follow_up_question'] if option.get('follow_up_question') else None,
                     'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
                     else None,
+                    'isRequired': option['is_required'] if option.get('is_required') else None,
                     'options': option['follow_up_question_options'] if option.get('follow_up_question_options')
                     else None,
                 } if option.get('follow_up_question') else None,
@@ -719,8 +721,8 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'question': item['primary']['question'][0]['text']
                 if item['primary'].get('question') else None,
                 'questionType': item['primary']['question_type'] if item['primary'].get('question_type') else None,
-                'key': item['primary']['question_key'] if item['primary'].get('question_key')
-                else None,
+                'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
+                'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'options': aggregate_question_options(item['items']) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':
