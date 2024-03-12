@@ -19,7 +19,7 @@ class AggregatedContentView(APIView):
         serializer = AggregatedContentSerializer(latest, many=False)
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': [serializer.data],
             'error_messages': []
         }, HTTPStatus.OK)
 
