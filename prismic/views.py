@@ -15,11 +15,8 @@ import requests
 
 class AggregatedContentView(APIView):
     def get(self, request):
-        data = AggregatedContent.objects.reverse()
-        # Order and put the latest aggregated object on top
-        # Mobile app picks the first object
-        latest = data[::-1]
-        serializer = AggregatedContentSerializer(latest, many=True)
+        latest = AggregatedContent.objects.order_by('-created_at')[:1].get()
+        serializer = AggregatedContentSerializer(latest, many=False)
         return Response({
             'status': 'OK',
             'data': serializer.data,
