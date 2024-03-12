@@ -81,7 +81,8 @@ class LoginView(APIView):
                             'firstName': user.first_name,
                             'lastName': user.last_name,
                             'isAdmin': user.is_admin,
-                            'role': list(user.groups.values_list('name', flat=True))[0]
+                            'role': list(user.groups.values_list('name', flat=True))[0],
+                            'roles': list(user.groups.values_list('name', flat=True)) if user.groups.exists() else [],
                         }
                         token = identity_manager.encode(payload)
                         is_first_login = user.last_login is None
@@ -440,7 +441,13 @@ class UserListView(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
         users = User.objects.filter(groups__name=role)
-        serializer = UserSerializer(users, many=True)
+        serializer = UserProfileSerializer(users, many=True)
+
+        # get all roles for each user and add to response data
+        for user_data in serializer.data:
+            user = User.objects.get(id=user_data['id'])
+            user_data['roles'] = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else []
+
         return Response({
             'status': 'OK',
             'data': serializer.data,
@@ -467,9 +474,14 @@ class UserProfileView(APIView):
                     status.HTTP_404_NOT_FOUND
                 )
         serializer = UserProfileSerializer(user)
+
+        # Add role to response data
+        roles = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else []
+        resp_data = {**serializer.data, 'roles': roles}
+
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': resp_data,
             'errors': []
         }, status=status.HTTP_200_OK)
     
@@ -505,9 +517,13 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(user, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Add role to response data
+        roles = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else None
+        resp_data = {**serializer.data, 'roles': roles}
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': resp_data,
             'errors': []
         }, status=status.HTTP_200_OK)
 
