@@ -16,11 +16,10 @@ class SurveyView(LoginRequiredMixin, View):
 
 class SurveyDataView(LoginRequiredMixin, View):
     def get(self, request):
-        query_set = Survey.objects.values('question_key', 'question_text', 'question_response').distinct()
+        query_set = Survey.objects.values('question_key', 'question_text').distinct()
         survey_qtns = []
         for item in query_set:
-            action = 'No responses' if item['question_response'] == '' else\
-                '<a href="/surveys/' + str(item["question_key"]) + '" \
+            action = '<a href="/surveys/' + str(item["question_key"]) + '" \
                     class="btn btn-primary btn-sm"><i class="mdi mdi-eye"></i> \
                         Click to view question responses</a>'
             obj = {
