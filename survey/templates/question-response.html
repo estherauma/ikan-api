@@ -1,0 +1,10 @@
+{% extends 'themes/v1/base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container-fluid>">
+    {% if chart %}
+      <img src="data:image/png;base64, {{chart|safe}}" alt="responses-chart">
+    {% endif %}
+  </div>
+{% endblock %}

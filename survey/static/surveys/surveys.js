@@ -1,8 +1,7 @@
 $(document).ready(function () {
     let columns = [
-      { data: 'questionKey', title: 'Question Key' },
-      { data: 'questionText', title: 'Question Text' },
-      { data: 'questionResponse', title: 'Question Response' },
+      { data: 'questionText', title: 'Survey Questions' },
+      { data: 'action', title: '' },
     ];
     $('#surveys-table').DataTable({
         ajax: '/surveys/data',
