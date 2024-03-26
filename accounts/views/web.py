@@ -25,7 +25,8 @@ from accounts.forms import LoginForm
 
 @login_required(login_url='/account/login')
 def get_base(request):
-    return render(request, template_name="themes/v1/base.html")
+    user_email = request.user.email
+    return render(request, template_name="themes/v1/base.html", context={'user_email': user_email})
 
 
 class LoginView(View):
