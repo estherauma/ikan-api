@@ -14,13 +14,14 @@
             <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="dark logo" class="logo-lg">
             <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
         </a>
+        
+        <!-- Display loggedin user's email -->
+        {% if user_email %}
+            <div class="email-wrapper">
+                <p>{{ user_email }}</p>
+            </div>
+        {% endif %}
     </div>
-    <!-- Display loggedin user's email -->
-    {% if user_email %}
-        <div class="email-wrapper">
-            <p>{{ user_email }}</p>
-        </div>
-    {% endif %}
 
     <!-- menu-left -->
     <div class="scrollbar">

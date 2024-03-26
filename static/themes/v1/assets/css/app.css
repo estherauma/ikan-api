@@ -505,6 +505,18 @@ html[data-bs-theme=dark] #light-dark-mode .ri-moon-line::before {
   display: block;
 }
 
+.menu-logo-box {
+  justify-content: unset !important;
+  flex-direction: column;
+  margin-top: 20px;
+}
+.app-menu .email-wrapper {
+  color: #191970;
+  p {
+    margin: 5px ;
+  }
+}
+
 html[data-menu-color=brand] .app-menu .logo-box .logo-light,
 html[data-menu-color=dark] .app-menu .logo-box .logo-light,
 html[data-menu-color=gradient] .app-menu .logo-box .logo-light,
