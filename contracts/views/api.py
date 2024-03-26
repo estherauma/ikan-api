@@ -18,7 +18,8 @@ class ContractListView(ListCreateAPIView):
     queryset = Contract.objects.all()
 
     def list(self, request):
-        queryset = self.get_queryset()
+        super_user = self.request.user.is_superuser
+        queryset = self.get_queryset() if super_user else Contract.objects.filter(created_by=request.user.id)
         serializer = self.get_serializer(queryset, many=True)
         return Response({'status': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
     
