@@ -28,6 +28,13 @@ def get_base(request):
     return render(request, template_name="themes/v1/base.html")
 
 
+def user_email(request):
+    user_email = None
+    if request.user.is_authenticated:
+        user_email = request.user.email
+    return {'user_email': user_email}
+
+
 class LoginView(View):
     def get(self, request):
         form = LoginForm()

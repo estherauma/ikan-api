@@ -2,18 +2,25 @@
 <div class="app-menu">  
 
     <!-- Brand Logo -->
-    <div class="logo-box">
+    <div class="logo-box menu-logo-box">
         <!-- Brand Logo Light -->
         <a href="index.html" class="logo-light">
-            <img src="/static/themes/v1/assets/images/logo-light.png" alt="logo" class="logo-lg">
-            <img src="/static/themes/v1/assets/images/logo-sm.png" alt="small logo" class="logo-sm">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="logo" class="logo-lg">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
         </a>
 
         <!-- Brand Logo Dark -->
         <a href="#" class="logo-dark">
-            <img src="/static/themes/v1/assets/images/logo-dark.png" alt="dark logo" class="logo-lg">
-            <img src="/static/themes/v1/assets/images/logo-sm.png" alt="small logo" class="logo-sm">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="dark logo" class="logo-lg">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
         </a>
+        
+        <!-- Display loggedin user's email -->
+        {% if user_email %}
+            <div class="email-wrapper">
+                <p>{{ user_email }}</p>
+            </div>
+        {% endif %}
     </div>
 
     <!-- menu-left -->
