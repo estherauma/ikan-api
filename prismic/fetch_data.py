@@ -1,6 +1,7 @@
 import requests
 from decouple import config
 from prismic.models import AggregatedContent, MessagingContent
+import re
 
 
 class PrismicAPI():
@@ -68,7 +69,8 @@ class PrismicAPI():
                         help_text, options, options_translations = question['primary'].values()
                     final_options_array = []
                     if options is not None:
-                        options = options.split(',')
+                        # split string by comma and remove any leading or trailing spaces
+                        options = re.split(r',\s*|\s*,\s*', options)
                         option_list = []
                         for option in options:
                             # TODO: Leaving this for things entries we already have on prismic as a fall back.
@@ -78,7 +80,8 @@ class PrismicAPI():
                             final_options_array = option_list
 
                     if options_translations and options:
-                        options_translations = options_translations.split(',')
+                        # split string by comma and remove any leading or trailing spaces
+                        options_translations = re.split(r',\s*|\s*,\s*', options_translations)
                         final_options_array = [{"value": value, "label": key} for key, value
                                                in zip(options_translations, options)]
                     question_data.append(
