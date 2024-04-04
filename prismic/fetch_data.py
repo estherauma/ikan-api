@@ -504,6 +504,8 @@ def aggregate_question_options(data):
                     'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
                     else None,
                     'isRequired': option['is_required'] if option.get('is_required') else None,
+                    'displayquestion': option['display_followup_question'] if option.get('display_followup_question')
+                    else False,
                     'options': option['follow_up_question_options'] if option.get('follow_up_question_options')
                     else None,
                 } if option.get('follow_up_question') else None,
@@ -726,6 +728,8 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'questionType': item['primary']['question_type'] if item['primary'].get('question_type') else None,
                 'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
+                'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
+                else False,
                 'options': aggregate_question_options(item['items']) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':
