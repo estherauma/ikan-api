@@ -45,30 +45,25 @@ class UpdatedContentView(APIView):
 
 @api_view(['GET'])
 def compare_content(request):
-    app_content_created_at = request.GET['app_content_created_at']
+    app_content_created_at = request.query_params.get('app_content_created_at')
     parsed_app_content_created_at = parse_datetime(app_content_created_at)
-
-    data = AggregatedContent.objects.reverse()
-    latest = data[::-1]
-    serializer = AggregatedContentSerializer(latest, many=True)
-    lastets_content_created_at = parse_datetime(
-        serializer.data[0]['created_at']
-    )
-
-    if lastets_content_created_at == parsed_app_content_created_at:
+    latest_content = AggregatedContent.objects.order_by('-created_at')[:1].get()
+    serializer = AggregatedContentSerializer(latest_content, many=False)
+    latest_content_created_at = parse_datetime(serializer.data['created_at'])
+    if latest_content_created_at == parsed_app_content_created_at:
         return Response({
             'status': 'OK',
             'data': "",
             'new': False,
             'error_messages': []
-        }, HTTPStatus.OK)
+        }, status=HTTPStatus.OK)
     else:
         return Response({
             'status': 'OK',
             'data': serializer.data,
             'new': True,
             'error_messages': []
-        }, HTTPStatus.OK)
+        }, status=HTTPStatus.OK)
 
 
 class MessagingWebhookView(APIView):
