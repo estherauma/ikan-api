@@ -420,6 +420,7 @@ class InviteUser(APIView):
 
 class UserListView(APIView):
     permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         role = request.GET.get('role')
         if role is None:
@@ -440,7 +441,7 @@ class UserListView(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST
             )
-        users = User.objects.filter(groups__name=role)
+        users = User.objects.filter(groups__name=role, created_by=request.user.id)
         serializer = UserProfileSerializer(users, many=True)
 
         # get all roles for each user and add to response data
@@ -484,7 +485,7 @@ class UserProfileView(APIView):
             'data': resp_data,
             'errors': []
         }, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         user = request.user
         try:
