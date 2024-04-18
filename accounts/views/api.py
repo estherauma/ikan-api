@@ -505,7 +505,20 @@ class UserProfileView(APIView):
             user_id = request.user.id
         if user_id is not None:
             try:
-                user = User.objects.get(pk=user_id)
+                if request.query_params.get('register') == 'register':
+                    prof_serializer = UserProfileSerializer(data=request.data)
+                    prof_serializer.is_valid(raise_exception=True)
+                    new_user = prof_serializer.save()
+                    role = request.data['user_role']
+                    group = Group.objects.get(name=role)
+                    new_user.groups.add(group)
+                    return Response({
+                        'status': 'OK',
+                        'data': {**prof_serializer.data, 'roles': [role]},
+                        'errors': []
+                    }, status=status.HTTP_200_OK)
+                else:
+                    user = User.objects.get(pk=user_id)
             except User.DoesNotExist:
                 return Response(
                     {
