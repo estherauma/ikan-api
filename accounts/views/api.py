@@ -497,21 +497,28 @@ class UserProfileView(APIView):
                     user = User.objects.get(email=request.data['email'])
                     user_id = user.id
                 else:
-                    new_user = User.objects.create_user(
-                        email=request.data['email'],
-                        first_name=request.data['first_name'],
-                        last_name=request.data['last_name'],
-                        access_code=get_access_code(),
-                        is_verified=False,
-                        is_active=False,
-                    )
-
-                    if request.data['user_role'] is not None:
+                    if request.data['user_role'] is None:
+                        return Response(
+                            {
+                                'status': 'FAIL',
+                                'message': 'Role is required.'
+                            },
+                            status.HTTP_400_BAD_REQUEST
+                        )
+                    else:
+                        new_user = User.objects.create_user(
+                            email=request.data['email'],
+                            first_name=request.data['first_name'],
+                            last_name=request.data['last_name'],
+                            access_code=get_access_code(),
+                            is_verified=False,
+                            is_active=False,
+                        )
                         role = request.data['user_role']
                         group = Group.objects.get(name=role)
                         new_user.groups.add(group)
 
-                    user_id = new_user.id
+                        user_id = new_user.id
             elif request.data['user_id'] is not None:
                 try:
                     user = User.objects.get(pk=request.data['user_id'], email=request.data['email'])
