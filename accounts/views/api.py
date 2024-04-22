@@ -505,9 +505,11 @@ class UserProfileView(APIView):
                         is_verified=False,
                         is_active=False,
                     )
-                    role = request.data['user_role']
-                    group = Group.objects.get(name=role)
-                    new_user.groups.add(group)
+
+                    if request.data['user_role'] is not None:
+                        role = request.data['user_role']
+                        group = Group.objects.get(name=role)
+                        new_user.groups.add(group)
 
                     user_id = new_user.id
             elif request.data['user_id'] is not None:
