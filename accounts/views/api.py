@@ -1,6 +1,6 @@
 from accounts.models import LoginEvent, User, UserBank, UserBeneficiaries
 from accounts.serializers import (
-    LoginSerializer, RegisterSerializer, 
+    LoginSerializer, RegisterSerializer,
     PasswordResetCheckTokenSerializer,
     PasswordResetSerializer, UserBeneficiarySerializer, UserProfileSerializer,
     UserSerializer, UserBankDetailsSerializer
@@ -30,6 +30,7 @@ import random
 
 from companies.models import Company, UserCompany
 from companies.serializers import UserCompanySerializer
+
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -420,6 +421,7 @@ class InviteUser(APIView):
 
 class UserListView(APIView):
     permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         role = request.GET.get('role')
         if role is None:
@@ -440,7 +442,7 @@ class UserListView(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST
             )
-        users = User.objects.filter(groups__name=role)
+        users = User.objects.filter(groups__name=role, created_by=request.user.id)
         serializer = UserProfileSerializer(users, many=True)
 
         # get all roles for each user and add to response data
@@ -484,24 +486,54 @@ class UserProfileView(APIView):
             'data': resp_data,
             'errors': []
         }, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         user = request.user
         try:
-            if request.data['user_id'] is not None:
+            # register new user profile
+            if request.query_params.get('register') == 'register':
+                user_exists = User.objects.filter(email=request.data['email']).exists()
+                if user_exists:
+                    user = User.objects.get(email=request.data['email'])
+                    user_id = user.id
+                else:
+                    if request.data['user_role'] is None:
+                        return Response(
+                            {
+                                'status': 'FAIL',
+                                'message': 'Role is required.'
+                            },
+                            status.HTTP_400_BAD_REQUEST
+                        )
+                    else:
+                        new_user = User.objects.create_user(
+                            email=request.data['email'],
+                            first_name=request.data['first_name'],
+                            last_name=request.data['last_name'],
+                            access_code=get_access_code(),
+                            is_verified=False,
+                            is_active=False,
+                        )
+                        role = request.data['user_role']
+                        group = Group.objects.get(name=role)
+                        new_user.groups.add(group)
+
+                        user_id = new_user.id
+            elif request.data['user_id'] is not None:
                 try:
                     user = User.objects.get(pk=request.data['user_id'], email=request.data['email'])
                     user_id = user.id
                 except User.DoesNotExist:
                     return Response(
-                    {
-                        'status': 'FAIL',
-                        'message': 'User not found.'
-                    },
-                    status.HTTP_404_NOT_FOUND
-                )
+                        {
+                            'status': 'FAIL',
+                            'message': 'User not found.'
+                        },
+                        status.HTTP_404_NOT_FOUND
+                    )
         except KeyError:
             user_id = request.user.id
+
         if user_id is not None:
             try:
                 user = User.objects.get(pk=user_id)
@@ -645,12 +677,11 @@ class UpdateUserCompany(APIView):
 class UserBankDetailsApiView(APIView):
     """
     Manage user bank account details
-        
     Requires authentication
     """
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request): 
+    def get(self, request):
         """
         Get user banks.
         If a `user_id` param is passed, retrive the companies for that user.
@@ -673,9 +704,6 @@ class UserBankDetailsApiView(APIView):
                 'data': serializer.data,
                 'errors': []
             }, status=status.HTTP_200_OK)
-        
-        
-    
 
     def post(self, request):
         user = get_user_from_post_request(request)
@@ -688,10 +716,9 @@ class UserBankDetailsApiView(APIView):
                 status.HTTP_404_NOT_FOUND
             )
         else:
-            user = request.user.id
             serializer_data = {**request.data, 'user': user}
             serializer = UserBankDetailsSerializer(data=serializer_data)
-            
+
             if serializer.is_valid():
                 # check if user already has account details and mark them as inactive
                 user_bank_exists = UserBank.objects.filter(user=user, is_active=True).exists()
@@ -701,7 +728,7 @@ class UserBankDetailsApiView(APIView):
                     user_bank.save()
                 # check if user has account with the same account name and number
                 similar_bank_exists = UserBank.objects.filter(
-                    user=user, account_name=request.data['account_name'], 
+                    user=user, account_name=request.data['account_name'],
                     account_number=request.data['account_number']).exists()
 
                 if similar_bank_exists:
@@ -721,9 +748,8 @@ class UserBankDetailsApiView(APIView):
                     'data': [],
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
-            
-        
+
+
 class UserBeneficiariesApiView(APIView):
     """
     Manage user beneficiaries
@@ -761,12 +787,12 @@ class UserBeneficiariesApiView(APIView):
                 status.HTTP_404_NOT_FOUND
             )
         else:
-            user = request.user.id
             serializer_data = {**request.data, 'user': user}
             serializer = UserBeneficiarySerializer(data=serializer_data)
             if serializer.is_valid():
                 # check if user has beneficiary with the same account number
-                beneficiary_exists = UserBeneficiaries.objects.filter(user=user, account_number=request.data['account_number']).exists()
+                beneficiary_exists = UserBeneficiaries.objects.filter(
+                    user=user, account_number=request.data['account_number']).exists()
                 if beneficiary_exists:
                     return Response(
                         {
@@ -782,7 +808,7 @@ class UserBeneficiariesApiView(APIView):
                         'data': serializer.data,
                         'errors': []
                     }, status=status.HTTP_200_OK)
-            else: 
+            else:
                 return Response({
                     'status': 'FAIL',
                     'data': [],

@@ -64,7 +64,7 @@ def get_user_from_post_request(request):
             except User.DoesNotExist:
                 return None
     except KeyError:
-        return request.user.id
+        return None
 
 def get_user_from_get_request(request):
     if request.GET.get('user_id') is not None:
