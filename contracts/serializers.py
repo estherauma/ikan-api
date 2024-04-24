@@ -3,6 +3,7 @@ from rest_framework import serializers
 # model imports
 from contracts.models import Contract, ContractClause, ContractDocument
 
+
 class ContractSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     app_ref = serializers.CharField(required=True)
@@ -17,10 +18,10 @@ class ContractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = '__all__'
-    
+
     def create(self, validated_data):
         return Contract.objects.create(**validated_data)
-    
+
 
 class ContractDocumentSerializer(serializers.ModelSerializer):
     contract_id = serializers.CharField(required=True)
@@ -31,15 +32,15 @@ class ContractDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContractDocument
         fields = '__all__'
-    
+
     def create(self, validated_data):
         return ContractDocument.objects.create(**validated_data)
-    
+
     def validate_contract(self, contract_id):
         if not Contract.objects.filter(id=contract_id).exists():
             raise serializers.ValidationError("Contract does not exist")
         return contract_id
-    
+
 
 class contractClauseSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
@@ -49,7 +50,7 @@ class contractClauseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContractClause
         fields = '__all__'
-    
+
     def create(self, validated_data):
         contract_instance = validated_data['contract']
         if isinstance(contract_instance, Contract):

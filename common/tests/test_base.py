@@ -8,7 +8,6 @@ class BaseTestCase(APITestCase):
     def set_up(self):
         self.faker = Faker()
 
-
     def create_user(self):
         pass
 
@@ -28,21 +27,21 @@ class BaseTestCase(APITestCase):
                 HTTP_AUTHORIZATION='Bearer {token}'.format(token=self.token))
         response = self.client.get(url)
         return response
-    
+
     def put(self, url):
         '''Makes a PUT request'''
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer {token}'.format(token=self.token))
         response = self.client.put(url)
         return response
-    
+
     def patch(self, url, data):
         '''Makes a PATCH request'''
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer {token}'.format(token=self.token))
         response = self.client.patch(url, data)
         return response
-    
+
     def delete(self, url):
         '''Makes a DELETE request'''
         self.client.credentials(
@@ -54,9 +53,9 @@ class BaseTestCase(APITestCase):
         response = self.client.get(reverse('sample'))
         result = response.json()
         self.assertIn('testData', result)
-        
+
     def test_snake_to_camel_case_conversion(self):
-        response = self.client.post(reverse('sample'),  {
+        response = self.client.post(reverse('sample'), {
             "parserWorks": "Parser workers"
         })
         result = response.json()

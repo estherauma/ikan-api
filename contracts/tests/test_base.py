@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 
+
 class BaseApiTestCase(APITestCase):
     def setUp(self):
         self.login_url = '/api/v1/auth/login/'
@@ -12,11 +13,11 @@ class BaseApiTestCase(APITestCase):
 
     def get(self, url, format='json'):
         pass
-    
+
     def post(self, url, data, format='json'):
         pass
 
-    def  put(self, url, data, format='json'):
+    def put(self, url, data, format='json'):
         pass
 
     def patch(self, url, data, format='json'):
@@ -26,13 +27,11 @@ class BaseApiTestCase(APITestCase):
         pass
 
 
-
 class BaseTestCase(TestCase):
     def setUp(self):
         # Common setup tasks go here
         # ToDo: Create a test user
         self.assertEqual(1, 1)
-
 
     def tearDown(self):
         # Common teardown tasks go here
@@ -40,7 +39,7 @@ class BaseTestCase(TestCase):
 
     def login(self):
         # Helper method to log in the user
-      pass
+        pass
 
     def create_test_user(self, username, password):
         # Helper method to create a user

@@ -9,12 +9,14 @@ from django.views import generic
 # mode imports
 from contracts.models import Contract
 
-import json 
+import json
+
 
 class ContractsView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'contracts/list.html')
-    
+
+
 class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
     model = Contract
     template_name = 'contracts/view.html'
@@ -45,4 +47,4 @@ class ContractsDataView(LoginRequiredMixin, View):
                 "actions": "<a href='/contracts/" + str(contract.id) + "' class='btn btn-primary btn-sm'><i class='mdi mdi-eye'></i> View</a>"
             }
             contracts_list.append(contract)
-        return JsonResponse({'data': contracts_list})   
+        return JsonResponse({'data': contracts_list})

@@ -10,9 +10,11 @@ class VesselsView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'vessels/list.html')
 
+
 class VesselDetailView(LoginRequiredMixin, generic.DetailView):
     model = Vessel
     template_name = 'vessels/view.html'
+
 
 class VesselsDataView(LoginRequiredMixin, View):
     def get(self, request):

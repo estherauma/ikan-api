@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from survey.models import Survey
 from survey.serializers import SurveySerializer
 
+
 class SurveyApiListView(ListCreateAPIView):
     permission_classes = ([IsAuthenticated, ])
     serializer_class = SurveySerializer
@@ -45,7 +46,7 @@ class SurveyApiDetailView(RetrieveUpdateDestroyAPIView):
             if super_user:
                 return Survey.objects.get(id=id)
             else:
-                 return Survey.objects.get(id=id, created_by=req.user.id)
+                return Survey.objects.get(id=id, created_by=req.user.id)
         except Survey.DoesNotExist:
             raise ValidationError('Survey does not exist')
 

@@ -1,6 +1,6 @@
 from django.urls import path
 from vessels.views.api import VesselApiListView, VesselImageApiListView,\
-  VesselApiDetailView, VesselImageApiDetailListView
+    VesselApiDetailView, VesselImageApiDetailListView
 
 
 app_name = 'vessels'
