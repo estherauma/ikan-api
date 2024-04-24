@@ -165,7 +165,6 @@ def verify_email(request, uidb64, token):
 
 def notify_admin(user):
     message = f"A new user {user.email} has registered and needs activation."
-    admin_email = config('ADMIN_EMAIL')
     email_helper = TunaEmailHelper()
     email_helper.tuna_send_email(
         to_emails=[config('ADMIN_EMAIL')],
@@ -591,7 +590,7 @@ class UpdateUserCompany(APIView):
                     },
                     status.HTTP_404_NOT_FOUND
                 )
-       # get user companies
+        # get user companies
         user_companies = UserCompany.objects.filter(user=user)
         serializer = UserCompanySerializer(user_companies, many=True)
         return Response({

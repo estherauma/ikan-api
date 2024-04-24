@@ -1,5 +1,5 @@
 from django.db import models
-from common.models import BaseModel, AuditableModel
+from common.models import AuditableModel
 import uuid
 
 

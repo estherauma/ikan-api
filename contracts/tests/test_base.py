@@ -1,7 +1,5 @@
 from rest_framework.test import APITestCase
 from django.test import TestCase
-from django.urls import reverse
-from django.contrib.auth.models import User
 
 
 class BaseApiTestCase(APITestCase):
@@ -21,9 +19,6 @@ class BaseApiTestCase(APITestCase):
         pass
 
     def patch(self, url, data, format='json'):
-        pass
-
-    def put(self, url, data, format='json'):
         pass
 
 

@@ -34,7 +34,7 @@ class UpdatedContentView(APIView):
 
         # TODO use the notification object  master ref to fetch new updated contnet
         # Right now, just fetch and aggregate all content.
-        content = PrismicAPI()
+        PrismicAPI()
 
         return Response({
             'status': 'OK',
