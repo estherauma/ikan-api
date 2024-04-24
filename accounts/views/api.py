@@ -165,7 +165,6 @@ def verify_email(request, uidb64, token):
 
 def notify_admin(user):
     message = f"A new user {user.email} has registered and needs activation."
-    admin_email = config('ADMIN_EMAIL')
     email_helper = TunaEmailHelper()
     email_helper.tuna_send_email(
         to_emails=[config('ADMIN_EMAIL')],
@@ -591,7 +590,7 @@ class UpdateUserCompany(APIView):
                     },
                     status.HTTP_404_NOT_FOUND
                 )
-       # get user companies
+        # get user companies
         user_companies = UserCompany.objects.filter(user=user)
         serializer = UserCompanySerializer(user_companies, many=True)
         return Response({
@@ -599,8 +598,6 @@ class UpdateUserCompany(APIView):
             'data': serializer.data,
             'errors': []
         }, status=status.HTTP_200_OK)
-            
-            
 
     def post(self, request):
         """
@@ -638,7 +635,7 @@ class UpdateUserCompany(APIView):
                 },
                 status.HTTP_404_NOT_FOUND
             )
-        
+
         # check if user is already linked to company and if they are return
         user_company_exists = UserCompany.objects.filter(user=user, company=company).exists()
         if user_company_exists:
@@ -649,7 +646,7 @@ class UpdateUserCompany(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST
             )
-    
+
         # if not linked, check other company linkages and mark them as inactive
         user_company_exists = UserCompany.objects.filter(user=user, is_active=True).exists()
         if user_company_exists:
@@ -659,15 +656,15 @@ class UpdateUserCompany(APIView):
 
         # add entry to Usercompany
         user_company = UserCompany.objects.create(
-            user=user, 
-            company=company, 
-            role=request.data['role'], 
-            start_date=request.data['start_date'], 
+            user=user,
+            company=company,
+            role=request.data['role'],
+            start_date=request.data['start_date'],
             end_date=request.data['end_date'],
-            )
+        )
         user_company.save()
         serializer = UserCompanySerializer(user_company)
-        return Response({  
+        return Response({
             'status': 'OK',
             'data': serializer.data,
             'errors': []

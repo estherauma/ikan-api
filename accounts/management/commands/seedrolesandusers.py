@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from accounts.models import User
 from decouple import config
 
+
 class Command(BaseCommand):
     help = 'Seeds roles and users'
     users = ['taien+technology', 'cici+technology', 'farah+technology', 'budi+technology', 'tony+technology']
@@ -14,7 +15,6 @@ class Command(BaseCommand):
         except Exception as e:
             print('Seeding user roles failed')
             print(e)
-            
 
     def construct_email(self, role):
         return f'{role}@fiftyeight.io'

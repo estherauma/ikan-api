@@ -66,6 +66,7 @@ def get_user_from_post_request(request):
     except KeyError:
         return None
 
+
 def get_user_from_get_request(request):
     if request.GET.get('user_id') is not None:
         try:

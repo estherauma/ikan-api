@@ -1,6 +1,4 @@
 from django.urls import path
-
-from accounts.models import UserBeneficiaries
 from ..views.api import (
     LoginView,
     RegisterView,

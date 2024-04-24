@@ -6,6 +6,8 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         exclude = ['logo_url']
+
+
 class UserCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserCompany

@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from prismic.fetch_data import PrismicAPI, PrismicMessagingAPI
+from prismic.fetch_data import PrismicAPI
 
 
 class Command(BaseCommand):
