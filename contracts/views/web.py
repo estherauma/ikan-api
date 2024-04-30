@@ -6,6 +6,7 @@ from django.views import View
 from django.views import generic
 from contracts.models import Contract
 import json
+from common.utils import get_clause_order
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -22,7 +23,10 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         context['clauses'] = self.object.contract_clause.all()
 
         for item in context['clauses']:
+            item.order = item.order if item.order else get_clause_order(item.kind)
             item.content = json.loads(item.content)
+
+        context['clauses'] = sorted(context['clauses'], key=lambda x: x.order)
 
         return context
 
