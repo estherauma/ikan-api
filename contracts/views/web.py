@@ -4,8 +4,8 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 from django.views import generic
-# mode imports
 from contracts.models import Contract
+import json
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -20,6 +20,10 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context['clauses'] = self.object.contract_clause.all()
+
+        for item in context['clauses']:
+            item.content = json.loads(item.content)
+
         return context
 
 
