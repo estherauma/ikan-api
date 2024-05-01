@@ -68,7 +68,16 @@
                             
                             <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
                                 <div class="accordion-body">
-                                   {{clause.content}}
+                                   {% if clause.content %}
+                                        {% for key, value in clause.content.items %}
+                                            {% if value %}
+                                                <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1">{{key}}</h5>
+                                                </div>
+                                                <p class="mb-1">{{value }}</p>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
