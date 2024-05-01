@@ -20,7 +20,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
             token = token.split(' ')[1]
             identity_manager = JwtManager()
             payload = identity_manager.decode(token)
-        except IndexError as e:
+        except IndexError:
             raise exceptions.AuthenticationFailed(
                 "Bad request, missing token after 'Bearer' ", 400)
         try:

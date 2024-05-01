@@ -21,6 +21,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from accounts.views.web import get_base
+from tuna.views import UploadFileView
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -50,6 +51,7 @@ urlpatterns = [
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
+    path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),
 
     # web urls
     path('', get_base, name='base'),

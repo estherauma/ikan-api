@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import django
 from django.db.utils import OperationalError
+from tuna.serializers import UploadFileSerializer
+from rest_framework.views import APIView
+from rest_framework import status
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -41,3 +44,13 @@ def sample_data(request):
             return Response({
                 'status': 'FAILED'
             })
+
+
+class UploadFileView(APIView):
+    def post(self, request):
+        file_serializer = UploadFileSerializer(data=request.data)
+        if file_serializer.is_valid():
+            
+            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
