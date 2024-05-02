@@ -1,0 +1,135 @@
+{% extends 'themes/v1/base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container-fluid">
+      <div class="row">
+            <div class="col-md-4 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-body">
+                        <img src="/static/themes/v1/assets/images/users/user-1.jpg" alt="user-image" class="rounded-circle">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Email</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.email }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">First Name</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.fist_name }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Last Name</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.last_name }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Telephone Number</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.telephone }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Mobile Number</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.mobile }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Position</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.position }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </div>
+      <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Address</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.address_line_1 }}</p>
+                                <p class="mb-1">{{ user.address_line_2 }}</p>
+                                <p class="mb-1">{{ user.address_line_3 }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">City</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.city }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Country</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.country }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p class="mb-1">Postal Code</p>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="mb-1">{{ user.postal_code }}</p>
+                            </div>
+                        </div>
+                        {% if user.registration_number %}
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p class="mb-1"></p>
+                                </div>
+                                <div class="col-md-9">
+                                    <p class="mb-1">{{ user.registration_number }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if user.passport_number %}
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p class="mb-1">Passport Number</p>
+                                </div>
+                                <div class="col-md-9">
+                                    <p class="mb-1">{{ user.passport_number }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+      </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

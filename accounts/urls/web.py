@@ -3,7 +3,7 @@ from accounts.views.web import invite_user, logout_user
 from accounts.views.web import \
     UserListView, RegisterWebView, RegisterSuccess, \
     RequestPasswordReset, ResetPassword, LoginView, \
-    ResendAcessCode
+    ResendAcessCode, ProfileDetailView
 
 app_name = 'accounts'
 
@@ -17,4 +17,5 @@ urlpatterns = [
     path('register', RegisterWebView.as_view(), name='web-register'),
     path('register-success', RegisterSuccess.as_view(), name='register-success'),
     path("logout", logout_user, name="logout"),
+    path("profile/<slug:pk>/", ProfileDetailView.as_view(), name="profile"),
 ]

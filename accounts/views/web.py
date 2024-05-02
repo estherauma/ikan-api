@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
+from django.views.generic import DetailView
 
 # models
 from accounts.models import User
@@ -269,3 +270,16 @@ class ResetPassword(View):
 def logout_user(request):
     logout(request)
     return redirect("/account/login")
+
+
+class ProfileDetailView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = 'profile.html'
+    context_object_name = 'user'
+    slug_field = 'id'
+    slug_url_kwarg = 'pk'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
