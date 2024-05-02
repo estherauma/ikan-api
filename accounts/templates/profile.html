@@ -3,131 +3,145 @@
 
 {% block content %}
   <div class="container-fluid">
-      <div class="row">
-            <div class="col-md-4 d-flex">
-                <div class="card flex-fill">
-                    <div class="card-body">
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="pt-3 pb-3 d-flex flex-column">
+                    <div class="text-center">
                         <img src="/static/themes/v1/assets/images/users/user-1.jpg" alt="user-image" class="rounded-circle">
                     </div>
-                </div>
-            </div>
-            <div class="col-md-8 d-flex">
-                <div class="card flex-fill">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Email</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.email }}</p>
-                            </div>
+
+                    <hr class="mr-0 ml-0 mb-0 mt-3">
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Email</h5>
                         </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">First Name</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.fist_name }}</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Last Name</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.last_name }}</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Telephone Number</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.telephone }}</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Mobile Number</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.mobile }}</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Position</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.position }}</p>
-                            </div>
+                        <div class="col-sm-6 text-secondary">
+                            <p class="m-0 mt-1">{{ user.email }}</p>
                         </div>
                     </div>
-                </div>
-            </div>
-      </div>
-      <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Address</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.address_line_1 }}</p>
-                                <p class="mb-1">{{ user.address_line_2 }}</p>
-                                <p class="mb-1">{{ user.address_line_3 }}</p>
-                            </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">First Name</h5>
                         </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">City</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.city }}</p>
-                            </div>
+                        <div class="col-sm-6  text-secondary">
+                            <p class="m-0 mt-1">{{ user.first_name }}</p>
                         </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Country</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.country }}</p>
-                            </div>
+                    </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Last Name</h5>
                         </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <p class="mb-1">Postal Code</p>
-                            </div>
-                            <div class="col-md-9">
-                                <p class="mb-1">{{ user.postal_code }}</p>
-                            </div>
+                        <div class="col-sm-6  text-secondary">
+                            <p class="m-0 mt-1">{{ user.last_name }}</p>
                         </div>
+                    </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Telephone Number</h5>
+                        </div>
+                        <div class="col-sm-6 text-secondary">
+                            <p class="m-0 mt-1">{{ user.telephone }}</p>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Mobile Number</h5>
+                        </div>
+                        <div class="col-sm-6 text-secondary">
+                            <p class="m-0 mt-1">{{ user.mobile }}</p>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Position</h5>
+                        </div>
+                        <div class="col-sm-6 text-secondary">
+                            <p class="m-0 mt-1">{{ user.position }}</p>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Address</h5>
+                        </div>
+                        <div class="col-sm-6 text-secondary">
+                            <p class="m-0 mt-1">{{ user.address_line_1 }}</p>
+                            <p class="m-0 mt-1">{{ user.address_line_2 }}</p>
+                            <p class="m-0 mt-1">{{ user.address_line_3 }}</p>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">City</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="m-0 mt-1">{{ user.city }}</p>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Country</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="m-0 mt-1">{{ user.country }}</p>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    
+                    <div class="row m-2">
+                        <div class="col-sm-6">
+                            <h5 class="m-0">Postal Code</h5>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="m-0 mt-1">{{ user.postal_code }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if user.registration_number or user.passport_number %}
                         {% if user.registration_number %}
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <p class="mb-1"></p>
+                            <div class="row m-2">
+                                <div class="col-sm-6">
+                                    <h5 class="m-0">Registration Number</h5>
                                 </div>
-                                <div class="col-md-9">
-                                    <p class="mb-1">{{ user.registration_number }}</p>
+                                <div class="col-sm-6">
+                                    <p class="m-0 mt-1">{{ user.registration_number }}</p>
                                 </div>
                             </div>
+                            {% if user.passport_number %}
+                                <hr class="m-0">
+                            {% endif %}
                         {% endif %}
+                        
                         {% if user.passport_number %}
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <p class="mb-1">Passport Number</p>
+                            <div class="row m-2">
+                                <div class="col-sm-6">
+                                    <h5 class="m-0">Passport Number</h5>
                                 </div>
-                                <div class="col-md-9">
-                                    <p class="mb-1">{{ user.passport_number }}</p>
+                                <div class="col-sm-6">
+                                    {{ user.passport_number }}
                                 </div>
                             </div>
                         {% endif %}
-                    </div>
+                    {% endif %}
                 </div>
             </div>
-      </div>
+        </div>
   </div>
 {% endblock %}
 
