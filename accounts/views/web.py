@@ -81,6 +81,11 @@ class UserListView(LoginRequiredMixin, ListView):
         return context
 
 
+class UserDetailView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = 'profile.html'
+
+
 @login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
