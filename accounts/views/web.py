@@ -92,6 +92,10 @@ class UserListView(LoginRequiredMixin, ListView):
         context['invite_user_form'] = InviteUser()
         context['page_title'] = 'User List'
         context['resend_token_form'] = ResendTokenForm()
+
+        super_user = self.request.user.is_superuser
+        users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
+        context['users'] = users
         return context
 
 
