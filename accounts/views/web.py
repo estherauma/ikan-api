@@ -29,11 +29,25 @@ def get_base(request):
     return render(request, template_name="themes/v1/base.html")
 
 
-def user_email(request):
-    user_email = None
+def loggedin_user(request):
+    loggedin_user = None
+    show_users_menu_item = False
+
     if request.user.is_authenticated:
-        user_email = request.user.email
-    return {'user_email': user_email}
+        loggedin_user = request.user
+        loggedin_user.is_vessel_owner = loggedin_user.is_worker = False
+
+        roles = loggedin_user.groups.all().values_list('name', flat=True)
+        if 'vessel_owner' in roles:
+            show_users_menu_item = True
+            loggedin_user.is_vessel_owner = True
+        elif 'worker' in roles:
+            loggedin_user.is_worker = True
+
+    return {
+            'loggedin_user': loggedin_user,
+            'show_users_menu_item': show_users_menu_item
+        }
 
 
 class LoginView(View):
