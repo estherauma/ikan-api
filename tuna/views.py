@@ -52,9 +52,9 @@ class UploadFileView(APIView):
     permission_classes = ([IsAuthenticated, ])
     upload_paths = {
         'contract': 'uploads/contracts',
-        'passports': 'uploads/passports',
+        'passport': 'uploads/passports',
         'profile_picture': 'uploads/profiles',
-        'vessel_images': 'uploads/vessel_images'
+        'vessel_image': 'uploads/vessel_images'
     }
     def post(self, request):
         file_serializer = UploadFileSerializer(data=request.data)
