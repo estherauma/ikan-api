@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
+from django.views.generic import DetailView
 
 # models
 from accounts.models import User
@@ -28,11 +29,25 @@ def get_base(request):
     return render(request, template_name="themes/v1/base.html")
 
 
-def user_email(request):
-    user_email = None
+def loggedin_user(request):
+    loggedin_user = None
+    show_users_menu_item = False
+
     if request.user.is_authenticated:
-        user_email = request.user.email
-    return {'user_email': user_email}
+        loggedin_user = request.user
+        loggedin_user.is_vessel_owner = loggedin_user.is_worker = False
+
+        roles = loggedin_user.groups.all().values_list('name', flat=True)
+        if 'vessel_owner' in roles:
+            show_users_menu_item = True
+            loggedin_user.is_vessel_owner = True
+        elif 'worker' in roles:
+            loggedin_user.is_worker = True
+
+    return {
+            'loggedin_user': loggedin_user,
+            'show_users_menu_item': show_users_menu_item
+        }
 
 
 class LoginView(View):
@@ -77,7 +92,16 @@ class UserListView(LoginRequiredMixin, ListView):
         context['invite_user_form'] = InviteUser()
         context['page_title'] = 'User List'
         context['resend_token_form'] = ResendTokenForm()
+
+        super_user = self.request.user.is_superuser
+        users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
+        context['users'] = users
         return context
+
+
+class UserDetailView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = 'profile.html'
 
 
 @login_required(login_url='/account/login')

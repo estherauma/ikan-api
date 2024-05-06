@@ -53,15 +53,15 @@
                                 <td>{{user.is_active}}</td>
                                 <td>{{user.is_staff}}</td>
                                 <td>
-                                    <!-- Edit Button -->
-                                    <button class="btn btn-primary btn-sm">Edit</button>
+                                    <!-- View Profile Button -->
+                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">View Profile</a>
                                     <!-- Delete Button -->
-                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                    <button class="btn btn-danger btn-sm mb-1">Delete</button>
                                     <!-- Resend Code button -->
                                     {% if user.access_code %}
                                     <button
                                         id="btn-resend-code"
-                                        class="btn btn-blue btn-sm"
+                                        class="btn btn-blue btn-sm mb-1"
                                         data-bs-toggle="modal"
                                         data-bs-target="#resend-code-modal-{{user.id}}"
                                         data-user-id="{{ user.pk }}"
