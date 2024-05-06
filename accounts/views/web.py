@@ -293,16 +293,3 @@ class ResetPassword(View):
 def logout_user(request):
     logout(request)
     return redirect("/account/login")
-
-
-class ProfileDetailView(LoginRequiredMixin, DetailView):
-    model = User
-    template_name = 'profile.html'
-    context_object_name = 'user'
-    slug_field = 'id'
-    slug_url_kwarg = 'pk'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
