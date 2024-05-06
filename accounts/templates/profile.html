@@ -6,7 +6,13 @@
     <div class="row d-flex justify-content-center">
         <div class="col-md-6">
             <div class="card">
-                <div class="pt-3 pb-3 d-flex flex-column">
+                <div class="pt-3 pb-3">
+                    {% if loggedin_user.id == user.id %}
+                        <div class="text-center mb-4">
+                            <h1>My profile</h1>
+                        </div>
+                    {% endif %}
+
                     <div class="text-center">
                         <img src="/static/themes/v1/assets/images/users/user-1.jpg" alt="user-image" class="rounded-circle">
                     </div>
