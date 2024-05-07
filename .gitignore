@@ -166,3 +166,4 @@ cython_debug/
 dump.rdb
 staticfiles/*
 localnotes.md
+uploads/
