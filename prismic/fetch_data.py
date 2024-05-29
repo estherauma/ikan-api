@@ -282,7 +282,7 @@ def aggregate_content(data):
                 'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
                 if item['data'].get('page_icon') else None,
                 'pageContent': [],
-                'analytics_event_name': item['data'].get('analytics_event_name')
+                'analyticsEventName': item['data'].get('analytics_event_name')
             }
 
             # Add userRole to message page_data
