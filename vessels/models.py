@@ -8,7 +8,7 @@ class Vessel(AuditableModel):
     reg_no = models.CharField(max_length=255, null=False, blank=False)
     vessel_type = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
-    capacity = models.CharField(max_length=255)
+    capacity = models.CharField(max_length=255, null=True, blank=True)
     commissioning_date = models.CharField(max_length=255)
 
 
