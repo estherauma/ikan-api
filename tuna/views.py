@@ -9,6 +9,7 @@ from tuna.serializers import UploadFileSerializer
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from accounts.models import User
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -27,6 +28,7 @@ def health(request):
         heath_params["database"] = "down"
 
     return Response(heath_params)
+
 
 # Function is used with test to ensure that camelCasel renderer and snake_case parser are configured  well
 # If not, the tests should fail and give you an indication of what's failed. Otherwise the client apps will fail
@@ -56,6 +58,7 @@ class UploadFileView(APIView):
         'profile_picture': 'uploads/profiles',
         'vessel_image': 'uploads/vessel_images'
     }
+
     def post(self, request):
         file_serializer = UploadFileSerializer(data=request.data)
         if file_serializer.is_valid():
@@ -67,17 +70,33 @@ class UploadFileView(APIView):
             else:
                 return Response({'error': 'Invalid entity type'}, status=status.HTTP_400_BAD_REQUEST)
 
+            if request.data['user_id']:
+                user_id = request.data['user_id']
+                user = User.objects.get(pk=user_id)
+            else:
+                user_id = request.user.id
+                user = request.user
+
             # write the file to the right path
-            user_id = request.user.id
-            file_path = self.upload_paths[request.data['entity_type']] + '/' + str(user_id) + '_' + file_serializer.validated_data['file_content'].name
+            # the _ikan_ prefix is used in the mobile app to get the file name
+            file_path = self.upload_paths[request.data['entity_type']] + '/' + str(user_id) + '_ikan_' +\
+                file_serializer.validated_data['file_content'].name
             # get extension from file name
             file_extension = os.path.splitext(file_path)[1]
             with open(file_path, 'wb+') as destination:
                 for chunk in file_serializer.validated_data['file_content'].chunks():
                     destination.write(chunk)
+
+            # save the file path in the user profile
+            if request.data['entity_type'] == 'profile_picture':
+                user.profile_image = file_path
+                user.save()
             return Response({
-                'file_location': file_path,
-                'file_type': file_extension
+                'status': 'OK',
+                'data': {
+                    'file_location': file_path,
+                    'file_type': file_extension
+                }
             }, status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
