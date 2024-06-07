@@ -45,9 +45,9 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
         try:
             super_user = self.request.user.is_superuser
             if super_user:
-                return Vessel.objects.get(app_ref=id, created_by=req.user.id)
+                return Vessel.objects.get(id=id, created_by=req.user.id)
             else:
-                return Vessel.objects.get(app_ref=id)
+                return Vessel.objects.get(id=id)
         except Vessel.DoesNotExist:
             raise ValidationError('Vessel does not exist')
 
@@ -112,9 +112,9 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
 
             super_user = self.request.user.is_superuser
             if super_user:
-                return VesselImage.objects.get(app_ref=id, created_by=req.user.id)
+                return VesselImage.objects.get(id=id, created_by=req.user.id)
             else:
-                return VesselImage.objects.get(app_ref=id)
+                return VesselImage.objects.get(id=id)
         except VesselImage.DoesNotExist:
             raise ValidationError('Vessel image does not exist')
 
