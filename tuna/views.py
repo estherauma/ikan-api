@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.models import User
 from vessels.models import Vessel, VesselImage
 from contracts.models import Contract, ContractDocument
+from django.forms.models import model_to_dict
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -92,6 +93,7 @@ class UploadFileView(APIView):
             if request.data['entity_type'] == 'profile_picture':
                 user.profile_image = file_path
                 user.save()
+                result_obj = None
             elif request.data['entity_type'] == 'vessel_image':
                 vessel_id = request.data.get('vessel_id')
                 vessel = Vessel.objects.get(pk=vessel_id)
@@ -114,7 +116,7 @@ class UploadFileView(APIView):
                         updated_at=request.data.get('updated_at'),
                     )
                     vessel_image.save()
-                result_obj = {'vessel_image': vessel_image}
+                result_obj = {'vessel_image': model_to_dict(vessel_image)}
             elif request.data['entity_type'] == 'contract':
                 contract_id = request.data.get('contract_id')
                 contract = Contract.objects.get(pk=contract_id)
@@ -137,7 +139,7 @@ class UploadFileView(APIView):
                         updated_at=request.data.get('updated_at'),
                     )
                     contract_document.save()
-                result_obj = {'contract_document': contract_document}
+                result_obj = {'contract_document': model_to_dict(contract_document)}
 
             if result_obj is not None:
                 data = {
