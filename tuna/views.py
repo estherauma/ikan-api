@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import User
+from vessels.models import Vessel, VesselImage
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -70,7 +71,7 @@ class UploadFileView(APIView):
             else:
                 return Response({'error': 'Invalid entity type'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if request.data['user_id']:
+            if request.data.get('user_id') is not None:
                 user_id = request.data['user_id']
                 user = User.objects.get(pk=user_id)
             else:
@@ -87,10 +88,29 @@ class UploadFileView(APIView):
                 for chunk in file_serializer.validated_data['file_content'].chunks():
                     destination.write(chunk)
 
-            # save the file path in the user profile
             if request.data['entity_type'] == 'profile_picture':
                 user.profile_image = file_path
                 user.save()
+            elif request.data['entity_type'] == 'vessel_image':
+                vessel_id = request.data['vessel_id']
+                vessel = Vessel.objects.get(pk=vessel_id)
+                if VesselImage.objects.filter(vessel=vessel).exists():
+                    vessel_image = VesselImage.objects.get(vessel=vessel)
+                    vessel_image.image_url = file_path
+                    vessel_image.updated_by = user_id
+                    vessel_image.description = request.data.get('description')
+                    vessel_image.updated_by = user_id
+                    vessel_image.save()
+                else:
+                    vessel_image = VesselImage.objects.create(
+                        app_ref=request.data.get('app_ref'),
+                        vessel=vessel,
+                        image_url=file_path,
+                        description=request.data.get('description'),
+                        created_by=user_id
+                    )
+                    vessel_image.save()
+
             return Response({
                 'status': 'OK',
                 'data': {
@@ -100,3 +120,10 @@ class UploadFileView(APIView):
             }, status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# after uploading profile picture, the path to the image is saved in the user profile
+def save_profile_picture_path(user, file_path):
+    user.profile_image = file_path
+    user.save()
+    return user.profile_picture
