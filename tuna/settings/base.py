@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'survey',
     'vessels',
+    'mydocuments',
 ]
 AUTH_USER_MODEL = "accounts.User"
 

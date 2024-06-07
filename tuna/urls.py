@@ -52,6 +52,7 @@ urlpatterns = [
     path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
     path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),
+    path('api/v1/', include('mydocuments.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
