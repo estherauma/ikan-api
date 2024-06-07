@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import User
 from vessels.models import Vessel, VesselImage
+from contracts.models import Contract, ContractDocument
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -92,14 +93,14 @@ class UploadFileView(APIView):
                 user.profile_image = file_path
                 user.save()
             elif request.data['entity_type'] == 'vessel_image':
-                vessel_id = request.data['vessel_id']
+                vessel_id = request.data.get('vessel_id')
                 vessel = Vessel.objects.get(pk=vessel_id)
                 if VesselImage.objects.filter(vessel=vessel).exists():
                     vessel_image = VesselImage.objects.get(vessel=vessel)
                     vessel_image.image_url = file_path
-                    vessel_image.updated_by = user_id
                     vessel_image.description = request.data.get('description')
-                    vessel_image.updated_by = user_id
+                    vessel_image.updated_by = request.data.get('updated_by', user_id)
+                    vessel_image.updated_at = request.data.get('updated_at')
                     vessel_image.save()
                 else:
                     vessel_image = VesselImage.objects.create(
@@ -107,23 +108,52 @@ class UploadFileView(APIView):
                         vessel=vessel,
                         image_url=file_path,
                         description=request.data.get('description'),
-                        created_by=user_id
+                        created_by=request.data.get('created_by', user_id),
+                        updated_by=request.data.get('updated_by', user_id),
+                        created_at=request.data.get('created_at'),
+                        updated_at=request.data.get('updated_at'),
                     )
                     vessel_image.save()
+                result_obj = {'vessel_image': vessel_image}
+            elif request.data['entity_type'] == 'contract':
+                contract_id = request.data.get('contract_id')
+                contract = Contract.objects.get(pk=contract_id)
+                if ContractDocument.objects.filter(contract=contract).exists():
+                    contract_document = ContractDocument.objects.get(contract=contract)
+                    contract_document.url = file_path
+                    contract_document.name = request.data.get('name')
+                    contract_document.updated_by = request.data.get('updated_by', user_id)
+                    contract_document.updated_at = request.data.get('updated_at')
+                    contract_document.save()
+                else:
+                    contract_document = ContractDocument.objects.create(
+                        contract=contract,
+                        url=file_path,
+                        name=request.data.get('name'),
+                        status=request.data.get('status'),
+                        created_by=request.data.get('created_by', user_id),
+                        updated_by=request.data.get('updated_by', user_id),
+                        created_at=request.data.get('created_at'),
+                        updated_at=request.data.get('updated_at'),
+                    )
+                    contract_document.save()
+                result_obj = {'contract_document': contract_document}
 
-            return Response({
-                'status': 'OK',
-                'data': {
+            if result_obj is not None:
+                data = {
+                    **result_obj,
                     'file_location': file_path,
                     'file_type': file_extension
                 }
+            else:
+                data = {
+                    'file_location': file_path,
+                    'file_type': file_extension
+                }
+
+            return Response({
+                'status': 'OK',
+                'data': data
             }, status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# after uploading profile picture, the path to the image is saved in the user profile
-def save_profile_picture_path(user, file_path):
-    user.profile_image = file_path
-    user.save()
-    return user.profile_picture

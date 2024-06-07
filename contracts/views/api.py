@@ -6,10 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 # Model imports
-from contracts.models import Contract, ContractClause
+from contracts.models import Contract, ContractClause, ContractDocument
 
 # Serializer imports
-from contracts.serializers import ContractSerializer, contractClauseSerializer
+from contracts.serializers import ContractSerializer, contractClauseSerializer, ContractDocumentSerializer
 
 
 class ContractListView(ListCreateAPIView):
@@ -110,6 +110,55 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
     def update(self, request, id):
         contract_clause = self.get_item(id)
         serializer = self.serializer_class(contract_clause, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user.id)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data
+        }, status=status.HTTP_202_ACCEPTED)
+
+    def destroy(self, request, id):
+        pass
+
+
+class ContractDocumentListView(ListCreateAPIView):
+    permission_classes = ([IsAuthenticated, ])
+    serializer_class = ContractDocumentSerializer
+    queryset = ContractDocument.objects.all()
+
+    def create(self, request):
+        request.data.pop('id', None)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(created_by=request.user.id)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data
+        }, status=status.HTTP_201_CREATED)
+
+
+class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
+    permission_classes = ([IsAuthenticated, ])
+    serializer_class = ContractDocumentSerializer
+    queryset = ContractDocument.objects.all()
+
+    def get_item(self, id):
+        try:
+            return ContractDocument.objects.get(id=id)
+        except ContractDocument.DoesNotExist:
+            raise ValidationError({'error': 'Contract document does not exist'})
+
+    def retrieve(self, request, id):
+        contract_document = self.get_item(id)
+        serializer = self.serializer_class(contract_document)
+        return Response({
+            'status': 'Ok',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def update(self, request, id):
+        contract_document = self.get_item(id)
+        serializer = self.serializer_class(contract_document, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(updated_by=request.user.id)
         return Response({
