@@ -13,6 +13,7 @@ from accounts.models import User
 from vessels.models import Vessel, VesselImage
 from contracts.models import Contract, ContractDocument
 from django.forms.models import model_to_dict
+from mydocuments.models import Passport
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -59,7 +60,8 @@ class UploadFileView(APIView):
         'contract': 'uploads/contracts',
         'passport': 'uploads/passports',
         'profile_picture': 'uploads/profiles',
-        'vessel_image': 'uploads/vessel_images'
+        'vessel_image': 'uploads/vessel_images',
+        'my_document': 'uploads/my_documents',
     }
 
     def post(self, request):
@@ -90,10 +92,10 @@ class UploadFileView(APIView):
                 for chunk in file_serializer.validated_data['file_content'].chunks():
                     destination.write(chunk)
 
+            result_obj = None
             if request.data['entity_type'] == 'profile_picture':
                 user.profile_image = file_path
                 user.save()
-                result_obj = None
             elif request.data['entity_type'] == 'vessel_image':
                 vessel_id = request.data.get('vessel_id')
                 vessel = Vessel.objects.get(pk=vessel_id)
@@ -140,6 +142,11 @@ class UploadFileView(APIView):
                     )
                     contract_document.save()
                 result_obj = {'contract_document': model_to_dict(contract_document)}
+            elif request.data['entity_type'] == 'passport':
+                passport_id = request.data.get('passport_id')
+                passport = Passport.objects.get(pk=passport_id)
+                passport.image_url = file_path
+                passport.save()
 
             if result_obj is not None:
                 data = {
