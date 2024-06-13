@@ -491,6 +491,7 @@ def aggregate_question_options(data):
             for item in option['options']:
                 list_of_options.append({
                     'option': item['text'],
+                    # TODO: add value after getting solution for translations
                     'description': None,
                     'followUpQuestion': None,
                 })
@@ -507,10 +508,21 @@ def aggregate_question_options(data):
                     'isRequired': option['is_required'] if option.get('is_required') else None,
                     'displayquestion': option['display_followup_question'] if option.get('display_followup_question')
                     else False,
-                    'options': option['follow_up_question_options'] if option.get('follow_up_question_options')
-                    else None,
+                    'options': get_follow_up_question_options(option['follow_up_question_options']) if
+                    option.get('follow_up_question_options') else None,
                 } if option.get('follow_up_question') else None,
             })
+    return list_of_options
+
+
+def get_follow_up_question_options(options_list):
+    list_of_options = []
+    for option in options_list:
+        list_of_options.append({
+            'option': option['text'],
+            # TODO: add value after getting solution for translations
+            'description': None
+        })
     return list_of_options
 
 
