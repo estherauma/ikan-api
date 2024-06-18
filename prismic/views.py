@@ -60,7 +60,7 @@ def compare_content(request):
     else:
         return Response({
             'status': 'OK',
-            'data': serializer.data,
+            'data': [serializer.data],
             'new': True,
             'error_messages': []
         }, status=HTTPStatus.OK)
