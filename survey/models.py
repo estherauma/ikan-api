@@ -25,7 +25,7 @@ class Survey(AuditableModel):
         self.question_response = json.dumps(value)
 
 
-class InLineQuestion(models.Model):
+class InlineQuestion(models.Model):
     app_ref = models.CharField(max_length=255, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inline_questions')
     question_key = models.CharField(max_length=255, null=False, blank=False)
