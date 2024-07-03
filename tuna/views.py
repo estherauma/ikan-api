@@ -11,9 +11,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import User
 from vessels.models import Vessel, VesselImage
-from contracts.models import Contract, ContractDocument
+from contracts.models import Contract, ContractDocument, ContractClause
 from django.forms.models import model_to_dict
 from mydocuments.models import Passport
+import json
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -58,6 +59,7 @@ class UploadFileView(APIView):
     permission_classes = ([IsAuthenticated, ])
     upload_paths = {
         'contract': 'uploads/contracts',
+        'contract_clause_attachment': 'uploads/contract_clause_attachments',
         'passport': 'uploads/passports',
         'profile_picture': 'uploads/profiles',
         'vessel_image': 'uploads/vessel_images',
@@ -147,6 +149,15 @@ class UploadFileView(APIView):
                 passport = Passport.objects.get(pk=passport_id)
                 passport.image_url = file_path
                 passport.save()
+            elif request.data['entity_type'] == 'contract_clause_attachment':
+                clause_app_ref = request.data.get('clause_app_ref')
+                content_field = request.data.get('content_field')
+
+                saved_clause = ContractClause.objects.get(app_ref=clause_app_ref)
+                saved_content = json.loads(saved_clause.content)
+                saved_content[content_field] = file_path
+                saved_clause.content = json.dumps(saved_content)
+                saved_clause.save()
 
             if result_obj is not None:
                 data = {
