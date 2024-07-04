@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'survey',
     'vessels',
+    'mydocuments',
 ]
 AUTH_USER_MODEL = "accounts.User"
 
@@ -77,6 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.views.web.loggedin_user'
             ],
         },
     },
@@ -119,14 +121,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Istanbul'
 
 USE_I18N = True
 
@@ -142,8 +142,8 @@ STATIC_ROOT = os.path.join(BASE_DIR.parent, "staticfiles")
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR.parent, 'static'),
 )
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'uploads')
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Default primary key field type

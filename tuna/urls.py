@@ -19,8 +19,11 @@ from django.conf.urls import include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from django.conf import settings
+from django.conf.urls.static import static
 
 from accounts.views.web import get_base
+from tuna.views import UploadFileView
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -50,6 +53,8 @@ urlpatterns = [
     path('api/v1/', include('contracts.urls.api')),
     path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
+    path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),
+    path('api/v1/', include('mydocuments.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
@@ -61,4 +66,4 @@ urlpatterns = [
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

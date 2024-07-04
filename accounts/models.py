@@ -81,6 +81,7 @@ class LoginEvent(BaseModel):
     def __str__(self) -> str:
         return f'{self.user.email}@{self.ip_address} logged in at {self.date_logged_in}'
 
+
 class UserBank(AuditableModel):
     app_ref = models.CharField(max_length=255, null=True, blank=False)
     account_name = models.CharField(max_length=255, null=False, blank=False)

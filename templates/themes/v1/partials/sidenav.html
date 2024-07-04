@@ -2,18 +2,25 @@
 <div class="app-menu">  
 
     <!-- Brand Logo -->
-    <div class="logo-box">
+    <div class="logo-box menu-logo-box">
         <!-- Brand Logo Light -->
         <a href="index.html" class="logo-light">
-            <img src="/static/themes/v1/assets/images/logo-light.png" alt="logo" class="logo-lg">
-            <img src="/static/themes/v1/assets/images/logo-sm.png" alt="small logo" class="logo-sm">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="logo" class="logo-lg">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
         </a>
 
         <!-- Brand Logo Dark -->
         <a href="#" class="logo-dark">
-            <img src="/static/themes/v1/assets/images/logo-dark.png" alt="dark logo" class="logo-lg">
-            <img src="/static/themes/v1/assets/images/logo-sm.png" alt="small logo" class="logo-sm">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="dark logo" class="logo-lg">
+            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
         </a>
+        
+        <!-- Display loggedin user's email -->
+        {% if loggedin_user.email %}
+            <div class="email-wrapper">
+                <p>{{ loggedin_user.email }}</p>
+            </div>
+        {% endif %}
     </div>
 
     <!-- menu-left -->
@@ -129,12 +136,14 @@
                     <span class="menu-text"> Survey Responses </span>
                 </a>
             </li>
-            <li class="menu-item">
-                <a href="{% url 'accounts:users' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
-                    <span class="menu-text"> Users </span>
-                </a>
-            </li>
+            {% if show_users_menu_item or loggedin_user.is_superuser %}
+                <li class="menu-item">
+                    <a href="{% url 'accounts:users' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
+                        <span class="menu-text"> Users </span>
+                    </a>
+                </li>
+            {% endif %}
         </ul>
         <!--- End Menu -->
         <div class="clearfix"></div>

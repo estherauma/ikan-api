@@ -11,6 +11,7 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+
 class AuditableModel(BaseModel):
     ''' Auditable base model '''
     created_at = models.DateTimeField(auto_now_add=True, null=True)

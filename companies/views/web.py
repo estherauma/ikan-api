@@ -9,11 +9,13 @@ from django.views import generic
 class CompaniesView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'companies/list.html')
-    
+
+
 class CompaniesDetailView(LoginRequiredMixin, generic.DetailView):
     model = Company
     template_name = 'companies/view.html'
-    
+
+
 class CompaniesDataView(LoginRequiredMixin, View):
     def get(self, request):
         companies = Company.objects.all()

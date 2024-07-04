@@ -42,12 +42,11 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
 
     def get_company(self, req, id):
         try:
-
             super_user = self.request.user.is_superuser
             if super_user:
-                return Company.objects.get(app_ref=id, created_by=req.user.id)
-            else:
                 return Company.objects.get(app_ref=id)
+            else:
+                return Company.objects.get(app_ref=id, created_by=req.user.id)
         except Company.DoesNotExist:
             raise ValidationError('Company does not exist')
 
@@ -73,7 +72,7 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
         company = self.get_company(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != company.created_by.id:
+        if user_id != company.created_by:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'

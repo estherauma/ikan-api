@@ -6,7 +6,7 @@ from accounts.models import User
 class Company(AuditableModel):
     app_ref = models.CharField(max_length=255, null=True, blank=False)
     name = models.CharField(max_length=255, null=False, blank=False)
-    description =   models.CharField(max_length=255, null=False, blank=False)
+    description = models.CharField(max_length=255, null=False, blank=False)
     logo_url = models.CharField(max_length=255)
     status = models.CharField(max_length=255, null=True, blank=False)
     country = models.CharField(max_length=255)
@@ -16,7 +16,6 @@ class Company(AuditableModel):
     address_line_1 = models.CharField(max_length=255)
     address_line_2 = models.CharField(max_length=255)
     address_line_3 = models.CharField(max_length=255)
-    
 
     def __str__(self):
         return self.name
@@ -32,4 +31,3 @@ class UserCompany(AuditableModel):
 
     def __str__(self):
         return f'{self.user.email} {self.company.name}'
-    

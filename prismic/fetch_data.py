@@ -1,6 +1,7 @@
 import requests
 from decouple import config
 from prismic.models import AggregatedContent, MessagingContent
+import re
 
 
 class PrismicAPI():
@@ -68,7 +69,8 @@ class PrismicAPI():
                         help_text, options, options_translations = question['primary'].values()
                     final_options_array = []
                     if options is not None:
-                        options = options.split(',')
+                        # split string by comma and remove any leading or trailing spaces
+                        options = re.split(r',\s*|\s*,\s*', options)
                         option_list = []
                         for option in options:
                             # TODO: Leaving this for things entries we already have on prismic as a fall back.
@@ -78,7 +80,8 @@ class PrismicAPI():
                             final_options_array = option_list
 
                     if options_translations and options:
-                        options_translations = options_translations.split(',')
+                        # split string by comma and remove any leading or trailing spaces
+                        options_translations = re.split(r',\s*|\s*,\s*', options_translations)
                         final_options_array = [{"value": value, "label": key} for key, value
                                                in zip(options_translations, options)]
                     question_data.append(
@@ -279,6 +282,7 @@ def aggregate_content(data):
                 'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
                 if item['data'].get('page_icon') else None,
                 'pageContent': [],
+                'analyticsEventName': item['data'].get('analytics_event_name')
             }
 
             # Add userRole to message page_data
@@ -487,6 +491,7 @@ def aggregate_question_options(data):
             for item in option['options']:
                 list_of_options.append({
                     'option': item['text'],
+                    # TODO: add value after getting solution for translations
                     'description': None,
                     'followUpQuestion': None,
                 })
@@ -501,10 +506,23 @@ def aggregate_question_options(data):
                     'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
                     else None,
                     'isRequired': option['is_required'] if option.get('is_required') else None,
-                    'options': option['follow_up_question_options'] if option.get('follow_up_question_options')
-                    else None,
+                    'displayquestion': option['display_followup_question'] if option.get('display_followup_question')
+                    else False,
+                    'options': get_follow_up_question_options(option['follow_up_question_options']) if
+                    option.get('follow_up_question_options') else None,
                 } if option.get('follow_up_question') else None,
             })
+    return list_of_options
+
+
+def get_follow_up_question_options(options_list):
+    list_of_options = []
+    for option in options_list:
+        list_of_options.append({
+            'option': option['text'],
+            # TODO: add value after getting solution for translations
+            'description': None
+        })
     return list_of_options
 
 
@@ -723,6 +741,8 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'questionType': item['primary']['question_type'] if item['primary'].get('question_type') else None,
                 'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
+                'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
+                else False,
                 'options': aggregate_question_options(item['items']) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':

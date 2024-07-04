@@ -1,8 +1,9 @@
 {
-    "client": "Thunder Client",
+    "clientName": "Thunder Client",
     "collectionName": "Tuna",
-    "dateExported": "2024-02-06T08:54:04.883Z",
-    "version": "1.1",
+    "collectionId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+    "dateExported": "2024-05-06T08:29:19.285Z",
+    "version": "1.2",
     "folders": [
         {
             "_id": "50b316ed-186e-4bf3-afd7-51717355688f",
@@ -59,6 +60,20 @@
             "containerId": "",
             "created": "2024-01-29T10:57:49.020Z",
             "sortNum": 60000
+        },
+        {
+            "_id": "b5a7b7bf-1624-4257-bd82-e4d6a31ecee1",
+            "name": "content",
+            "containerId": "",
+            "created": "2024-03-12T06:21:11.596Z",
+            "sortNum": 70000
+        },
+        {
+            "_id": "8220b8e6-acd2-4a35-9257-11cbae4e8653",
+            "name": "documents",
+            "containerId": "",
+            "created": "2024-05-01T20:42:00.905Z",
+            "sortNum": 80000
         }
     ],
     "requests": [
@@ -152,6 +167,26 @@
             "tests": []
         },
         {
+            "_id": "45987330-4b74-4310-8f18-21e184d8336c",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "b5a7b7bf-1624-4257-bd82-e4d6a31ecee1",
+            "name": "compare-content",
+            "url": "{{api-url}}/api/v1/content/compare?app_content_created_at=2024-01-24T14:54:23.186767%2B03:00",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-03-12T06:21:22.617Z",
+            "modified": "2024-04-09T09:37:00.638Z",
+            "headers": [],
+            "params": [
+                {
+                    "name": "app_content_created_at",
+                    "value": "2024-01-24T14:54:23.186767%2B03:00",
+                    "isPath": false
+                }
+            ],
+            "tests": []
+        },
+        {
             "_id": "9946833c-4b57-46dc-af64-6424f84edb55",
             "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
             "containerId": "b89b88e5-9e84-4d63-bcbc-cfd3426ca5ef",
@@ -185,6 +220,21 @@
                 "type": "bearer",
                 "bearer": "{{api-token}}"
             },
+            "tests": []
+        },
+        {
+            "_id": "3c717ba6-4572-47f4-ad65-d6d4813b2b02",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "b5a7b7bf-1624-4257-bd82-e4d6a31ecee1",
+            "name": "aggregated-content",
+            "url": "{{api-url}}/api/v1/content/aggregated",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2024-04-04T13:43:29.814Z",
+            "modified": "2024-04-04T13:43:29.814Z",
+            "headers": [],
+            "params": [],
+            "reqType": "post",
             "tests": []
         },
         {
@@ -407,12 +457,12 @@
             "method": "POST",
             "sortNum": 70000,
             "created": "2024-01-29T10:58:10.382Z",
-            "modified": "2024-02-05T10:30:46.661Z",
+            "modified": "2024-02-15T12:50:54.378Z",
             "headers": [],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_id\": \"-Njg6Vr7yWrUfefGt8gh\",\n  \"email\":\"test2@fiftyeigsdht.io\",\n  \"first_name\": \"Kapeyi\",\n  \"country\": \"Tanzania\",\n  \"position\": \"Chief of Parre\",\n  \"city\": \"Masaka\",\n  \"is_active\": false\n}",
+                "raw": "{\n  \"email\":\"budi+technology@fiftyeigsdht.io\",\n  \"first_name\": \"Budi\",\n  \"last_name\": \"Worker\"\n}",
                 "form": []
             },
             "auth": {
@@ -430,12 +480,12 @@
             "method": "POST",
             "sortNum": 71250,
             "created": "2024-02-01T11:02:09.999Z",
-            "modified": "2024-02-06T08:42:45.229Z",
+            "modified": "2024-02-07T14:52:48.167Z",
             "headers": [],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"accountName\": \"2123123123\",\n  \"accountNumber\": \"1231231141234\",\n  \"routingNumber\": \"asdf234\",\n  \"swiftCode\": \"2342SDF\",\n  \"bankName\": \"Centenary\",\n  \"bankBranch\": \"Masaka\"\n}",
+                "raw": "{\n  \"accountame\": \"2123123123\",\n  \"accounttNumber\": \"1231231141234\",\n  \"routingNumber\": \"asdf234\",\n  \"swiftCode\": \"2342SDF\",\n  \"bankName\": \"Centenary\",\n  \"bankBranch\": \"Masaka\"\n}",
                 "form": []
             },
             "auth": {
@@ -548,6 +598,43 @@
                 "bearer": "{{api-token}}"
             },
             "tests": []
+        },
+        {
+            "_id": "5ac5ae6d-c4bd-40ef-90de-d7eac19dd14b",
+            "colId": "79a84583-4505-4385-af5a-393a4c3c8a64",
+            "containerId": "8220b8e6-acd2-4a35-9257-11cbae4e8653",
+            "name": "upload-document",
+            "url": "{{api-url}}/api/v1/file-upload",
+            "method": "POST",
+            "sortNum": 100000,
+            "created": "2024-05-01T20:42:11.519Z",
+            "modified": "2024-05-06T08:25:35.308Z",
+            "headers": [],
+            "body": {
+                "type": "formdata",
+                "raw": "",
+                "form": [
+                    {
+                        "name": "fileName",
+                        "value": "contract"
+                    },
+                    {
+                        "name": "entityType",
+                        "value": "contract"
+                    }
+                ],
+                "files": [
+                    {
+                        "name": "file_content",
+                        "value": "/Users/thesammie/Pictures/Screenshots/Screenshot 2024-05-06 at 09.59.20.png"
+                    }
+                ]
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{api-token}}"
+            }
         }
-    ]
+    ],
+    "ref": "b9NiWjzs5Iw5WCJnrbYUDfWu7uHnyMjmTplJM1OQs8obHtLobu1SbZJvN0eu7_IMfbSqrioaPqPktI2XON40Aw"
 }

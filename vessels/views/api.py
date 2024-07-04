@@ -45,9 +45,9 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
         try:
             super_user = self.request.user.is_superuser
             if super_user:
-                return Vessel.objects.get(app_ref=id, created_by=req.user.id)
+                return Vessel.objects.get(id=id)
             else:
-                return Vessel.objects.get(app_ref=id)
+                return Vessel.objects.get(id=id, created_by=req.user.id)
         except Vessel.DoesNotExist:
             raise ValidationError('Vessel does not exist')
 
@@ -73,7 +73,7 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
         vessel = self.get_vessel(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != vessel.created_by.id:
+        if user_id != vessel.created_by:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'
@@ -112,9 +112,9 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
 
             super_user = self.request.user.is_superuser
             if super_user:
-                return VesselImage.objects.get(app_ref=id, created_by=req.user.id)
+                return VesselImage.objects.get(id=id)
             else:
-                return VesselImage.objects.get(app_ref=id)
+                return VesselImage.objects.get(id=id, created_by=req.user.id)
         except VesselImage.DoesNotExist:
             raise ValidationError('Vessel image does not exist')
 
@@ -140,7 +140,7 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
         vessel_image = self.get_vessel_image(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != vessel_image.created_by.id:
+        if user_id != vessel_image.created_by:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'

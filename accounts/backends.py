@@ -13,14 +13,14 @@ class JWTAuthentication(authentication.BaseAuthentication):
         if not token:
             return None
         try:
-            if not 'Bearer ' in token:
+            if 'Bearer ' not in token:
                 raise exceptions.AuthenticationFailed(
                     "Bad request. The token should begin with the word 'Bearer'."
                 )
             token = token.split(' ')[1]
             identity_manager = JwtManager()
             payload = identity_manager.decode(token)
-        except IndexError as e:
+        except IndexError:
             raise exceptions.AuthenticationFailed(
                 "Bad request, missing token after 'Bearer' ", 400)
         try:
