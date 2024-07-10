@@ -73,34 +73,27 @@
             </li>
 
 
-            <li class="menu-title">Agents</li>
-
+            <!-- <li class="menu-title">Agents</li>
             <li class="menu-item">
                 <a href="{% url 'dashboards:agent-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-calendar"></i></span>
                     <span class="menu-text"> Dashboard </span>
                 </a>
             </li>
-
             <li class="menu-item">
                 <a href="#" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-calendar"></i></span>
                     <span class="menu-text"> Agents </span>
                 </a>
-            </li>
+            </li> -->
 
-           
-
-    
             <li class="menu-title">Vessel Owners</li>
-          
             <li class="menu-item">
                 <a href="{% url 'dashboards:vesselowner-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-forum-outline"></i></span>
                     <span class="menu-text"> Dashboard </span>
                 </a>
             </li>
-            
             <li class="menu-item">
                 <a href="{% url 'vessels-web:vessels' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-file-document-outline"></i></span>
@@ -114,20 +107,28 @@
                 </a>
             </li>
             
-            <li class="menu-title">Workers</li>
-
+            <!-- <li class="menu-title">Workers</li>
             <li class="menu-item">
                 <a href="{% url 'dashboards:worker-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
                     <span class="menu-text"> Dashboard </span>
                 </a>
-            </li>
+            </li> -->
             
-            <li class="menu-title">Super Admin</li>
+
+            <li class="menu-title">Companies</li>
             <li class="menu-item">
                 <a href="{% url 'companies-web:companies' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-domain"></i></span>
                     <span class="menu-text"> Companies </span>
+                </a>
+            </li>
+
+            <li class="menu-title">Question Responses</li>
+            <li class="menu-item">
+                <a href="{% url 'surveys-web:tfa-video' %}" class="menu-link">
+                    <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                    <span class="menu-text"> TFA Video responses </span>
                 </a>
             </li>
             <li class="menu-item">
@@ -136,7 +137,15 @@
                     <span class="menu-text"> Survey Responses </span>
                 </a>
             </li>
+            <li class="menu-item">
+                <a href="{% url 'surveys-web:inline-questions' %}" class="menu-link">
+                    <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                    <span class="menu-text"> Inline question Responses </span>
+                </a>
+            </li>
+            
             {% if show_users_menu_item or loggedin_user.is_superuser %}
+                <li class="menu-title">Super Admin</li>
                 <li class="menu-item">
                     <a href="{% url 'accounts:users' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
