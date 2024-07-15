@@ -9,6 +9,7 @@ from io import BytesIO
 from collections import Counter
 from matplotlib.ticker import MaxNLocator
 from textwrap import fill
+import numpy as np
 
 
 class SurveyView(LoginRequiredMixin, View):
@@ -146,16 +147,20 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
     def get_plot(self, values, labels, title, question_type):
         plt.switch_backend('AGG')
         plt.figure(figsize=(10, 6))
-        
+
         wrapped_labels = [fill(label, width=25) for label in labels]
 
         if question_type == 'radio':
-            wedges, texts, autotexts = plt.pie(values, labels=wrapped_labels, autopct='%1.1f%%', startangle=140, wedgeprops={'edgecolor': 'white'})
+            wedges = plt.pie(values, labels=wrapped_labels, autopct='%1.1f%%',
+                             startangle=140, wedgeprops={'edgecolor': 'white'})
             plt.axis('equal')
             colors = [wedge.get_facecolor() for wedge in wedges]
-            plt.legend(handles=wedges, labels=wrapped_labels, loc='lower left', frameon=False)
+            legend_labels = [f"{label} ({value} responses)" for label, value
+                             in zip(wrapped_labels, values)]
+            plt.legend(handles=wedges, labels=legend_labels, loc='lower left', frameon=False)
         elif question_type in ['select', 'multiple-select', 'multi-select']:
-            bars = plt.barh(wrapped_labels, values, color='skyblue')
+            colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
+            bars = plt.barh(wrapped_labels, values, color=colors)
             plt.xlabel('Number of Responses')
             plt.ylabel('Responses')
             plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -163,7 +168,8 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
             plt.subplots_adjust(bottom=0.3)
 
             legend_wrapped_labels = [fill(label, width=40) for label in labels]
-            legend_labels = [f"{label} ({value} responses)" for label, value in zip(legend_wrapped_labels, values)]
+            legend_labels = [f"{label} ({value} responses)" for label, value
+                             in zip(legend_wrapped_labels, values)]
             plt.legend(handles=bars, labels=legend_labels, bbox_to_anchor=(-0.1, -0.2), loc='lower left', frameon=False)
 
         plt.title(title, loc='center', wrap=True)

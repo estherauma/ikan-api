@@ -2,9 +2,30 @@
 {% load static %}
 
 {% block content %}
-  <div class="container-fluid>">
-    {% if chart %}
-      <img src="data:image/png;base64, {{chart|safe}}" alt="responses-chart">
+  <div class="container-fluid">
+    {% if table_data %}
+      <h2>{{ title }}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Response</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for response, count in table_data %}
+          <tr>
+            <td>{{ response }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% elif chart %}
+      <!-- <h2>{{ title }}</h2> -->
+      <img src="data:image/png;base64,{{ chart| safe }}" alt="Chart" />
+    {% else %}
+      <p>No data available</p>
     {% endif %}
   </div>
 {% endblock %}
