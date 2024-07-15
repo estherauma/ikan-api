@@ -154,7 +154,6 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
             wedges = plt.pie(values, labels=wrapped_labels, autopct='%1.1f%%',
                              startangle=140, wedgeprops={'edgecolor': 'white'})
             plt.axis('equal')
-            colors = [wedge.get_facecolor() for wedge in wedges]
             legend_labels = [f"{label} ({value} responses)" for label, value
                              in zip(wrapped_labels, values)]
             plt.legend(handles=wedges, labels=legend_labels, loc='lower left', frameon=False)
@@ -164,15 +163,14 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
             plt.xlabel('Number of Responses')
             plt.ylabel('Responses')
             plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
-            colors = [bar.get_facecolor() for bar in bars]
             plt.subplots_adjust(bottom=0.3)
 
-            legend_wrapped_labels = [fill(label, width=40) for label in labels]
+            legend_wrapped_labels = [fill(label, width=70) for label in labels]
             legend_labels = [f"{label} ({value} responses)" for label, value
                              in zip(legend_wrapped_labels, values)]
-            plt.legend(handles=bars, labels=legend_labels, bbox_to_anchor=(-0.1, -0.2), loc='lower left', frameon=False)
+            plt.legend(handles=bars, labels=legend_labels, bbox_to_anchor=(-0.1, -0.3), loc='lower left', frameon=False)
 
         plt.title(title, loc='center', wrap=True)
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0.05, 1, 1])
         graph = self.get_graph()
         return graph
