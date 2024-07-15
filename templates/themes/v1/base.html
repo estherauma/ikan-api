@@ -22,12 +22,13 @@
         <!-- TODO: remove app.css styles -->
         <!-- TODO: minify css files -->
 		<link href="/static/themes/v1/assets/css/app.css" rel="stylesheet" type="text/css" />
+        <link href="/static/themes/v1/assets/css/question-responses.css" rel="stylesheet" type="text/css" />
 
 		<!-- Icons css -->
 		<link href="/static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
     </head>
 
-    <body>
+    <body class="{% block body_class %}{% endblock %}">
         <!-- Begin page -->
         <div id="wrapper">
 
