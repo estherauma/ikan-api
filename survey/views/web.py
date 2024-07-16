@@ -118,20 +118,38 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
         values = list(response_count.values())
         title = question_text
 
+        # get follow up question responses data
+        follow_up_data = self.get_follow_up_qtn_responses(query_set)
+
         if question_type in ['text', 'textArea', 'textarea']:
             table_data = sorted(response_count.items(), key=lambda item: item[1], reverse=True)
-            return render(request, 'question-response.html', {'table_data': table_data, 'title': title})
+            context = {
+                'table_data': table_data,
+                'title': title,
+                'follow_up_data': follow_up_data if follow_up_data else None
+            }
+            return render(request, 'question-response.html', context)
         else:
             chart = self.get_plot(values, labels, title, question_type)
-            return render(request, 'question-response.html', {'chart': chart, 'title': title})
+            context = {
+                'chart': chart,
+                'title': title,
+                'follow_up_data': follow_up_data if follow_up_data else None
+            }
+            return render(request, 'question-response.html', context)
 
-    def get_response_count(self, data, question_type):
+    def get_response_count(self, data, question_type, is_follow_up_response=False):
         if question_type in ['multiple-select', 'multi-select']:
             all_responses = []
             for item in data:
-                all_responses.extend(item['question_response'].split(','))
+                if is_follow_up_response:
+                    all_responses.extend(item['follow_up_question_response'].split(','))
+                else:
+                    all_responses.extend(item['question_response'].split(','))
             return Counter(all_responses)
         else:
+            if is_follow_up_response:
+                return Counter(item['follow_up_question_response'] for item in data)
             return Counter(item['question_response'] for item in data)
 
     def get_graph(self):
@@ -174,3 +192,33 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
         plt.tight_layout(rect=[0, 0.05, 1, 1])
         graph = self.get_graph()
         return graph
+
+    def get_follow_up_qtn_responses(self, query_set):
+        follow_up_qtns = query_set.filter(follow_up_question_key__isnull=False).values()
+        unique_follow_up_qtns = query_set.filter(follow_up_question_key__isnull=False).values(
+            'follow_up_question_key').distinct()
+
+        follow_up_data = []
+        for obj in unique_follow_up_qtns:
+            follow_up_qtn = follow_up_qtns.filter(follow_up_question_key=obj['follow_up_question_key']).values()
+            follow_up_question_type = follow_up_qtn[0]['follow_up_question_type']
+            follow_up_qtn_title = follow_up_qtn[0]['follow_up_question_text']
+
+            follow_up_qtn_response_count = self.get_response_count(follow_up_qtn, follow_up_question_type,
+                                                                   is_follow_up_response=True)
+            follow_up_qtn_labels = list(follow_up_qtn_response_count.keys())
+            follow_up_qtn_values = list(follow_up_qtn_response_count.values())
+
+            follow_up_qtn_obj = {
+                'follow_up_title': follow_up_qtn_title,
+            }
+            if follow_up_question_type in ['text', 'textArea', 'textarea']:
+                follow_up_qtn_obj['follow_up_table_data'] = sorted(follow_up_qtn_response_count.items(),
+                                                                   key=lambda item: item[1], reverse=True)
+            else:
+                follow_up_qtn_obj['follow_up_chart'] = self.get_plot(follow_up_qtn_values, follow_up_qtn_labels,
+                                                                     follow_up_qtn_title, follow_up_question_type)
+
+            follow_up_data.append(follow_up_qtn_obj)
+
+        return follow_up_data
