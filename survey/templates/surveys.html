@@ -7,8 +7,13 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <table id="surveys-table" class="table table-striped dt-responsive nowrap w-100">
-                        </table>
+                        {% if is_tfa_video %}
+                            <table id="tfa-video-qtns-table" class="table table-striped dt-responsive nowrap w-100"></table>
+                        {% elif is_inline_question %}
+                            <table id="inline-questions-table" class="table table-striped dt-responsive nowrap w-100"></table>
+                        {% elif is_survey %}
+                            <table id="surveys-table" class="table table-striped dt-responsive nowrap w-100"></table>
+                        {% endif %}
                     </div>
                 </div>
             </div>
