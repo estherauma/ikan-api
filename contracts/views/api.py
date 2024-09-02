@@ -1,30 +1,51 @@
 # rest_framework imports
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (
+    ListCreateAPIView, RetrieveUpdateDestroyAPIView)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from django.db.models import Q
 # Model imports
 from contracts.models import Contract, ContractClause, ContractDocument
 
 # Serializer imports
-from contracts.serializers import ContractSerializer, contractClauseSerializer, ContractDocumentSerializer
+from contracts.serializers import (
+    ContractSerializer, contractClauseSerializer, ContractDocumentSerializer
+)
 
 
 class ContractListView(ListCreateAPIView):
-    permission_classes = ([IsAuthenticated, ])
+    permission_classes = [IsAuthenticated]
     serializer_class = ContractSerializer
-    queryset = Contract.objects.all()
 
-    def list(self, request):
-        super_user = self.request.user.is_superuser
-        queryset = self.get_queryset() if super_user else Contract.objects.filter(created_by=request.user.id)
+    def get_queryset(self):
+        """
+        Return the queryset based on whether the user is a superuser or not.
+        """
+        user = self.request.user
+        if user.is_superuser:
+            return Contract.objects.all()
+
+        # Filter contracts created by the user or where the user has access
+        return Contract.objects.filter(
+            Q(created_by=user) | 
+            Q(contract_user_access__user=user)
+        ).distinct()
+
+    def list(self, request, *args, **kwargs):
+        """
+        Override the list method to return a custom response format.
+        """
+        queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'status': 'OK', 'data': serializer.data}, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data}, status=status.HTTP_200_OK)
 
     def create(self, request):
-        # remove the id field from request.data so ids from the local db aren't used
+        # remove the id field from request.data so ids from the local
+        # db aren't used
         # alternatively, update the serializer to ignore the id field on input
         # extra_kwargs = {
         # 'id': {'read_only': True}
@@ -60,7 +81,8 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         contract = self.get_item(id)
-        serializer = self.serializer_class(contract, data=request.data, partial=True)
+        serializer = self.serializer_class(
+            contract, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(updated_by=request.user.id)
         return Response({
@@ -109,7 +131,8 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         contract_clause = self.get_item(id)
-        serializer = self.serializer_class(contract_clause, data=request.data, partial=True)
+        serializer = self.serializer_class(
+            contract_clause, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(updated_by=request.user.id)
         return Response({
@@ -146,7 +169,9 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
         try:
             return ContractDocument.objects.get(id=id)
         except ContractDocument.DoesNotExist:
-            raise ValidationError({'error': 'Contract document does not exist'})
+            raise ValidationError(
+                {'error': 'Contract document does not exist'}
+            )
 
     def retrieve(self, request, id):
         contract_document = self.get_item(id)
@@ -158,7 +183,8 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         contract_document = self.get_item(id)
-        serializer = self.serializer_class(contract_document, data=request.data, partial=True)
+        serializer = self.serializer_class(
+            contract_document, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(updated_by=request.user.id)
         return Response({
