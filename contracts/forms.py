@@ -10,8 +10,7 @@ class ContractAccessForm(forms.ModelForm):
         widgets = {
             'contract': forms.Select(attrs={
                 'class': 'form-control',
-                'readonly': True,
-                'disabled': True
+                'readonly': True
             }),
             'user': forms.Select(attrs={'class': 'form-control'})
         }

@@ -1,5 +1,4 @@
 from django.urls import path
-from companies.views.web import ContractAccessView
 from contracts.views.web import *
 
 app_name = 'contracts-web'
