@@ -1,10 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.forms import BaseModelForm
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse_lazy
 from django.views import View
 from companies.models import Company
 from django.views import generic
 
+from contracts.forms import ContractAccessForm
+from contracts.models import Contract, UserContractAccess
+
+from django.views.generic.edit import FormView
+from django.views.generic import CreateView
 
 class CompaniesView(LoginRequiredMixin, View):
     def get(self, request):
@@ -36,3 +43,24 @@ class CompaniesDataView(LoginRequiredMixin, View):
             }
             companies_list.append(item_dict)
         return JsonResponse({'data': companies_list})
+
+
+class ContractAccessView(CreateView):
+    model = UserContractAccess
+    form_class = ContractAccessForm
+    template_name = 'contracts/add_access.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['contract'] = self.kwargs.get('pk')
+        return initial
+    
+    def get_success_url(self):
+        return reverse_lazy('contracts-web:contract-details', kwargs={'pk': self.object.contract.pk})
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        return super().form_invalid(form)
