@@ -1,5 +1,6 @@
 from django.db import models
 from common.models import AuditableModel
+from accounts.models import User
 import uuid
 
 
@@ -39,3 +40,13 @@ class ContractClause(AuditableModel):
 
     def __str__(self):
         return self.contract.name + ' - ' + self.name
+
+
+class UserContractAccess(AuditableModel):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='user_contract_access')
+    contract = models.ForeignKey(
+        Contract, 
+        on_delete=models.CASCADE,
+        related_name='contract_user_access')
+    is_active = models.BooleanField(default=True)    
