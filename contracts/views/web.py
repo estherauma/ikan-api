@@ -2,11 +2,16 @@ from typing import Any
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views import View
 from django.views import generic
-from contracts.models import Contract
+from django.views.generic import CreateView
+from accounts.models import User
+from contracts.forms import ContractAccessForm
+from contracts.models import Contract, UserContractAccess
 import json
 from common.utils import get_clause_order
+from django.contrib import messages
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -27,8 +32,24 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             item.content = json.loads(item.content)
 
         context['clauses'] = sorted(context['clauses'], key=lambda x: x.order)
-
+        context['access_users'] = self.get_access_users()
         return context
+
+    def get_access_users(self):
+        access_users = UserContractAccess.objects.filter(
+            contract=self.object
+        ).select_related('user')
+    
+        # Create a set of users from the access_users queryset
+        users_set = set(access.user for access in access_users)
+    
+        # Add the contract's creator to the set of users
+        users_set.add(User.objects.get( pk = self.object.created_by))
+
+        return users_set
+
+    
+    
 
 
 class ContractsDataView(LoginRequiredMixin, View):
@@ -53,3 +74,33 @@ class ContractsDataView(LoginRequiredMixin, View):
             }
             contracts_list.append(contract)
         return JsonResponse({'data': contracts_list})
+
+
+class ContractAccessView(CreateView):
+    model = UserContractAccess
+    form_class = ContractAccessForm
+    template_name = 'contracts/add_access.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['contract'] = self.kwargs.get('pk')
+        return initial
+    
+    def get_success_url(self):
+        return reverse_lazy(
+            'contracts-web:contract-details',
+            kwargs={'pk': self.object.contract.pk}
+        )
+
+    def form_valid(self, form):
+        if UserContractAccess.objects.filter(
+            user=form.cleaned_data['user'],
+            contract=form.cleaned_data['contract']
+            ).exists():
+                messages.error(self.request, 'Access already granted')
+                return self.form_invalid(form)
+        messages.success(self.request, 'Access granted successfully')
+        return super(ContractAccessView, self).form_valid(form)
+    
+    def form_invalid(self, form):
+        return super().form_invalid(form)
