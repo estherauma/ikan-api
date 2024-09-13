@@ -10,7 +10,7 @@ class Contract(AuditableModel):
     internal_ref = models.CharField(max_length=255, null=False, blank=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=False, blank=False)
-    description = models.TextField(null=False, blank=False)
+    description = models.TextField(null=True, blank=True)
     # TODO: Add foreigh keys when the company model is created
     # taiwanese_company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='taiwanese_company')
     # indonesian_company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='indonesia_company')
