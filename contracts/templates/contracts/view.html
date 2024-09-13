@@ -48,6 +48,33 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Contract access -->
+            <div class="card">
+                <div class="card-header bg-light text-dark d-flex align-items-center">
+                    <h5 class="card-title">Access</h5>
+                    <a href="access" class="btn btn-primary ms-auto">Add Access</a>
+                </div>
+                <div class="card-body table">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                {% for user in access_users %}
+                                    <tr>
+                                        <td>{{ user }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="1">No users available</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+            
         </div>
 
         <div class="col-md-8">

@@ -1,10 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.forms import BaseModelForm
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse_lazy
 from django.views import View
 from companies.models import Company
 from django.views import generic
-
 
 class CompaniesView(LoginRequiredMixin, View):
     def get(self, request):
