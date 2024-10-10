@@ -24,7 +24,6 @@ class ContractListView(ListCreateAPIView):
         Return the queryset based on whether the user is a superuser or not.
         """
         user = self.request.user
-        print(user)
         if user.is_superuser:
             return Contract.objects.all()
 
@@ -39,7 +38,6 @@ class ContractListView(ListCreateAPIView):
         Override the list method to return a custom response format.
         """
         queryset = self.get_queryset()
-        print(queryset.query)
         serializer = self.get_serializer(queryset, many=True)
         return Response({
             'status': 'OK',
