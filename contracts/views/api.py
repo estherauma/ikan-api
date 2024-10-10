@@ -29,8 +29,8 @@ class ContractListView(ListCreateAPIView):
 
         # Filter contracts created by the user or where the user has access
         return Contract.objects.filter(
-            Q(created_by=user) | 
-            Q(contract_user_access__user=user)
+            Q(created_by=user.id) | 
+            Q(contract_user_access__user=user.id)
         ).distinct()
 
     def list(self, request, *args, **kwargs):
