@@ -5,6 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from vessels.models import Vessel, VesselImage
 from vessels.serializers import VesselSerializer, VesselImageSerializer
+from contracts.models import ContractClause
+import json
+from django.db.models import Q
 
 
 class VesselApiListView(ListCreateAPIView):
@@ -14,8 +17,21 @@ class VesselApiListView(ListCreateAPIView):
 
     def list(self, request):
         request.data.pop('id', None)
-        super_user = self.request.user.is_superuser
-        vessels = self.get_queryset() if super_user else Vessel.objects.filter(created_by=request.user.id)
+        user = self.request.user
+        super_user = user.is_superuser
+        groups = user.groups.all()
+
+        if super_user:
+            vessels = self.get_queryset()
+        elif len(groups) == 1 and groups[0].name == 'worker':
+            user_contract_clauses = ContractClause.objects.filter(contract__contract_user_access__user=user)
+            party_b_clauses = user_contract_clauses.filter(kind='contract-clauses-parties-requirement-fishers')
+            party_b_data = party_b_clauses.values('content')
+            vessel_app_refs = [json.loads(item['content'])['vessel'] for item in party_b_data]
+            vessels = Vessel.objects.filter(app_ref__in=vessel_app_refs)
+        else:
+            vessels = Vessel.objects.filter(created_by=request.user.id)
+
         serializer = self.get_serializer(vessels, many=True)
         return Response(
             {
