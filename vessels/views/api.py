@@ -5,6 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from vessels.models import Vessel, VesselImage
 from vessels.serializers import VesselSerializer, VesselImageSerializer
+from contracts.models import ContractClause
+import json
+from django.db.models import Q
 
 
 class VesselApiListView(ListCreateAPIView):
@@ -12,10 +15,37 @@ class VesselApiListView(ListCreateAPIView):
     serializer_class = VesselSerializer
     queryset = Vessel.objects.all()
 
+    def get_worker_vessels(self, user):
+        user_contract_clauses = ContractClause.objects.filter(contract__contract_user_access__user=user)
+        party_b_clauses = user_contract_clauses.filter(kind='contract-clauses-parties-requirement-fishers')
+        party_b_data = party_b_clauses.values('content')
+        vessel_app_refs = []
+        for item in party_b_data:
+            try:
+                vessel_ref = json.loads(item['content']).get('vessel')
+                if vessel_ref:
+                    vessel_app_refs.append(vessel_ref)
+            except (KeyError, json.JSONDecodeError):
+                continue
+
+        return Vessel.objects.filter(
+                Q(app_ref__in=vessel_app_refs) |
+                Q(created_by=user.id)  # for users with multiple roles
+            )
+
     def list(self, request):
         request.data.pop('id', None)
-        super_user = self.request.user.is_superuser
-        vessels = self.get_queryset() if super_user else Vessel.objects.filter(created_by=request.user.id)
+        user = self.request.user
+        super_user = user.is_superuser
+        is_worker = user.groups.filter(name='worker').exists()
+
+        if super_user:
+            vessels = self.get_queryset()
+        elif is_worker:
+            vessels = self.get_worker_vessels(user)
+        else:
+            vessels = Vessel.objects.filter(created_by=request.user.id)
+
         serializer = self.get_serializer(vessels, many=True)
         return Response(
             {
