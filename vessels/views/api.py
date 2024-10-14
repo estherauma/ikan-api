@@ -23,12 +23,15 @@ class VesselApiListView(ListCreateAPIView):
 
         if super_user:
             vessels = self.get_queryset()
-        elif len(groups) == 1 and groups[0].name == 'worker':
+        elif 'worker' in [group.name for group in groups]:  # check caters for users with multiple roles
             user_contract_clauses = ContractClause.objects.filter(contract__contract_user_access__user=user)
             party_b_clauses = user_contract_clauses.filter(kind='contract-clauses-parties-requirement-fishers')
             party_b_data = party_b_clauses.values('content')
             vessel_app_refs = [json.loads(item['content'])['vessel'] for item in party_b_data]
-            vessels = Vessel.objects.filter(app_ref__in=vessel_app_refs)
+            vessels = Vessel.objects.filter(
+                Q(app_ref__in=vessel_app_refs) |
+                Q(created_by=request.user.id)  # for users with multiple roles
+            )
         else:
             vessels = Vessel.objects.filter(created_by=request.user.id)
 
