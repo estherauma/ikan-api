@@ -705,6 +705,13 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'type': 'images_slider',
                 'sliderContent': aggregate_image_slider_data(item['items']),
             }
+        elif 'heading' in item['slice_type']:
+            return {
+                'type': item['slice_type'],
+                'text': item['primary']['heading'][0]['text'] if item['primary'].get('heading') else None,
+                'headingAudio': aggregate_media_data(item['primary']['heading_audio']) if item['primary'].get(
+                    'heading_audio') else None,
+            }
         elif item['slice_type'] == 'text_area':
             return {
                 'type': 'text_area',
@@ -712,6 +719,8 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 if item['primary'].get('h2_title_area') else None,
                 'description': aggregate_text_data(item['primary']['text_area'])
                 if item['primary'].get('text_area') else None,
+                'contentAudio': aggregate_media_data(item['primary']['content_audio']) if item['primary'].get(
+                    'content_audio') else None,
             }
         elif item['slice_type'] == 'highlighted_link':
             return {
@@ -740,6 +749,8 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 if item['primary'].get('question') else None,
                 'questionType': item['primary']['question_type'] if item['primary'].get('question_type') else None,
                 'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
+                'questionAudio': aggregate_media_data(item['primary']['question_audio']) if item['primary'].get(
+                    'question_audio') else None,
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
