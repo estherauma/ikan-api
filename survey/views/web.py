@@ -10,6 +10,7 @@ from collections import Counter
 from matplotlib.ticker import MaxNLocator
 from textwrap import fill
 import numpy as np
+from django.db.models import Q
 
 
 class SurveyView(LoginRequiredMixin, View):
@@ -32,8 +33,10 @@ class SurveyView(LoginRequiredMixin, View):
 
 class SurveyDataView(LoginRequiredMixin, View):
     def get(self, request):
+        consent_qtn_key = 'i-have-read-and-understood-all-of-the-information-above-and-consent-to-have-my-de-\
+            identified-data-from-ikan-used-as-part-of-the-research-study'
         query_set = Survey.objects.values('question_key', 'question_text')\
-            .distinct().exclude(question_key__startswith='tfaVid')
+            .distinct().exclude(Q(question_key__startswith='tfaVid') | Q(question_key=consent_qtn_key))
 
         survey_qtns = []
         for item in query_set:
