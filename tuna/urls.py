@@ -63,6 +63,7 @@ urlpatterns = [
     path('companies/', include('companies.urls.web')),
     path('surveys/', include('survey.urls.web')),
     path('vessels/', include('vessels.urls.web')),
+    path('payments/', include('payments.urls.web')),
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),
