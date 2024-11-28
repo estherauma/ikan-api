@@ -359,6 +359,15 @@ class UserDetailView(APIView):
             'errors': []
         })
 
+    def delete(self, request, pk):
+        user = self.get_user(pk)
+        user.delete()
+        return Response({
+            'status': 'OK',
+            'data': [],
+            'errors': []
+        })
+
 
 class InviteUser(APIView):
     def post(self, request):
