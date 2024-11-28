@@ -34,6 +34,19 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    def get_default_user(self):
+        default_email = 'default_ikan_user@fiftyeight.io'
+        default_password = self.make_random_password()
+        try:
+            user = self.get(email=default_email)
+        except self.model.DoesNotExist:
+            user = self.create_user(
+                email=default_email,
+                password=default_password,
+                is_active=False,
+            )
+        return user
+
 
 class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
@@ -71,7 +84,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
 class LoginEvent(BaseModel):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='login_events')
+        User, on_delete=models.SET(User.objects.get_default_user), related_name='login_events')
     ip_address = models.GenericIPAddressField()
     date_logged_in = models.DateTimeField(auto_now_add=True)
 
@@ -90,7 +103,7 @@ class UserBank(AuditableModel):
     swift_code = models.CharField(max_length=255, null=True, blank=True)
     bank_name = models.CharField(max_length=255, null=True, blank=True)
     bank_branch = models.CharField(max_length=255, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET(User.objects.get_default_user))
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -107,7 +120,7 @@ class UserBeneficiaries(AuditableModel):
     swift_code = models.CharField(max_length=255, null=True, blank=True)
     bank_name = models.CharField(max_length=255, null=True, blank=True)
     bank_branch = models.CharField(max_length=255, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET(User.objects.get_default_user))
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

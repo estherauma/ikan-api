@@ -22,7 +22,7 @@ class Company(AuditableModel):
 
 
 class UserCompany(AuditableModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET(User.objects.get_default_user))
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
