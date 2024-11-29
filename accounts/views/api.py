@@ -364,9 +364,10 @@ class UserDetailView(APIView):
         user.delete()
         return Response({
             'status': 'OK',
+            'message': 'User deleted successfully',
             'data': [],
             'errors': []
-        })
+        }, status=status.HTTP_204_NO_CONTENT)
 
 
 class InviteUser(APIView):
