@@ -104,6 +104,25 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     template_name = 'profile.html'
 
 
+class WorkersListView(LoginRequiredMixin, ListView):
+    model = User
+    context_object_name = 'workers'
+    template_name = 'worker-list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Worker List'
+        context['invite_user_form'] = InviteUser()
+        context['resend_token_form'] = ResendTokenForm()
+
+        super_user = self.request.user.is_superuser
+        users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
+        workers = users.filter(groups__name='worker', created_by=self.request.user.id)
+
+        context['workers'] = workers
+        return context
+
+
 @login_required(login_url='/account/login')
 def invite_user(request):
     if request.method == 'POST':
