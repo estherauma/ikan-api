@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.views import View
 from django.shortcuts import render, redirect
 from payments.forms import UploadPaymentsForm
@@ -49,3 +50,16 @@ class PaymentUploadView(LoginRequiredMixin, View):
             # print("Form is invalid------", form.errors)
 
         return redirect("payments:payments-list")
+
+
+def download_template_file(request):
+    # Change to fields in the Payment model
+    columns = ["Vessel Name", " Crew Name", "Amount", "Date", "Description"]
+    # rules = {}
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="Payments_template.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(columns)
+    return response

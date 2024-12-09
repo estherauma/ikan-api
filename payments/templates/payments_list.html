@@ -22,7 +22,7 @@
 
 	<div class="row action-buttons mb-1">
 		<div class="row">
-			<div class="col">
+			<div class="col d-flex">
 				<button
 					type="button"
 					data-bs-toggle="modal"
@@ -83,6 +83,8 @@
 						</div>
 					</div>
 				</div>
+
+				<a href="{% url 'payments:download-template' %}" class="m-1 mb-0 align-self-end">Download payments template file</a>
 			</div>
 		</div>
 	</div>
