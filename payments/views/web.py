@@ -7,6 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.list import ListView
 from payments.models import Payment
 from django.contrib import messages
+import pandas as pd
+from payments.utils import display_col_name_to_key_map
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -29,19 +31,39 @@ class PaymentUploadView(LoginRequiredMixin, View):
         if form.is_valid():
             payments_file = request.FILES["file"]
 
-            if not payments_file.name.endswith(".csv"):
+            accepted_file_types = ["xlsx", "xls"]
+            if payments_file.name.split(".")[-1] not in accepted_file_types:
                 messages.error(
-                    request, "File type not supported. Please upload a CSV file."
+                    request,
+                    "File type not supported. Please upload a .xlsx or .xls file.",
                 )
                 return redirect("payments:payments-list")
 
-            decoded_file = payments_file.read().decode("utf-8").splitlines()
-            reader = csv.reader(decoded_file)
-            data = list(reader)
+            df = pd.read_excel(payments_file, engine="openpyxl", header=1)
+            df.replace(0, pd.NA, inplace=True)
+            df = df.dropna(how="all")  # Remove blank rows
 
-            for row in data:
-                # add save logic
-                print("rrrr", row)
+            mapped_columns = {}
+            for col in df.columns:
+                if col in display_col_name_to_key_map:
+                    mapped_columns[col] = display_col_name_to_key_map[col]
+                else:
+                    messages.error(request, f"Column '{col}' is not supported.")
+                    # TODO: change err msg
+                    print(
+                        f"Warning: Column '{col}' does not have a mapping and will be skipped."
+                    )
+                    # return redirect("payments:payments-list")
+
+            df.rename(columns=mapped_columns, inplace=True)
+
+            for row in df.iloc[1:].itertuples(index=False):
+                # Create a dictionary of field-value pairs
+                record_data = {
+                    key: getattr(row, key) for key in mapped_columns.values()
+                }
+                print("record_data....", record_data)
+                print("---------------------------------------------....---")
 
             messages.success(request, "Payments uploaded successfully.")
             return redirect("payments:payments-list")
@@ -52,6 +74,7 @@ class PaymentUploadView(LoginRequiredMixin, View):
         return redirect("payments:payments-list")
 
 
+# TODO: rework template download
 def download_template_file(request):
     # Change to fields in the Payment model
     columns = ["Vessel Name", " Crew Name", "Amount", "Date", "Description"]
