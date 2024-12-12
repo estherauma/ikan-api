@@ -128,6 +128,9 @@ class PaymentUploadView(LoginRequiredMixin, View):
                         request,
                         f"Invalid payment period start or end date for user '{record.get('crew_name')}'.",
                     )
+                    print(
+                        f"Error: Invalid payment period start or end date for user '{record.get('crew_name')}'. {e}"
+                    )
                     continue
 
                 # Check if the payment already exists
@@ -149,6 +152,7 @@ class PaymentUploadView(LoginRequiredMixin, View):
 
                 # Save the record to the database
                 try:
+                    crew_name = record.get("crew_name")
                     # TODO: remove unnecessary fields and save deductions
                     del record["vessel_name"]
                     del record["crew_name"]
@@ -163,17 +167,18 @@ class PaymentUploadView(LoginRequiredMixin, View):
                     payment.save()
                     messages.success(
                         request,
-                        f"Payment saved for user '{record.get('crew_name')} \
+                        f"Payment saved for user '{crew_name}' \
                             for the period {start_date.strftime('%b %d, %Y')} - \
                                 {end_date.strftime('%b %d, %Y')}.",
                     )
                 except Exception as e:
                     messages.error(
                         request,
-                        f"Failed to save payment for user '{record.get('crew_name')} \
+                        f"Failed to save payment for user '{crew_name}' \
                             for the period {start_date.strftime('%b %d, %Y')} - \
                                 {end_date.strftime('%b %d, %Y')}.",
                     )
+                    print(f"Error: Failed to save payment for user '{crew_name}'. {e}")
 
         else:
             messages.error(request, "Form is invalid.")
