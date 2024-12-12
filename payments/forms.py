@@ -6,7 +6,7 @@ class UploadPaymentsForm(forms.Form):
         widget=forms.FileInput(attrs={
             'class': 'form-control',
             'id': 'file',
-            'accept': '.csv',
+            'accept': '.xlsx, .xls',
         }),
         label='',
     )
