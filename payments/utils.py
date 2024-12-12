@@ -21,9 +21,9 @@ display_col_name_to_key_map = {
     "如支付的貨幣非美金，請列出支付貨幣的總額。\n\nIf the bank transfer payment is made in non-USD currency, please state the amount paid in said currency.": "bank_transfer_local_amount",
     "請說明支付貨幣兌換 1 美元的匯率\n\nPlease state exchange rate in terms of how much is the bank transfer payment currency to 1 USD ": "bank_transfer_exchange_rate",
     "授款人是否船員本人？Is the bank transfer beneficiary the crew member himself?": "is_bank_transfer_beneficiary_crew",
-    "銀行戶名\nBeneficiary Account Name": "beneficiary_account_name",
-    "銀行帳號 \nBeneficiary Account No.": "beneficiary_account_number",
-    "銀行名稱\nBeneficiary Bank Name\n\n*Type it in Bahasa / English": "beneficiary_bank_name",
+    "銀行戶名\nBeneficiary Account Name": "bank_account_name",
+    "銀行帳號 \nBeneficiary Account No.": "bank_account_number",
+    "銀行名稱\nBeneficiary Bank Name\n\n*Type it in Bahasa / English": "bank_name",
     "授薪人與船員關係\nBank Transfer Beneficiary's Relationship with Crew": "bank_transfer_beneficiary_relationship",
     "非船員本人, 請提供帳戶聯絡\n資訊\nIf bank transfer beneficiary is not crew member him/herself, please provide contact information relating to the account\n\n（電話號碼 Telephone number、WhatsApp、FB、其他Others)": "bank_transfer_beneficiary_contact",
     "請選擇聯絡資訊的平台\n\nPlease choose which platform this bank transfer beneficiary contact information is for": "bank_transfer_beneficiary_contact_platform",
@@ -63,3 +63,41 @@ methods_map = {
     "Cash": "cash",
     "Bank Transfer": "bank_transfer",
 }
+
+initial_required_fields = [
+    "vessel_name",
+    "crew_name",
+    "payment_date",
+    "payment_category",
+    "payment_method",
+    "beneficiary_name",
+    "start_date",
+    "end_date",
+    "duration",
+    "total_usd_amount_received",
+]
+
+required_cash_fields = [
+    "cash_usd_amount",
+    "cash_currency",
+    "cash_local_amount",
+    "cash_exchange_rate",
+    "is_cash_beneficiary_crew",
+    "cash_beneficiary_relationship",
+    "cash_beneficiary_contact",
+    "cash_beneficiary_contact_platform",
+]
+
+required_bank_transfer_fields = [
+    "bank_transfer_usd_amount",
+    "bank_transfer_currency",
+    "bank_transfer_local_amount",
+    "bank_transfer_exchange_rate",
+    "is_bank_transfer_beneficiary_crew",
+    "bank_account_name",
+    "bank_account_number",
+    "bank_name",
+    "bank_transfer_beneficiary_relationship",
+    "bank_transfer_beneficiary_contact",
+    "bank_transfer_beneficiary_contact_platform",
+]

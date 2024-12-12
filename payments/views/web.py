@@ -8,7 +8,17 @@ from django.views.generic.list import ListView
 from payments.models import Payment
 from django.contrib import messages
 import pandas as pd
-from payments.utils import display_col_name_to_key_map
+from payments.utils import (
+    display_col_name_to_key_map,
+    methods_map,
+    boolean_values_map,
+    initial_required_fields,
+    required_cash_fields,
+    required_bank_transfer_fields,
+    currencies_map,
+)
+from vessels.models import Vessel
+from accounts.models import User
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -41,6 +51,7 @@ class PaymentUploadView(LoginRequiredMixin, View):
 
             df = pd.read_excel(payments_file, engine="openpyxl", header=1)
             df.replace(0, pd.NA, inplace=True)
+            df = df.where(pd.notnull(df), None)
             df = df.dropna(how="all")  # Remove blank rows
 
             mapped_columns = {}
@@ -48,30 +59,150 @@ class PaymentUploadView(LoginRequiredMixin, View):
                 if col in display_col_name_to_key_map:
                     mapped_columns[col] = display_col_name_to_key_map[col]
                 else:
-                    messages.error(request, f"Column '{col}' is not supported.")
-                    # TODO: change err msg
+                    messages.error(
+                        request, f"Column '{col}' is not supported. Contact Admin."
+                    )
                     print(
                         f"Warning: Column '{col}' does not have a mapping and will be skipped."
                     )
-                    # return redirect("payments:payments-list")
 
             df.rename(columns=mapped_columns, inplace=True)
 
             for row in df.iloc[1:].itertuples(index=False):
                 # Create a dictionary of field-value pairs
-                record_data = {
-                    key: getattr(row, key) for key in mapped_columns.values()
-                }
-                print("record_data....", record_data)
-                print("---------------------------------------------....---")
+                record = {key: getattr(row, key) for key in mapped_columns.values()}
 
-            messages.success(request, "Payments uploaded successfully.")
-            return redirect("payments:payments-list")
+                # format data to match model data types
+                format_record(record)
+
+                # Check if all required fields are present
+                missing_fields = []
+                required_fields = initial_required_fields
+                if record["payment_method"] == "cash":
+                    required_fields = initial_required_fields + required_cash_fields
+                elif record["payment_method"] == "bank_transfer":
+                    required_fields = (
+                        initial_required_fields + required_bank_transfer_fields
+                    )
+
+                for field in required_fields:
+                    value = record.get(field)
+                    if not isinstance(value, bool) and not value:
+                        missing_fields.append(field)
+
+                if missing_fields:
+                    messages.error(
+                        request,
+                        f"Missing fields: {', '.join(missing_fields)} for user {record.get('crew_name')}.",
+                    )
+                    continue
+
+                # Check if the vessel and user exist
+                vessel = Vessel.objects.filter(name=record["vessel_name"]).first()
+                if vessel:
+                    record["vessel"] = vessel
+                else:
+                    messages.error(
+                        request, f"Vessel '{record['vessel_name']}' not found."
+                    )
+                    continue
+
+                user = User.objects.filter(
+                    first_name=record["crew_name"].split()[0],
+                    last_name=record["crew_name"].split()[1],
+                ).first()
+                if user:
+                    record["user"] = user
+                else:
+                    messages.error(request, f"User '{record['crew_name']}' not found.")
+                    continue
+
+                # Check if the payment period is valid
+                try:
+                    start_date = pd.to_datetime(
+                        record.get("start_date"), errors="raise"
+                    )
+                    end_date = pd.to_datetime(record.get("end_date"), errors="raise")
+                except Exception as e:
+                    messages.error(
+                        request,
+                        f"Invalid payment period start or end date for user '{record.get('crew_name')}'.",
+                    )
+                    continue
+
+                # Check if the payment already exists
+                existing_payment = Payment.objects.filter(
+                    user=user,
+                    vessel=vessel,
+                    start_date=start_date,
+                    end_date=end_date,
+                ).first()
+
+                if existing_payment:
+                    messages.error(
+                        request,
+                        f"Payment already exists for user '{record.get('crew_name')} \
+                            for the period {start_date.strftime('%b %d, %Y')} - \
+                                {end_date.strftime('%b %d, %Y')}.",
+                    )
+                    continue  # Skip this record if it already exists
+
+                # Save the record to the database
+                try:
+                    # TODO: remove unnecessary fields and save deductions
+                    del record["vessel_name"]
+                    del record["crew_name"]
+                    del record["deduction_1"]
+                    del record["deduction_1_reason"]
+                    del record["deduction_1_other_reason"]
+                    del record["deduction_2"]
+                    del record["deduction_2_reason"]
+                    del record["deduction_2_other_reason"]
+
+                    payment = Payment(**record)
+                    payment.save()
+                    messages.success(
+                        request,
+                        f"Payment saved for user '{record.get('crew_name')} \
+                            for the period {start_date.strftime('%b %d, %Y')} - \
+                                {end_date.strftime('%b %d, %Y')}.",
+                    )
+                except Exception as e:
+                    messages.error(
+                        request,
+                        f"Failed to save payment for user '{record.get('crew_name')} \
+                            for the period {start_date.strftime('%b %d, %Y')} - \
+                                {end_date.strftime('%b %d, %Y')}.",
+                    )
+
         else:
             messages.error(request, "Form is invalid.")
-            # print("Form is invalid------", form.errors)
 
         return redirect("payments:payments-list")
+
+
+def format_record(record):
+    for key, value in record.items():
+        if value is not None and isinstance(value, str):
+            record[key] = value.strip()
+
+        if (
+            key == "is_bank_transfer_beneficiary_crew"
+            or key == "is_cash_beneficiary_crew"
+            or key == "has_deductions"
+        ):
+            if value is None:
+                record[key] = False
+            else:
+                record[key] = boolean_values_map[value.strip()]
+
+        if key == "payment_method":
+            if value:
+                record[key] = methods_map[value]
+
+        if key == "cash_currency" or key == "bank_transfer_currency":
+            if value:
+                record[key] = currencies_map[value]
 
 
 # TODO: rework template download
