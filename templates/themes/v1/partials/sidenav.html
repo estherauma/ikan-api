@@ -25,130 +25,118 @@
 
     <!-- menu-left -->
     <div class="scrollbar">
-
-        <!-- User box -->
-        <div class="user-box text-center">
-            <img src="/static/themes/v1/assets/images/users/user-1.jpg" alt="user-img" title="Mat Helme" class="rounded-circle avatar-md">
-            <div class="dropdown">
-                <a href="javascript: void(0);" class="dropdown-toggle h5 mb-1 d-block" data-bs-toggle="dropdown">Geneva Kennedy</a>
-                <div class="dropdown-menu user-pro-dropdown">
-
-                    <!-- item-->
-                    <a href="javascript:void(0);" class="dropdown-item notify-item">
-                        <i class="fe-user me-1"></i>
-                        <span>My Account</span>
-                    </a>
-
-                    <!-- item-->
-                    <a href="javascript:void(0);" class="dropdown-item notify-item">
-                        <i class="fe-settings me-1"></i>
-                        <span>Settings</span>
-                    </a>
-
-                    <!-- item-->
-                    <a href="javascript:void(0);" class="dropdown-item notify-item">
-                        <i class="fe-lock me-1"></i>
-                        <span>Lock Screen</span>
-                    </a>
-
-                    <!-- item-->
-                    <a href="javascript:void(0);" class="dropdown-item notify-item">
-                        <i class="fe-log-out me-1"></i>
-                        <span>Logout</span>
-                    </a>
-
-                </div>
-            </div>
-            <p class="text-muted mb-0">Admin Head</p>
-        </div>
-
         <!--- Menu -->
         <ul class="menu">
 
+            <hr class="m-2 mt-1 mb-1">
             <li class="menu-item">
                 <a href="#" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-calendar"></i></span>
+                    <span class="menu-icon"><i class="mdi mdi-home"></i></span>
                     <span class="menu-text"> Dashboard </span>
                 </a>
             </li>
-
-
-            <!-- <li class="menu-title">Agents</li>
-            <li class="menu-item">
-                <a href="{% url 'dashboards:agent-dashboard' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-calendar"></i></span>
-                    <span class="menu-text"> Dashboard </span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="#" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-calendar"></i></span>
-                    <span class="menu-text"> Agents </span>
-                </a>
-            </li> -->
-
-            <li class="menu-title">Vessel Owners</li>
-            <li class="menu-item">
+            <!-- <li class="menu-item">
                 <a href="{% url 'dashboards:vesselowner-dashboard' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-forum-outline"></i></span>
                     <span class="menu-text"> Dashboard </span>
                 </a>
-            </li>
-            <li class="menu-item">
-                <a href="{% url 'vessels-web:vessels' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-file-document-outline"></i></span>
-                    <span class="menu-text"> Vessels </span>
-                </a>
-            </li>
+            </li> -->
+            <hr class="m-2 mt-1 mb-1">
+
+            <!-- Workers -->
+            {% if loggedin_user.is_vessel_owner %}
+                <li class="menu-item">
+                    <a href="{% url 'accounts:workers' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-account-hard-hat"></i></span>
+                        <span class="menu-text"> Workers </span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Manning Agencies/ Companies -->
+            {% if loggedin_user.is_vessel_owner %}
+                <li class="menu-item">
+                    <a href="{% url 'companies-web:companies' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-domain"></i></span>
+                        <span class="menu-text"> Manning Agencies </span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Vessels -->
+            {% if loggedin_user.is_vessel_owner %}
+                <li class="menu-item">
+                    <a href="{% url 'vessels-web:vessels' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-sail-boat"></i></span>
+                        <span class="menu-text"> Vessels </span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Contracts -->
             <li class="menu-item">
                 <a href="{% url 'contracts-web:contracts' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-file-document-outline"></i></span>
+                    <span class="menu-icon"><i class="mdi mdi-file-document-edit"></i></span>
                     <span class="menu-text"> Contracts </span>
                 </a>
             </li>
-            
-            <!-- <li class="menu-title">Workers</li>
-            <li class="menu-item">
-                <a href="{% url 'dashboards:worker-dashboard' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
-                    <span class="menu-text"> Dashboard </span>
-                </a>
-            </li> -->
-            
 
-            <li class="menu-title">Companies</li>
+            <!-- Payments -->
             <li class="menu-item">
-                <a href="{% url 'companies-web:companies' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-domain"></i></span>
-                    <span class="menu-text"> Companies </span>
+                <a href="{% url 'payments:payments-list' %}" class="menu-link">
+                    <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
+                    <span class="menu-text"> Payments </span>
                 </a>
             </li>
+            <hr class="m-2 mt-1 mb-1">
 
-            <li class="menu-title">Question Responses</li>
-            <li class="menu-item">
-                <a href="{% url 'surveys-web:tfa-video' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                    <span class="menu-text"> TFA Video responses </span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="{% url 'surveys-web:surveys' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                    <span class="menu-text"> Survey Responses </span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="{% url 'surveys-web:inline-questions' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                    <span class="menu-text"> Inline question Responses </span>
-                </a>
-            </li>
+            <!-- Profile -->
+                <li class="menu-item">
+                    <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-account-outline"></i></span>
+                        <span class="menu-text"> My profile </span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'accounts:logout' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-logout"></i></span>
+                        <span class="menu-text"> Logout </span>
+                    </a>
+                </li>
+
             
-            {% if show_users_menu_item or loggedin_user.is_superuser %}
+            <!-- Survey responses -->
+            <!-- TODO: add admin role -->
+            {% if loggedin_user.is_superuser %}
+                <hr class="m-2 mt-1 mb-1">
+                <!-- <p class="menu-title">For admin use only</p> -->
+                <li class="menu-title">Survey Data</li>
+                <li class="menu-item">
+                    <a href="{% url 'surveys-web:tfa-video' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                        <span class="menu-text"> TFA Video responses </span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'surveys-web:surveys' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                        <span class="menu-text"> Survey Responses </span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'surveys-web:inline-questions' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                        <span class="menu-text"> Inline question Responses </span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% if loggedin_user.is_superuser %}
+                <hr class="m-2 mt-1 mb-1">
                 <li class="menu-title">Super Admin</li>
                 <li class="menu-item">
                     <a href="{% url 'accounts:users' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-gift-outline"></i></span>
+                        <span class="menu-icon"><i class="mdi mdi-account-group"></i></span>
                         <span class="menu-text"> Users </span>
                     </a>
                 </li>

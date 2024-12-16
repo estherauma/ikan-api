@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'survey',
     'vessels',
     'mydocuments',
+    'payments',
 ]
 AUTH_USER_MODEL = "accounts.User"
 

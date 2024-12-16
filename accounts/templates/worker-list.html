@@ -1,0 +1,144 @@
+{% extends "themes/v1/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        </div>
+    </div>
+
+    <div class="row action-buttons mb-1">
+        <div class="row">
+            <div class="col">
+                <div class="button-list">
+                    <button type="button" class="btn btn-info btn-large waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
+                        Invite Worker
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Email</th>
+                                <th>Action </th>
+                            </tr>
+                        </thead>
+                    
+                        <tbody>
+                            {% for user in workers %}
+                            <tr>
+                                <td>{{user.first_name}}</td>
+                                <td>{{user.last_name}}</td>
+                                <td>{{user.email}}</td>
+                                <td>
+                                    <!-- View Profile Button -->
+                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">View Profile</a>
+                                    <!-- Resend Code button -->
+                                    {% if user.access_code %}
+                                    <button
+                                        id="btn-resend-code"
+                                        class="btn btn-blue btn-sm mb-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#resend-code-modal-{{user.id}}"
+                                        data-user-id="{{ user.pk }}"
+                                        data-url="{% url 'accounts-api:user-detail' pk=user.id %}"
+                                        >
+                                        Resend Code
+                                    </button>
+
+                                    <!-- Resend user token modal -->
+                                    <div id="resend-code-modal-{{user.id}}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="myLargeModalLabel">Resend Acess Code</h4>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+
+                                                <div class="modal-body">
+                                                    <form method="POST" action="{% url 'accounts:resend-access-code' %}">
+                                                        {% csrf_token %}
+                                                        <div class="mb-3 text-center">
+                                                            Resend code to user <span class="fw-bold">{{ user.email }}</span>
+                                                            <input id="email" type="hidden" name="email" value="{{ user.email }}">
+                                                        </div>
+                                                        <div class="mb-3 text-center">
+                                                            <button class="btn btn-info" type="submit">Resend Code</button>
+                                                        </div>
+                                                    </form>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div> <!-- end card body-->
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+
+    <!-- Invite user modal -->
+    <div id="invite-user-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myLargeModalLabel">Invite User</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form  action="{% url 'accounts:invite-user' %}" method="POST">
+                        {% csrf_token %}
+                        {{invite_user_form}}
+
+                        <div class="mb-3 text-center">
+                            <button class="btn btn-primary" type="submit">Invite User</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-buttons/js/buttons.flash.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-buttons/js/buttons.print.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-select/js/dataTables.select.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/pdfmake/build/pdfmake.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/pdfmake/build/vfs_fonts.js"></script>
+    <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script>
+{% endblock %}

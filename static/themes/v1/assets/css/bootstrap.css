@@ -5432,6 +5432,7 @@ textarea.form-control-lg {
   --ct-alert-link-color: var(--ct-warning-text);
 }
 
+.alert-error,
 .alert-danger {
   --ct-alert-color: var(--ct-danger-text);
   --ct-alert-bg: var(--ct-danger-bg-subtle);
@@ -13943,11 +13944,13 @@ textarea.form-control-lg {
   --ct-alert-color: #ad8135;
 }
 
+.alert-error,
 .alert-danger {
   --ct-alert-color: #a93c4c;
   --ct-alert-bg: rgba(241, 85, 108, 0.18);
   --ct-alert-border-color: rgba(241, 85, 108, 0.18);
 }
+.alert-error .alert-link,
 .alert-danger .alert-link {
   --ct-alert-color: #a93c4c;
 }

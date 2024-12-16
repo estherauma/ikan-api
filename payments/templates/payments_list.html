@@ -1,0 +1,110 @@
+{% extends "themes/v1/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+	<div class="row mt-1">
+		<div class="col">
+			{% if messages %}
+			<ul class="messages">
+				{% for message in messages %}
+				<li
+					{% if message.tags %}
+					    class="alert alert-{{ message.tags }}"
+					{% endif %}
+				>
+					{{ message }}
+				</li>
+				{% endfor %}
+			</ul>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if loggedin_user.is_vessel_owner %}
+		<div class="row action-buttons mb-1">
+			<div class="row">
+				<div class="col d-flex">
+					<button
+						type="button"
+						data-bs-toggle="modal"
+						data-bs-target="#upload-payments-modal"
+						class="btn btn-info btn-large waves-effect waves-light"
+					>
+						Upload payments
+					</button>
+					<!-- Upload payments modal -->
+					<div
+						id="upload-payments-modal"
+						class="modal fade"
+						tabindex="-1"
+						role="dialog"
+						aria-hidden="true"
+					>
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header row m-0">
+									<div class="col col-10 text-center">
+										<h4 class="modal-title">Upload payments file</h4>
+									</div>
+									<div class="col col-2 d-flex justify-content-center">
+										<button
+											type="button"
+											class="btn-close"
+											data-bs-dismiss="modal"
+											aria-label="Close"
+										></button>
+									</div>
+								</div>
+
+								<div class="modal-body">
+									<form
+										action="{% url 'payments:upload-payments' %}"
+										method="POST"
+										enctype="multipart/form-data"
+									>
+										{% csrf_token %}
+																			{{ upload_payments_form }}
+																			
+																			{% if form.errors %}
+										<div class="alert alert-danger">{{ form.errors }}</div>
+										{% endif %}
+
+										<div class="mb-3 mt-3 text-center">
+											<button
+												id="upload-btn"
+												class="btn btn-primary"
+												type="submit"
+												disabled
+											>
+												Upload
+											</button>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- <a href="{% url 'payments:download-template' %}" class="m-1 mb-0 align-self-end">Download payments template file</a> -->
+				</div>
+			</div>
+		</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	const fileInput = document.getElementById('file');
+	const submitButton = document.getElementById('upload-btn');
+
+	// Enable submit button when a file is selected
+	fileInput.addEventListener('change', () => {
+		if (fileInput.files.length > 0) {
+			submitButton.disabled = false;
+		} else {
+			submitButton.disabled = true;
+		}
+	});
+</script>
+{% endblock %}
