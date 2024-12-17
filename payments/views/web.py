@@ -19,6 +19,7 @@ from payments.utils import (
 )
 from vessels.models import Vessel
 from accounts.models import User
+from django.views.generic import DetailView
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -29,7 +30,34 @@ class PaymentListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["upload_payments_form"] = UploadPaymentsForm()
+
+        user = self.request.user
+        is_super_user = user.is_superuser
+        roles = user.groups.all().values_list("name", flat=True)
+        payments = Payment.objects.filter(created_by=user.id)
+        if is_super_user:
+            payments = Payment.objects.all()
+        elif "worker" in roles:
+            payments = Payment.objects.filter(user=user)
+
+        context["payments"] = payments
+
+        # group payments by vessel
+        if payments:
+            grouped_payments = {}
+            for payment in payments:
+                if payment.vessel.name not in grouped_payments:
+                    grouped_payments[payment.vessel.name] = []
+                grouped_payments[payment.vessel.name].append(payment)
+            grouped_payments = dict(sorted(grouped_payments.items()))
+            context["grouped_payments"] = grouped_payments
+
         return context
+
+
+class PaymentDetailView(LoginRequiredMixin, DetailView):
+    model = Payment
+    template_name = "payment_detail.html"
 
 
 class PaymentUploadView(LoginRequiredMixin, View):
