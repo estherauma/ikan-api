@@ -1,0 +1,49 @@
+{% extends 'themes/v1/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light text-dark">
+                    <h3 class="card-title text-center">
+                        Payment for {{payment.user.first_name}} {{payment.user.last_name}} from the Period of {{payment.start_date}} to {{payment.end_date}}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-grounnp">
+                        <div class="d-flex w-100 mb-2 align-items-center">
+                            <h5 class="m-0">Payment Date:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.payment_date}}</h4>
+                        </div>
+                        <div class="d-flex w-100 mb-2 align-items-center">
+                            <h5 class="m-0">Total USD amount received:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.total_usd_amount_received}}</h4>
+                        </div>
+                        <div class="d-flex w-100 mb-2 align-items-center">
+                            <h5 class="m-0">Payment duration:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.start_date}} - {{payment.end_date}}</h4>
+                        </div>
+                        <div class="d-flex w-100 mb-2 align-items-center">
+                            <h5 class="m-0">Payment category:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.payment_category}}</h4>
+                        </div>
+                        <div class="d-flex w-100 mb-2 align-items-center">
+                            <h5 class="m-0">Payment method:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.payment_method}}</h4>
+                        </div>
+                        <div class="d-flex w-100 mb-2 align-items-center">
+                            <h5 class="m-0">Vessel:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.vessel.name}}</h4>
+                        </div>
+                        <!-- <div class="d-flex w-100 align-items-center">
+                            <h5 class="m-0">:</h5> &nbsp;
+                            <h4 class="m-0 text-muted">{{payment.}}</h4>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+
+
+{% endblock %}

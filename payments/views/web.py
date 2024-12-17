@@ -19,6 +19,7 @@ from payments.utils import (
 )
 from vessels.models import Vessel
 from accounts.models import User
+from django.views.generic import DetailView
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -52,6 +53,11 @@ class PaymentListView(LoginRequiredMixin, ListView):
             context["grouped_payments"] = grouped_payments
 
         return context
+
+
+class PaymentDetailView(LoginRequiredMixin, DetailView):
+    model = Payment
+    template_name = "payment_detail.html"
 
 
 class PaymentUploadView(LoginRequiredMixin, View):
