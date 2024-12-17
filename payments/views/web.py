@@ -163,6 +163,9 @@ class PaymentUploadView(LoginRequiredMixin, View):
                     del record["deduction_2_reason"]
                     del record["deduction_2_other_reason"]
 
+                    record["created_by"] = request.user.id
+                    record["updated_by"] = request.user.id
+
                     payment = Payment(**record)
                     payment.save()
                     messages.success(
