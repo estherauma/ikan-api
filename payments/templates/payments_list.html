@@ -149,6 +149,52 @@
             </div>
         </div>
 	{% endif %}
+
+    {% if loggedin_user.is_worker and not loggedin_user.is_vessel_owner %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="text-center mb-4">My Wages</h1>
+
+                        <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                            <thead>
+                                <tr>
+                                    <th>Payment Period</th>
+                                    <th>Total USD amount received</th>
+                                    <th>Payment Date</th>
+                                    <th>Vessel</th>
+                                    <th>Action </th>
+                                </tr>
+                            </thead>
+                        
+                            <tbody>
+                                {% if not payments %}
+                                    <div class="row m-3">
+                                        <div class="col">
+                                            <p class="text-center">You do not have any wages added yet.</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{payment.start_date}} - {{payment.end_date}}</td>
+                                    <td>{{payment.total_usd_amount_received}}</td>
+                                    <td>{{payment.payment_date}}</td>
+                                    <td>{{payment.vessel.name}}</td>
+                                    <td>
+                                        <a href="{% url 'payments:payment-details' payment.id %}" class="btn btn-primary btn-sm mb-1">View Payment</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
 
