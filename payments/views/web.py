@@ -135,9 +135,12 @@ class PaymentUploadView(LoginRequiredMixin, View):
                     )
                     continue
 
+                names = record["crew_name"].split()
+                first_name = names[0] if names else ""
+                last_name = names[1] if len(names) > 1 else ""
                 user = User.objects.filter(
-                    first_name=record["crew_name"].split()[0],
-                    last_name=record["crew_name"].split()[1],
+                    first_name=first_name,
+                    last_name=last_name,
                 ).first()
                 if user:
                     record["user"] = user
@@ -234,11 +237,11 @@ def format_record(record):
 
         if key == "payment_method":
             if value:
-                record[key] = methods_map[value]
+                record[key] = methods_map[value.strip()]
 
         if key == "cash_currency" or key == "bank_transfer_currency":
             if value:
-                record[key] = currencies_map[value]
+                record[key] = currencies_map[value.strip()]
 
 
 # TODO: rework template download
