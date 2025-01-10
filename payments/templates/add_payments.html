@@ -1,0 +1,284 @@
+{% extends 'themes/v1/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="form-container">
+    {% if not vessel %}
+        <p class="m-4 text-center">You do not have any vessels. Please first add a vessel.</p>
+    {% endif %}
+
+
+    {% if vessel %}
+    <h2 class="mb-4 mt-4 text-center" style="color: #191970;">Add Payments for {{vessel.name | upper }} vessel</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {{ formset.management_form }}
+        <div
+            id="formset-container"
+            class="table-wrapper"
+            style="overflow-x: scroll; overflow-y: auto; border-radius: 20px; border: 1px solid #EAE4E4; margin-top: 20px;"
+        >
+            <table id="paymentsTable" class="table">
+                <thead style="background: #e7eaf1;">
+                    <tr>
+                        <th class="fs-5 fw-medium text-dark">
+                            船員名稱 
+                            Crew Name  
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">
+                            支付日期 
+                            Payment Date
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">
+                            款項種類
+                            Payment Category
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">
+                            授薪人名稱
+                            Beneficiary Name
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">
+                            支付的月份 - 始
+                            Payment for which month - start
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">
+                            支付的月份 - 終
+                            Payment for which month - end
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">總月數
+                            Total No. of Months</th>
+                        <th class="fs-5 fw-medium text-dark">總額 （美金）
+                            Total Amount Received (USD)</th>
+                        <th class="fs-5 fw-medium text-dark">付款方式
+                            Payment Method</th>
+                        <th class="fs-5 fw-medium text-dark">現金 - 總額 （美金）
+                            注：如零請寫零
+                            
+                            Cash - Amount (USD)
+                            Note: If it's none, please insert zero</th>
+                        <th class="fs-5 fw-medium text-dark">"如支付的貨幣：
+                            （1） 非美金，請選擇支付的貨幣。
+                            （2）是美金，請選擇 ‘不適用’。
+                            
+                            If the cash payment is made in：
+                            （1） non-USD currency, please select the currency used.
+                            (2) If cash payment is made in USD, please choose N/A."</th>
+                        <th class="fs-5 fw-medium text-dark">如支付的貨幣非美金，請列出支付貨幣的總額。
+
+                            If the cash payment is made in non-USD currency, please state the cash amount paid in said currency.</th>
+                        <th class="fs-5 fw-medium text-dark">請說明支付貨幣兌換 1 美元的匯率
+                            Please state exchange rate in terms of how much is the cash payment currency to 1 USD </th>
+                        <th class="fs-5 fw-medium text-dark">
+                            授款人是否船員本人？Is the cash beneficiary the crew member himself?
+                        </th>
+                        <th class="fs-5 fw-medium text-dark">授薪人與船員關係
+                            Cash Beneficiary's Relationship with Crew</th>
+                        <th class="fs-5 fw-medium text-dark">非船員本人,請提供帳戶聯絡
+                            資訊
+                            If cash beneficiary is not crew member him/herself, please provide contact information relating to the account
+                            
+                            （電話號碼 Telephone number、WhatsApp、FB、其他Others)</th>
+                        <th class="fs-5 fw-medium text-dark">請選擇聯絡資訊的平台
+
+                            Please choose which platform this cash beneficiary contact information is for</th>
+                        <th class="fs-5 fw-medium text-dark">匯款 - 總額 （美金）
+                            注：如零請寫零
+                            
+                            Bank transfer - Amount (USD)
+                            Note: If it's none, please insert zero</th>
+                        <th class="fs-5 fw-medium text-dark">如船員收到的貨幣：
+                            （1） 非美金，請選擇有關貨幣。
+                            （2）是美金，請選擇 ‘不適用’。
+                            
+                            If the crew is accepting bank transfer payment in：
+                            （1) non-USD currency, please select the currency used.
+                            (2) If payment is made in USD, please choose N/A.</th>
+                        <th class="fs-5 fw-medium text-dark">如支付的貨幣非美金，請列出支付貨幣的總額。
+
+                            If the bank transfer payment is made in non-USD currency, please state the amount paid in said currency.</th>
+                        <th class="fs-5 fw-medium text-dark">請說明支付貨幣兌換 1 美元的匯率
+
+                            Please state exchange rate in terms of how much is the bank transfer payment currency to 1 USD </th>
+                        <th class="fs-5 fw-medium text-dark">授款人是否船員本人？Is the bank transfer beneficiary the crew member himself?</th>
+                        <th class="fs-5 fw-medium text-dark">銀行戶名
+                            Beneficiary Account Name</th>
+                        <th class="fs-5 fw-medium text-dark">銀行帳號 
+                            Beneficiary Account No.</th>
+                        <th class="fs-5 fw-medium text-dark">銀行名稱
+                            Beneficiary Bank Name
+                            
+                            *Type it in Bahasa / English</th>
+                        <th class="fs-5 fw-medium text-dark">授薪人與船員關係
+                            Bank Transfer Beneficiary's Relationship with Crew</th>
+                        <th class="fs-5 fw-medium text-dark">非船員本人, 請提供帳戶聯絡
+                            資訊
+                            If bank transfer beneficiary is not crew member him/herself, please provide contact information relating to the account
+                            
+                            （電話號碼 Telephone number、WhatsApp、FB、其他Others)</th>
+                        <th class="fs-5 fw-medium text-dark">請選擇聯絡資訊的平台
+
+                            Please choose which platform this bank transfer beneficiary contact information is for</th>
+                        <th class="fs-5 fw-medium text-dark">是否有扣除？
+                            Are there any deductions?</th>
+                        <!-- <th>扣除一 （美金）
+                            Deduction 1 (USD)</th>
+                        <th>扣除原因
+                            Reason for deduction 1</th>
+                        <th>如扣除原因是“其他”，請列明原因
+
+                            If the reason for deduction 1 is "Others", please state the reason</th>
+                        <th>扣除2 （美金）
+                            Deduction 2 (USD)</th>
+                        <th>扣除原因
+                            Reason for deduction 2</th>
+                        <th>如扣除原因是“其他”，請列明原因
+
+                            If the reason for deduction 2 is "Others", please state the reason</th> -->
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                        <tr class="form-row">
+                            <td>{{ form.user }}</td>
+                            <td>{{ form.payment_date }}</td>
+                            <td>{{ form.payment_category }}</td>
+                            <td>{{ form.beneficiary_name }}</td>
+                            <td>{{ form.start_date }}</td>
+                            <td>{{ form.end_date }}</td>
+                            <td>{{ form.duration }}</td>
+                            <td>{{ form.total_usd_amount_received }}</td>
+                            <td>{{ form.payment_method }}</td>
+                            <td>{{ form.cash_usd_amount }}</td>
+                            <td>{{ form.cash_currency }}</td>
+                            <td>{{ form.cash_local_amount }}</td>
+                            <td>{{ form.cash_exchange_rate }}</td>
+                            <td>{{ form.is_cash_beneficiary_crew }}</td>
+                            <td>{{ form.cash_beneficiary_relationship }}</td>
+                            <td>{{ form.cash_beneficiary_contact }}</td>
+                            <td>{{ form.cash_beneficiary_contact_platform }}</td>
+                            <td>{{ form.bank_transfer_usd_amount }}</td>
+                            <td>{{ form.bank_transfer_currency }}</td>
+                            <td>{{ form.bank_transfer_local_amount }}</td>
+                            <td>{{ form.bank_transfer_exchange_rate }}</td>
+                            <td>{{ form.is_bank_transfer_beneficiary_crew }}</td>
+                            <td>{{ form.bank_account_name }}</td>
+                            <td>{{ form.bank_account_number }}</td>
+                            <td>{{ form.bank_name }}</td>
+                            <td>{{ form.bank_transfer_beneficiary_relationship }}</td>
+                            <td>{{ form.bank_transfer_beneficiary_contact }}</td>
+                            <td>{{ form.bank_transfer_beneficiary_contact_platform }}</td>
+                            <td>{{ form.has_deductions }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="btn-wrapper my-3 mb-5 d-flex justify-content-center">
+            <button
+                type="submit"
+                class="border rounded-pill text-white"
+                style="min-width: 300px; max-width: 500px; font-size: 1.1rem; padding: 10px 20px; background: #3565FF;"
+            >
+                Submit
+            </button>
+        </div>
+    </form>
+    {% endif %}
+
+</div>
+<style>
+
+    /* Webkit browsers (Chrome, Safari) */
+    .table-wrapper::-webkit-scrollbar {
+        display: block; /* Ensures scrollbar is visible */
+        width: 10px; /* Customize scrollbar width */
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background-color: #888; /* Scrollbar thumb color */
+    }
+
+    /* .table-wrapper::-webkit-scrollbar-track {
+        background-color: #f1f1f1; 
+    } */
+    #wrapper {
+        display: -webkit-box;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    function updateSelectedVessel() {
+        console.log('kkkkkkkk')
+        const vesselSelect = document.getElementById('vesselSelect');  // Get the select element
+        const selectedVesselSpan = document.getElementById('selectedVessel');  // Get the span to display the selected Vessel
+        
+        // Get the selected vessel's name
+        const selectedVesselValue = vesselSelect.options[vesselSelect.selectedIndex].text;
+        
+        // Update the text content of the span with the selected Vessel name
+        selectedVesselSpan.textContent = selectedVesselValue;
+    }
+
+    // Initialize the display with the current selected Vessel when the page loads (if any)
+    document.addEventListener('DOMContentLoaded', function() {
+        const vesselSelect = document.getElementById('vesselSelect');
+        const selectedVesselSpan = document.getElementById('selectedVessel');
+        
+        // If a Vessel is already selected, set the span text accordingly
+        if (vesselSelect.selectedIndex !== -1) {
+            const selectedVesselValue = vesselSelect.options[vesselSelect.selectedIndex].text;
+            selectedVesselSpan.textContent = selectedVesselValue;
+        }
+    });
+</script>
+
+
+
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $("#pamn,ymentsTable").DataTable();
+  });
+</script> -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const formsetContainer = document.getElementById('formset-container');
+        const formsetManagement = document.querySelector('input[name="form-TOTAL_FORMS"]');
+
+        function addNewForm() {
+            const totalForms = parseInt(formsetManagement.value);
+            const newForm = formsetContainer.children[0].cloneNode(true); // Clone the first form
+
+            // Update form names and IDs to ensure they are unique
+            const regex = new RegExp(`form-(\\d+)-`, 'g');
+            newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${totalForms}-`);
+
+            // Append the new form to the container
+            formsetContainer.appendChild(newForm);
+
+            // Update the total number of forms in the management form
+            formsetManagement.value = totalForms + 1;
+        }
+
+        // Add new form when the user finishes entering the last form
+        const formRows = formsetContainer.querySelectorAll('.form-row');
+        const lastForm = formRows[formRows.length - 1];
+        
+        lastForm.addEventListener('blur', function() {
+            console.log('tttttttt-------')
+            if (lastForm.querySelector('input').value) {  // Check if input has a value
+                console.log('poiuytfbn....pppp............')
+                addNewForm();
+            }
+        });
+    });
+</script>
+{% endblock %}
+

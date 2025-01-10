@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.views import View
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from payments.forms import UploadPaymentsForm
 import csv
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -20,7 +20,7 @@ from payments.utils import (
 from vessels.models import Vessel
 from accounts.models import User
 from django.views.generic import DetailView
-from payments.forms import VesselSelectForm
+from payments.forms import VesselSelectForm, PaymentsFormSet
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -270,8 +270,26 @@ class SelectVessel(LoginRequiredMixin, View):
         if form.is_valid():
             selected_vessel = form.cleaned_data['vessel']
             vessel_id = selected_vessel.id
-            return render(request, 'add_payments.html', {'vessel_id': vessel_id})
+            request.session['vessel_id'] = vessel_id
+            return redirect("payments:add-payments")
 
         else:
             messages.error(request, "Form is invalid.")
             return redirect("payments:payments-list")
+
+
+class AddPayment(LoginRequiredMixin, View):
+    template_name = 'add_payments.html'
+
+    def get(self, request):
+        vessel_id = self.request.session.get('vessel_id')
+        vessel = get_object_or_404(Vessel, pk=vessel_id)
+        formset = PaymentsFormSet(queryset=Payment.objects.none())
+        return render(request, self.template_name, {
+            'vessel': vessel,
+            'formset': formset,
+            'selected_vessel': None
+        })
+
+    def post(self, request):
+        pass
