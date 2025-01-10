@@ -20,6 +20,7 @@ from payments.utils import (
 from vessels.models import Vessel
 from accounts.models import User
 from django.views.generic import DetailView
+from payments.forms import VesselSelectForm
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -29,7 +30,6 @@ class PaymentListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["upload_payments_form"] = UploadPaymentsForm()
 
         user = self.request.user
         is_super_user = user.is_superuser
@@ -41,6 +41,8 @@ class PaymentListView(LoginRequiredMixin, ListView):
             payments = Payment.objects.filter(user=user)
 
         context["payments"] = payments
+        context["upload_payments_form"] = UploadPaymentsForm()
+        context["vessel_form"] = VesselSelectForm(user=user)
 
         # group payments by vessel
         if payments:
@@ -256,3 +258,20 @@ def download_template_file(request):
     writer = csv.writer(response)
     writer.writerow(columns)
     return response
+
+
+class SelectVessel(LoginRequiredMixin, View):
+    def get(self, request):
+        form = VesselSelectForm(user=request.user)
+        return render(request, "payments_list.html", {'vessel_form': form})
+
+    def post(self, request):
+        form = VesselSelectForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            selected_vessel = form.cleaned_data['vessel']
+            vessel_id = selected_vessel.id
+            return render(request, 'add_payments.html', {'vessel_id': vessel_id})
+
+        else:
+            messages.error(request, "Form is invalid.")
+            return redirect("payments:payments-list")

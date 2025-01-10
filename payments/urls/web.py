@@ -4,6 +4,7 @@ from payments.views.web import (
     PaymentListView,
     download_template_file,
     PaymentDetailView,
+    SelectVessel
 )
 
 app_name = "payments"
@@ -13,4 +14,5 @@ urlpatterns = [
     path("<pk>/", PaymentDetailView.as_view(), name="payment-details"),
     path("upload", PaymentUploadView.as_view(), name="upload-payments"),
     path("download-template", download_template_file, name="download-template"),
+    path("select-vessel", SelectVessel.as_view(), name='select-vessel'),
 ]

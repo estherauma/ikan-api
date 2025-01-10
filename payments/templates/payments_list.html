@@ -23,6 +23,71 @@
 	{% if loggedin_user.is_vessel_owner %}
 		<div class="row action-buttons mb-1">
 			<div class="row">
+                <div class="col">
+					<button
+                        type="button"
+						data-bs-toggle="modal"
+						data-bs-target="#select-vessel-modal"
+                        class="btn btn-info btn-large waves-effect waves-light"
+                    >
+                        Add payments
+                    </button>
+					<!-- Select vessel modal -->
+					<div
+						id="select-vessel-modal"
+						class="modal fade"
+						tabindex="-1"
+						role="dialog"
+						aria-hidden="true"
+					>
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header row m-0">
+									<div class="col col-10 text-center">
+										<h4 class="modal-title">Select Vessel</h4>
+									</div>
+									<div class="col col-2 d-flex justify-content-center">
+										<button
+											type="button"
+											class="btn-close"
+											data-bs-dismiss="modal"
+											aria-label="Close"
+										></button>
+									</div>
+								</div>
+
+								<div class="modal-body">
+									<form
+										action="{% url 'payments:select-vessel' %}"
+										method="POST"
+										enctype="multipart/form-data"
+									>
+										{% csrf_token %}
+                                        <fieldset>
+                                            <legend class="mt-3 fs-5 fw-medium text-dark">Select Vessel-----</legend>
+                                            {{ vessel_form.vessel }}
+                                        </fieldset>
+                                        
+                                        {% if vessel_form.errors %}
+										<div class="alert alert-danger">{{ vessel_form.errors }}</div>
+										{% endif %}
+
+										<div class="mb-3 mt-3 text-center">
+											<button
+												id="vessel-submit-btn"
+												class="btn btn-primary"
+												type="submit"
+												disabled
+											>
+												Next
+											</button>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+                </div>
 				<div class="col d-flex">
 					<button
 						type="button"
@@ -63,9 +128,9 @@
 										enctype="multipart/form-data"
 									>
 										{% csrf_token %}
-																			{{ upload_payments_form }}
-																			
-																			{% if form.errors %}
+                                        {{ upload_payments_form }}
+                                        
+                                        {% if form.errors %}
 										<div class="alert alert-danger">{{ form.errors }}</div>
 										{% endif %}
 
@@ -200,16 +265,29 @@
 
 {% block scripts %}
 <script>
-	const fileInput = document.getElementById('file');
-	const submitButton = document.getElementById('upload-btn');
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('file');
+        const submitButton = document.getElementById('upload-btn');
 
-	// Enable submit button when a file is selected
-	fileInput.addEventListener('change', () => {
-		if (fileInput.files.length > 0) {
-			submitButton.disabled = false;
-		} else {
-			submitButton.disabled = true;
-		}
-	});
+        // Enable submit button when a file is selected
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        });
+
+        const vesselSelectField = document.getElementById('vessel-select');
+        const vesselSubmitButton = document.getElementById('vessel-submit-btn');
+
+        vesselSelectField.addEventListener('change', function() {
+            if (vesselSelectField.value) {
+                vesselSubmitButton.disabled = false;
+            } else {
+                vesselSubmitButton.disabled = true;
+            }
+        });
+    });
 </script>
 {% endblock %}
