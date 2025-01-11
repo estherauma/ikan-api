@@ -263,14 +263,14 @@ def download_template_file(request):
 class SelectVessel(LoginRequiredMixin, View):
     def get(self, request):
         form = VesselSelectForm(user=request.user)
-        return render(request, "payments_list.html", {'vessel_form': form})
+        return render(request, "payments_list.html", {"vessel_form": form})
 
     def post(self, request):
         form = VesselSelectForm(data=request.POST, user=request.user)
         if form.is_valid():
-            selected_vessel = form.cleaned_data['vessel']
+            selected_vessel = form.cleaned_data["vessel"]
             vessel_id = selected_vessel.id
-            request.session['vessel_id'] = vessel_id
+            request.session["vessel_id"] = vessel_id
             return redirect("payments:add-payments")
 
         else:
@@ -279,17 +279,19 @@ class SelectVessel(LoginRequiredMixin, View):
 
 
 class AddPayment(LoginRequiredMixin, View):
-    template_name = 'add_payments.html'
+    template_name = "add_payments.html"
 
     def get(self, request):
-        vessel_id = self.request.session.get('vessel_id')
+        vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
-        formset = PaymentsFormSet(queryset=Payment.objects.none())
-        return render(request, self.template_name, {
-            'vessel': vessel,
-            'formset': formset,
-            'selected_vessel': None
-        })
+        formset = PaymentsFormSet(
+            queryset=Payment.objects.none(), vessel=vessel, loggedin_user=request.user
+        )
+        return render(
+            request,
+            self.template_name,
+            {"vessel": vessel, "formset": formset, "selected_vessel": None},
+        )
 
     def post(self, request):
         pass
