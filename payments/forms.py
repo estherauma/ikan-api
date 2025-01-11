@@ -70,38 +70,39 @@ class AddPaymentsForm(forms.ModelForm):
 
     class Meta:
         model = Payment
-        exclude = ()
-        # fields = [
-        #     'user',
-        #     'payment_date',
-        #     'payment_category',
-        #     'beneficiary_name'
-        #     'start_date'
-        #     'end_date'
-        #     'duration'
-        #     'total_usd_amount_received'
-        #     'payment_method'
-        #     'cash_usd_amount'
-        #     'cash_currency'
-        #     'cash_local_amount'
-        #     'cash_exchange_rate'
-        #     'is_cash_beneficiary_crew'
-        #     'cash_beneficiary_relationship'
-        #     'cash_beneficiary_contact'
-        #     'cash_beneficiary_contact_platform'
-        #     'bank_transfer_usd_amount'
-        #     'bank_transfer_currency'
-        #     'bank_transfer_local_amount'
-        #     'bank_transfer_exchange_rate'
-        #     'is_bank_transfer_beneficiary_crew'
-        #     'bank_account_name'
-        #     'bank_account_number'
-        #     'bank_name'
-        #     'bank_transfer_beneficiary_relationship'
-        #     'bank_transfer_beneficiary_contact'
-        #     'bank_transfer_beneficiary_contact_platform'
-        #     'has_deductions'
-        # ]
+        # We are listing the fields instead of using exclude
+        # to control their order in the row when displaying
+        fields = [
+            "user",
+            "payment_date",
+            "payment_category",
+            "beneficiary_name",
+            "start_date",
+            "end_date",
+            "duration",
+            "total_usd_amount_received",
+            "payment_method",
+            "cash_usd_amount",
+            "cash_currency",
+            "cash_local_amount",
+            "cash_exchange_rate",
+            "is_cash_beneficiary_crew",
+            "cash_beneficiary_relationship",
+            "cash_beneficiary_contact",
+            "cash_beneficiary_contact_platform",
+            "bank_transfer_usd_amount",
+            "bank_transfer_currency",
+            "bank_transfer_local_amount",
+            "bank_transfer_exchange_rate",
+            "is_bank_transfer_beneficiary_crew",
+            "bank_account_name",
+            "bank_account_number",
+            "bank_name",
+            "bank_transfer_beneficiary_relationship",
+            "bank_transfer_beneficiary_contact",
+            "bank_transfer_beneficiary_contact_platform",
+            "has_deductions",
+        ]
 
     def __init__(self, *args, vessel=None, loggedin_user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -129,11 +130,12 @@ class AddPaymentsForm(forms.ModelForm):
         if vessel and loggedin_user:
             # TODO: change query to display workers attached to selected vessel
             # display worker names only
-            vo_workers = User.objects.filter(
+            vessel_workers = User.objects.filter(
                 Q(created_by=loggedin_user.id) & Q(groups__name="worker")
             ).distinct()
 
-            self.fields["user"].queryset = vo_workers
+            self.extra_forms = len(vessel_workers) + 1
+            self.fields["user"].queryset = vessel_workers
 
 
 class BasePaymentFormSet(BaseModelFormSet):
@@ -149,5 +151,5 @@ class BasePaymentFormSet(BaseModelFormSet):
 
 
 PaymentsFormSet = modelformset_factory(
-    Payment, form=AddPaymentsForm, formset=BasePaymentFormSet, exclude=(), extra=3
+    Payment, form=AddPaymentsForm, formset=BasePaymentFormSet, extra=3
 )
