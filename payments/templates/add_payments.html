@@ -13,8 +13,16 @@
 
     <form method="post">
         {% csrf_token %}
-        
         {{ formset.management_form }}
+
+        {% if formset.non_form_errors %}
+            <div class="error-message err-background p-2">
+                {% for error in formset.non_form_errors %}
+                    <p style="font-size: 1rem;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         <div
             class="table-wrapper"
             style="overflow-x: scroll; overflow-y: auto; border-radius: 20px; border: 1px solid #EAE4E4; margin-top: 20px;"
@@ -141,7 +149,7 @@
                 <tbody>
                     {% for form in formset %}
                         {% if form.non_field_errors %}
-                            <tr class="has-errors err-row">
+                            <tr class="err-background err-row">
                                 <td colspan="100%">
                                         <div class="error-message">
                                             {{ form.non_field_errors }}
@@ -150,7 +158,7 @@
                             </tr>
                         {% endif %}
         
-                        <tr class="{% if form.non_field_errors %}has-errors{% endif %}">
+                        <tr class="{% if form.non_field_errors %}err-background{% endif %}">
                             {% for field in form %}
                                 <td class="{% if field.errors %}field-error{% endif %}">
                                     <!-- {{ field.label_tag }} -->
@@ -215,7 +223,7 @@
         font-size: 0.9em;
         margin-top: 5px;
     }
-    .has-errors {
+    .err-background {
         background: rgb(243 229 229);
     }
     .field-error {

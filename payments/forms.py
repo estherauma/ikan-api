@@ -441,14 +441,10 @@ class BasePaymentFormSet(BaseModelFormSet):
                 form.cleaned_data = {}
                 form._errors = {}
 
-        # Re-assign the filtered forms back to self.forms
-        self.forms = non_empty_forms
-
         if not non_empty_forms:
-            # can't figure out why
-            raise ValidationError("You must fill in at least one form.")
-
-        # super().clean()  # Continue with default formset validation
+            self._non_form_errors = self.error_class(["Please add a payment."])
+        else:
+            self.forms = non_empty_forms
 
         return super().clean()
 
