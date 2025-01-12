@@ -105,14 +105,14 @@ required_bank_transfer_fields = [
 categories_map = {"薪資 Wages": "Wages", "獎金 Bonus": "Bonus"}
 
 payment_categories = [
-    {"key": "Wages", "value": "薪資 Wages"},
-    {"key": "Bonus", "value": "獎金 Bonus"},
+    {"key": "wages", "value": "薪資 Wages"},
+    {"key": "bonus", "value": "獎金 Bonus"},
 ]
 
 payment_methods = [
-    {"key": "Bank Transfer", "value": "匯款 Bank Transfer"},
-    {"key": "Cash", "value": "現金 Cash"},
-    {"key": "Both", "value": "Both"},
+    {"key": "bank_transfer", "value": "匯款 Bank Transfer"},
+    {"key": "cash", "value": "現金 Cash"},
+    {"key": "both", "value": "Both"},
 ]
 
 payment_currencies = [
