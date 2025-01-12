@@ -290,8 +290,21 @@ class AddPayment(LoginRequiredMixin, View):
         return render(
             request,
             self.template_name,
-            {"vessel": vessel, "formset": formset, "selected_vessel": None},
+            {"vessel": vessel, "formset": formset},
         )
 
     def post(self, request):
-        pass
+        vessel_id = self.request.session.get("vessel_id")
+        vessel = get_object_or_404(Vessel, pk=vessel_id)
+        formset = PaymentsFormSet(
+            request.POST, vessel=vessel, loggedin_user=request.user
+        )
+
+        if formset.is_valid():
+            return redirect("success_url")  # Redirect after successful submission
+        else:
+            return render(
+                request,
+                self.template_name,
+                {"vessel": vessel, "formset": formset},
+            )
