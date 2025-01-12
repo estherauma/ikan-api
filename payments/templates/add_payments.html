@@ -140,16 +140,43 @@
                 </thead>
                 <tbody>
                     {% for form in formset %}
-                        <tr>
+                        {% if form.non_field_errors %}
+                            <tr class="has-errors err-row">
+                                <td colspan="100%">
+                                        <div class="error-message">
+                                            {{ form.non_field_errors }}
+                                        </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+        
+                        <tr class="{% if form.non_field_errors %}has-errors{% endif %}">
                             {% for field in form %}
-                                <td>
+                                <td class="{% if field.errors %}field-error{% endif %}">
+                                    <!-- {{ field.label_tag }} -->
                                     {{ field }}
+                                    
+                                    {% if field.errors %}
+                                        <div class="error-message">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
                                 </td>
                             {% endfor %}
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
+
+
+            <!-- <div class="btn-wrapper m-4">
+                <button
+                    class="border rounded-pill text-white"
+                    style="min-width: 200px; max-width: 300px; font-size: 1.1rem; padding: 5px 10px; background: #535368;"
+                >
+                    Add row
+                </button>
+            </div> -->
         </div>
         <div class="btn-wrapper my-3 mb-5 d-flex justify-content-center">
             <button
@@ -181,6 +208,23 @@
     } */
     #wrapper {
         display: -webkit-box;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .has-errors {
+        background: rgb(243 229 229);
+    }
+    .field-error {
+        input {
+            border: 1px solid red
+        }
+    }
+    .err-row {
+        border-bottom: 1px solid rgb(243 229 229);
     }
 </style>
 {% endblock %}
