@@ -301,7 +301,14 @@ class AddPayment(LoginRequiredMixin, View):
         )
 
         if formset.is_valid():
-            return redirect("success_url")  # Redirect after successful submission
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.vessel = vessel
+                instance.save()
+
+            # Save many-to-many data if applicable
+            formset.save_m2m()
+            return redirect("payments:payments-list")
         else:
             return render(
                 request,
