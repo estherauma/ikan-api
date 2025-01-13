@@ -146,7 +146,7 @@
 
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="formset-body">
                     {% for form in formset %}
                         {% if form.non_field_errors %}
                             <tr class="err-background err-row">
@@ -176,16 +176,18 @@
                 </tbody>
             </table>
 
-
-            <!-- <div class="btn-wrapper m-4">
+            <div class="btn-wrapper m-4">
                 <button
+                    id="add-row-button"
+                    type="button"
                     class="border rounded-pill text-white"
                     style="min-width: 200px; max-width: 300px; font-size: 1.1rem; padding: 5px 10px; background: #535368;"
                 >
                     Add row
                 </button>
-            </div> -->
+            </div>
         </div>
+        
         <div class="btn-wrapper my-3 mb-5 d-flex justify-content-center">
             <button
                 type="submit"
@@ -200,7 +202,6 @@
 
 </div>
 <style>
-
     /* Webkit browsers (Chrome, Safari) */
     .table-wrapper::-webkit-scrollbar {
         display: block; /* Ensures scrollbar is visible */
@@ -240,70 +241,29 @@
 {% block scripts %}
 
 <script>
-    function updateSelectedVessel() {
-        console.log('kkkkkkkk')
-        const vesselSelect = document.getElementById('vesselSelect');  // Get the select element
-        const selectedVesselSpan = document.getElementById('selectedVessel');  // Get the span to display the selected Vessel
-        
-        // Get the selected vessel's name
-        const selectedVesselValue = vesselSelect.options[vesselSelect.selectedIndex].text;
-        
-        // Update the text content of the span with the selected Vessel name
-        selectedVesselSpan.textContent = selectedVesselValue;
-    }
-
-    // Initialize the display with the current selected Vessel when the page loads (if any)
     document.addEventListener('DOMContentLoaded', function() {
-        const vesselSelect = document.getElementById('vesselSelect');
-        const selectedVesselSpan = document.getElementById('selectedVessel');
-        
-        // If a Vessel is already selected, set the span text accordingly
-        if (vesselSelect.selectedIndex !== -1) {
-            const selectedVesselValue = vesselSelect.options[vesselSelect.selectedIndex].text;
-            selectedVesselSpan.textContent = selectedVesselValue;
-        }
-    });
-</script>
+        const addRowButton = document.getElementById('add-row-button');
+        const formsetBody = document.getElementById('formset-body');
+        let totalForms = document.getElementById('id_form-TOTAL_FORMS');
 
-
-
-<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script>
-  $(document).ready(function () {
-    $("#pamn,ymentsTable").DataTable();
-  });
-</script> -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const formsetContainer = document.getElementById('formset-container');
-        const formsetManagement = document.querySelector('input[name="form-TOTAL_FORMS"]');
-
-        function addNewForm() {
-            const totalForms = parseInt(formsetManagement.value);
-            const newForm = formsetContainer.children[0].cloneNode(true); // Clone the first form
-
-            // Update form names and IDs to ensure they are unique
+        addRowButton.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            const lastForm = formsetBody.lastElementChild;
+            const newForm = lastForm.cloneNode(true);
             const regex = new RegExp(`form-(\\d+)-`, 'g');
-            newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${totalForms}-`);
 
-            // Append the new form to the container
-            formsetContainer.appendChild(newForm);
+            newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${formCount}-`);
+            formsetBody.appendChild(newForm);
 
-            // Update the total number of forms in the management form
-            formsetManagement.value = totalForms + 1;
-        }
+            totalForms.value = formCount + 1;
 
-        // Add new form when the user finishes entering the last form
-        const formRows = formsetContainer.querySelectorAll('.form-row');
-        const lastForm = formRows[formRows.length - 1];
-        
-        lastForm.addEventListener('blur', function() {
-            console.log('tttttttt-------')
-            if (lastForm.querySelector('input').value) {  // Check if input has a value
-                console.log('poiuytfbn....pppp............')
-                addNewForm();
-            }
+            // Clear the values of the cloned fields
+            Array.from(newForm.querySelectorAll('input, select, textarea')).forEach(input => {
+                input.value = '';
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                }
+            });
         });
     });
 </script>
