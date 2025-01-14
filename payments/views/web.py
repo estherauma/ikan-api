@@ -239,11 +239,17 @@ def format_record(record):
 
         if key == "payment_method":
             if value:
-                record[key] = methods_map[value.strip()]
+                method = next(
+                    (k for k, v in methods_map.items() if v == value.strip()), None
+                )
+                record[key] = method
 
         if key == "cash_currency" or key == "bank_transfer_currency":
             if value:
-                record[key] = currencies_map[value.strip()]
+                currency = next(
+                    (k for k, v in currencies_map.items() if v == value.strip()), None
+                )
+                record[key] = currency
 
 
 # TODO: rework template download
