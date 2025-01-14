@@ -101,3 +101,24 @@ required_bank_transfer_fields = [
     "bank_transfer_beneficiary_contact",
     "bank_transfer_beneficiary_contact_platform",
 ]
+
+categories_map = {"薪資 Wages": "Wages", "獎金 Bonus": "Bonus"}
+
+payment_categories = [
+    {"key": "wages", "value": "薪資 Wages"},
+    {"key": "bonus", "value": "獎金 Bonus"},
+]
+
+payment_methods = [
+    {"key": "bank_transfer", "value": "匯款 Bank Transfer"},
+    {"key": "cash", "value": "現金 Cash"},
+    {"key": "both", "value": "Both"},
+]
+
+payment_currencies = [
+    {"key": "USD", "value": "US Dollar"},
+    {"key": "TWD", "value": "新台幣 Taiwan New Dollars"},
+    {"key": "MUR", "value": "毛里求斯盧比 Mauritian Rupee"},
+    {"key": "IDR", "value": "印尼盾/盧比 Indonesian Rupiah"},
+    {"key": "SBD", "value": "索羅門群島元 Solomon Islands Dollar"},
+]

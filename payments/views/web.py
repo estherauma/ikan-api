@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.views import View
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from payments.forms import UploadPaymentsForm
 import csv
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -20,6 +20,7 @@ from payments.utils import (
 from vessels.models import Vessel
 from accounts.models import User
 from django.views.generic import DetailView
+from payments.forms import VesselSelectForm, PaymentsFormSet
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -29,7 +30,6 @@ class PaymentListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["upload_payments_form"] = UploadPaymentsForm()
 
         user = self.request.user
         is_super_user = user.is_superuser
@@ -41,6 +41,8 @@ class PaymentListView(LoginRequiredMixin, ListView):
             payments = Payment.objects.filter(user=user)
 
         context["payments"] = payments
+        context["upload_payments_form"] = UploadPaymentsForm()
+        context["vessel_form"] = VesselSelectForm(user=user)
 
         # group payments by vessel
         if payments:
@@ -256,3 +258,60 @@ def download_template_file(request):
     writer = csv.writer(response)
     writer.writerow(columns)
     return response
+
+
+class SelectVessel(LoginRequiredMixin, View):
+    def get(self, request):
+        form = VesselSelectForm(user=request.user)
+        return render(request, "payments_list.html", {"vessel_form": form})
+
+    def post(self, request):
+        form = VesselSelectForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            selected_vessel = form.cleaned_data["vessel"]
+            vessel_id = selected_vessel.id
+            request.session["vessel_id"] = vessel_id
+            return redirect("payments:add-payments")
+
+        else:
+            messages.error(request, "Form is invalid.")
+            return redirect("payments:payments-list")
+
+
+class AddPayment(LoginRequiredMixin, View):
+    template_name = "add_payments.html"
+
+    def get(self, request):
+        vessel_id = self.request.session.get("vessel_id")
+        vessel = get_object_or_404(Vessel, pk=vessel_id)
+        formset = PaymentsFormSet(
+            queryset=Payment.objects.none(), vessel=vessel, loggedin_user=request.user
+        )
+        return render(
+            request,
+            self.template_name,
+            {"vessel": vessel, "formset": formset},
+        )
+
+    def post(self, request):
+        vessel_id = self.request.session.get("vessel_id")
+        vessel = get_object_or_404(Vessel, pk=vessel_id)
+        formset = PaymentsFormSet(
+            request.POST, vessel=vessel, loggedin_user=request.user
+        )
+
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.vessel = vessel
+                instance.save()
+
+            # Save many-to-many data if applicable
+            formset.save_m2m()
+            return redirect("payments:payments-list")
+        else:
+            return render(
+                request,
+                self.template_name,
+                {"vessel": vessel, "formset": formset},
+            )
