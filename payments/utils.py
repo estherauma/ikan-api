@@ -38,16 +38,11 @@ display_col_name_to_key_map = {
 }
 
 currencies_map = {
-    "Taiwan new dollar": "TWD",
-    "US Dollar": "USD",
-    "Indonesian rupiah": "IDR",
-    "Mauritian rupee": "MUR",
-    "Solomon Islands dollar": "SBD",
-    "毛里求斯盧比 Mauritian Rupee": "MUR",
-    "新台幣 Taiwan New Dollars": "TWD",
-    "印尼盾/盧比 Indonesian Rupiah": "IDR",
-    "索羅門群島元 Solomon Islands Dollar": "SBD",
-    "不適用 N/A": "USD",  # default to USD
+    "USD": "美元 US dollar",
+    "MUR": "毛里求斯盧比 Mauritian Rupee",
+    "TWD": "新台幣 Taiwan New Dollars",
+    "IDR": "印尼盾/盧比 Indonesian Rupiah",
+    "SBD": "索羅門群島元 Solomon Islands Dollar",
 }
 
 boolean_values_map = {
@@ -58,10 +53,9 @@ boolean_values_map = {
 }
 
 methods_map = {
-    "現金 Cash": "cash",
-    "匯款 Bank Transfer": "bank_transfer",
-    "Cash": "cash",
-    "Bank Transfer": "bank_transfer",
+    "cash": "現金 Cash",
+    "bank_transfer": "匯款 Bank Transfer",
+    "both": "两个都 Both",
 }
 
 initial_required_fields = [
@@ -102,7 +96,7 @@ required_bank_transfer_fields = [
     "bank_transfer_beneficiary_contact_platform",
 ]
 
-categories_map = {"薪資 Wages": "Wages", "獎金 Bonus": "Bonus"}
+categories_map = {"wages": "薪資 Wages", "bonus": "獎金 Bonus"}
 
 payment_categories = [
     {"key": "wages", "value": "薪資 Wages"},
@@ -112,7 +106,7 @@ payment_categories = [
 payment_methods = [
     {"key": "bank_transfer", "value": "匯款 Bank Transfer"},
     {"key": "cash", "value": "現金 Cash"},
-    {"key": "both", "value": "Both"},
+    {"key": "both", "value": "两个都 Both"},
 ]
 
 payment_currencies = [

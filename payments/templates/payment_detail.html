@@ -1,10 +1,12 @@
 {% extends 'themes/v1/base.html' %}
 {% load static %}
 
+{% load custom_filters %}
+
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-md-6">
+    <div class="row d-flex justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8">
             <div class="card">
                 <div class="card-header bg-light text-dark">
                     <h3 class="card-title text-center">
@@ -12,38 +14,239 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <div class="list-grounnp">
-                        <div class="d-flex w-100 mb-2 align-items-center">
-                            <h5 class="m-0">Payment Date:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.payment_date}}</h4>
+                    <div class="list-group">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Payment made on:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.payment_date}}</h4>
+                            </div>
                         </div>
-                        <div class="d-flex w-100 mb-2 align-items-center">
-                            <h5 class="m-0">Total USD amount received:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.total_usd_amount_received}}</h4>
+                        <hr class="my-2 mx-0">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Total USD amount received:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.total_usd_amount_received}}</h4>
+                            </div>
                         </div>
-                        <div class="d-flex w-100 mb-2 align-items-center">
-                            <h5 class="m-0">Payment duration:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.start_date}} - {{payment.end_date}}</h4>
+                        <hr class="my-2 mx-0">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Period:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.start_date}} - {{payment.end_date}}</h4>
+                            </div>
                         </div>
-                        <div class="d-flex w-100 mb-2 align-items-center">
-                            <h5 class="m-0">Payment category:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.payment_category}}</h4>
+                        <hr class="my-2 mx-0">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Duration:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.duration}} months</h4>
+                            </div>
                         </div>
-                        <div class="d-flex w-100 mb-2 align-items-center">
-                            <h5 class="m-0">Payment method:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.payment_method}}</h4>
+                        <hr class="my-2 mx-0">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Category:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{ categories_map |dict_get:payment.payment_category}}</h4>
+                            </div>
                         </div>
-                        <div class="d-flex w-100 mb-2 align-items-center">
-                            <h5 class="m-0">Vessel:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.vessel.name}}</h4>
+                        <hr class="my-2 mx-0">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Method of payment:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{ methods_map |dict_get:payment.payment_method }}</h4>
+                            </div>
                         </div>
-                        <!-- <div class="d-flex w-100 align-items-center">
-                            <h5 class="m-0">:</h5> &nbsp;
-                            <h4 class="m-0 text-muted">{{payment.}}</h4>
-                        </div> -->
+                        <hr class="my-2 mx-0">
+
+                        <!-- displays if method is cash or both -->
+                        {% if payment.payment_method != 'bank_transfer' %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Cash USD amount:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">USD {{payment.cash_usd_amount |default:0.00}}</h4>
+                                </div>
+                            </div>
+                            
+                            {% if payment.cash_currency != 'USD' %}
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-12 col-sm-4">
+                                        <h5 class="text-muted">Cash local amount:</h5>
+                                    </div>
+                                    <div class="col-12 col-sm-8">
+                                        <h4 class="">{{ payment.cash_currency }} {{payment.cash_local_amount}}</h4>
+                                    </div>
+                                </div>
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-12 col-sm-4">
+                                        <h5 class="text-muted">Cash exchange rate:</h5>
+                                    </div>
+                                    <div class="col-12 col-sm-8">
+                                        <h4 class="">{{payment.cash_exchange_rate}}</h4>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Cash beneficiary:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.beneficiary_name}}</h4>
+                                </div>
+                            </div>
+                            
+                            {% if not payment.is_cash_beneficiary_crew %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Beneficiary relationship:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.cash_beneficiary_relationship}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Beneficiary contact:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.cash_beneficiary_contact}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Beneficiary contact platform:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.cash_beneficiary_contact_platform}}</h4>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <hr class="my-2 mx-0">
+                        {% endif %}
+
+                        <!-- displays if method is bank_transfer or both -->
+                        {% if payment.payment_method != 'cash' %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Bank transfer USD amount:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">USD {{payment.bank_transfer_usd_amount | default:0.00}}</h4>
+                                </div>
+                            </div>
+                            
+                            {% if payment.bank_transfer_currency != 'USD' %}
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-12 col-sm-4">
+                                        <h5 class="text-muted">Bank transfer local amount:</h5>
+                                    </div>
+                                    <div class="col-12 col-sm-8">
+                                        <h4 class="">{{ payment.bank_transfer_currency }} {{payment.bank_transfer_local_amount}}</h4>
+                                    </div>
+                                </div>
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-12 col-sm-4">
+                                        <h5 class="text-muted">Bank transfer exchange rate:</h5>
+                                    </div>
+                                    <div class="col-12 col-sm-8">
+                                        <h4 class="">{{payment.bank_transfer_exchange_rate}}</h4>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Bank account name:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.bank_account_name}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Bank account number:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.bank_account_number}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Bank name:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.bank_name}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Bank transfer beneficiary:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.beneficiary_name}}</h4>
+                                </div>
+                            </div>
+                            
+                            {% if not payment.is_bank_transfer_beneficiary_crew %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Beneficiary relationship:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.bank_transfer_beneficiary_relationship}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Beneficiary contact:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.bank_transfer_beneficiary_contact}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">Beneficiary contact platform:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{payment.bank_transfer_beneficiary_contact_platform}}</h4>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <hr class="my-2 mx-0">
+                        {% endif %}
+                        
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Vessel:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.vessel.name}}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
                     </div>
                 </div>
             </div>
-
-
+        </div>
+    </div>
+</div>
+<style>
+    hr {
+        margin: 0;
+    }
+</style>
 {% endblock %}

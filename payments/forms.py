@@ -241,7 +241,6 @@ class AddPaymentsForm(forms.ModelForm):
                 cash_beneficiary_relationship=cash_beneficiary_relationship,
                 cash_beneficiary_contact=cash_beneficiary_contact,
                 cash_beneficiary_contact_platform=cash_beneficiary_contact_platform,
-                payment_method=payment_method,
             )
         elif payment_method == "bank_transfer":
             self.validate_bank_transfer_fields(
@@ -256,7 +255,6 @@ class AddPaymentsForm(forms.ModelForm):
                 bank_name=bank_name,
                 bank_account_name=bank_account_name,
                 bank_account_number=bank_account_number,
-                payment_method=payment_method,
             )
         elif payment_method == "both":
             self.validate_cash_fields(
@@ -268,7 +266,6 @@ class AddPaymentsForm(forms.ModelForm):
                 cash_beneficiary_relationship=cash_beneficiary_relationship,
                 cash_beneficiary_contact=cash_beneficiary_contact,
                 cash_beneficiary_contact_platform=cash_beneficiary_contact_platform,
-                payment_method=payment_method,
             )
             self.validate_bank_transfer_fields(
                 bank_transfer_currency=bank_transfer_currency,
@@ -282,7 +279,6 @@ class AddPaymentsForm(forms.ModelForm):
                 bank_name=bank_name,
                 bank_account_name=bank_account_name,
                 bank_account_number=bank_account_number,
-                payment_method=payment_method,
             )
 
         existing_payment = Payment.objects.filter(
@@ -311,7 +307,6 @@ class AddPaymentsForm(forms.ModelForm):
         cash_beneficiary_relationship,
         cash_beneficiary_contact,
         cash_beneficiary_contact_platform,
-        payment_method,
     ):
         if not cash_currency:
             self.add_error("cash_currency", "Cash currency is required.")
@@ -332,7 +327,7 @@ class AddPaymentsForm(forms.ModelForm):
             if not cash_exchange_rate:
                 self.add_error("cash_exchange_rate", "Cash exchange rate is required.")
 
-        if payment_method == "cash" and not is_cash_beneficiary_crew:
+        if not is_cash_beneficiary_crew:
             if not cash_beneficiary_relationship:
                 self.add_error(
                     "cash_beneficiary_relationship",
@@ -361,7 +356,6 @@ class AddPaymentsForm(forms.ModelForm):
         bank_name,
         bank_account_name,
         bank_account_number,
-        payment_method,
     ):
         if not bank_transfer_currency:
             self.add_error(
@@ -407,7 +401,7 @@ class AddPaymentsForm(forms.ModelForm):
                                beneficiary contact platform is required.",
                 )
 
-        if payment_method == "bank_transfer" and not bank_account_name:
+        if not bank_account_name:
             self.add_error("bank_account_name", "Bank account name is required.")
         if not bank_account_number:
             self.add_error("bank_account_number", "Bank account number is required.")

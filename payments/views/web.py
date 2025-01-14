@@ -16,6 +16,7 @@ from payments.utils import (
     required_cash_fields,
     required_bank_transfer_fields,
     currencies_map,
+    categories_map,
 )
 from vessels.models import Vessel
 from accounts.models import User
@@ -60,6 +61,13 @@ class PaymentListView(LoginRequiredMixin, ListView):
 class PaymentDetailView(LoginRequiredMixin, DetailView):
     model = Payment
     template_name = "payment_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["methods_map"] = methods_map
+        context["categories_map"] = categories_map
+        return context
 
 
 class PaymentUploadView(LoginRequiredMixin, View):
@@ -239,11 +247,17 @@ def format_record(record):
 
         if key == "payment_method":
             if value:
-                record[key] = methods_map[value.strip()]
+                method = next(
+                    (k for k, v in methods_map.items() if v == value.strip()), None
+                )
+                record[key] = method
 
         if key == "cash_currency" or key == "bank_transfer_currency":
             if value:
-                record[key] = currencies_map[value.strip()]
+                currency = next(
+                    (k for k, v in currencies_map.items() if v == value.strip()), None
+                )
+                record[key] = currency
 
 
 # TODO: rework template download
