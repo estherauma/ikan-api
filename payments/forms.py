@@ -1,10 +1,13 @@
 from django import forms
 from vessels.models import Vessel
 from payments.models import Payment
-from accounts.models import User
-from django.db.models import Q
 from django.forms import modelformset_factory, BaseModelFormSet
-from payments.utils import payment_categories, payment_methods, payment_currencies
+from payments.utils import (
+    payment_categories,
+    payment_methods,
+    payment_currencies,
+    get_workers_on_vessel,
+)
 from django.core.exceptions import ValidationError
 
 
@@ -116,15 +119,9 @@ class AddPaymentsForm(forms.ModelForm):
             (item["key"], item["value"]) for item in payment_currencies
         ]
 
-        if vessel and loggedin_user:
-            # TODO: change query to display workers attached to selected vessel
-            # display worker names only
-            vessel_workers = User.objects.filter(
-                Q(created_by=loggedin_user.id) & Q(groups__name="worker")
-            ).distinct()
-
-            self.extra_forms = len(vessel_workers) + 1
-            self.fields["user"].queryset = vessel_workers
+        if vessel:
+            workers_on_vessel = get_workers_on_vessel(vessel)
+            self.fields["user"].queryset = workers_on_vessel
 
     def clean_duration(self):
         duration = self.cleaned_data.get("duration")

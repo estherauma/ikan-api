@@ -1,3 +1,9 @@
+from contracts.models import ContractClause
+import json
+from django.db.models import Q
+from accounts.models import User
+
+
 currencies_map = {
     "USD": "美元 US dollar",
     "MUR": "毛里求斯盧比 Mauritian Rupee",
@@ -77,3 +83,22 @@ payment_currencies = [
     {"key": "IDR", "value": "印尼盾/盧比 Indonesian Rupiah"},
     {"key": "SBD", "value": "索羅門群島元 Solomon Islands Dollar"},
 ]
+
+
+def get_workers_on_vessel(vessel):
+    contracts_with_vessel = []
+    party_b_clauses = ContractClause.objects.filter(kind='contract-clauses-parties-requirement-fishers')
+    for clause in party_b_clauses:
+        try:
+            content = json.loads(clause.content)
+            if content.get('vessel') == vessel.app_ref:
+                contracts_with_vessel.append(clause.contract)
+        except (KeyError, json.JSONDecodeError):
+            continue
+
+    workers_on_vessel = User.objects.filter(
+            Q(groups__name="worker") &
+            Q(user_contract_access__contract__in=contracts_with_vessel)
+        ).distinct()
+    print('workers_on_vessel----', len(workers_on_vessel), workers_on_vessel)
+    return workers_on_vessel
