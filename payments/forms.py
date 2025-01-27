@@ -8,19 +8,6 @@ from payments.utils import payment_categories, payment_methods, payment_currenci
 from django.core.exceptions import ValidationError
 
 
-class UploadPaymentsForm(forms.Form):
-    file = forms.FileField(
-        widget=forms.FileInput(
-            attrs={
-                "class": "form-control",
-                "id": "file",
-                "accept": ".xlsx, .xls",
-            }
-        ),
-        label="",
-    )
-
-
 class VesselSelectForm(forms.Form):
     vessel = forms.ModelChoiceField(
         queryset=Vessel.objects.none(),
