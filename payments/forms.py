@@ -6,6 +6,7 @@ from payments.utils import (
     payment_categories,
     payment_methods,
     payment_currencies,
+    payment_fields,
     get_workers_on_vessel,
 )
 from django.core.exceptions import ValidationError
@@ -63,37 +64,7 @@ class AddPaymentsForm(forms.ModelForm):
         model = Payment
         # We are listing the fields instead of using exclude
         # to control their order in the row when displaying
-        fields = [
-            "user",
-            "payment_date",
-            "payment_category",
-            "beneficiary_name",
-            "start_date",
-            "end_date",
-            "duration",
-            "total_usd_amount_received",
-            "payment_method",
-            "cash_usd_amount",
-            "cash_currency",
-            "cash_local_amount",
-            "cash_exchange_rate",
-            "is_cash_beneficiary_crew",
-            "cash_beneficiary_relationship",
-            "cash_beneficiary_contact",
-            "cash_beneficiary_contact_platform",
-            "bank_transfer_usd_amount",
-            "bank_transfer_currency",
-            "bank_transfer_local_amount",
-            "bank_transfer_exchange_rate",
-            "is_bank_transfer_beneficiary_crew",
-            "bank_account_name",
-            "bank_account_number",
-            "bank_name",
-            "bank_transfer_beneficiary_relationship",
-            "bank_transfer_beneficiary_contact",
-            "bank_transfer_beneficiary_contact_platform",
-            "has_deductions",
-        ]
+        fields = payment_fields
 
     def __init__(self, *args, vessel=None, loggedin_user=None, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,6 +1,8 @@
 {% extends 'themes/v1/base.html' %}
 {% load static %}
 
+{% load custom_filters %}
+
 {% block content %}
 <div class="form-container">
     {% if not vessel %}
@@ -30,120 +32,14 @@
             <table id="paymentsTable" class="table">
                 <thead style="background: #e7eaf1;">
                     <tr>
-                        <th class="fs-5 fw-medium text-dark">
-                            船員名稱 
-                            Crew Name  
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">
-                            支付日期 
-                            Payment Date
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">
-                            款項種類
-                            Payment Category
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">
-                            授薪人名稱
-                            Beneficiary Name
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">
-                            支付的月份 - 始
-                            Payment for which month - start
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">
-                            支付的月份 - 終
-                            Payment for which month - end
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">總月數
-                            Total No. of Months</th>
-                        <th class="fs-5 fw-medium text-dark">總額 （美金）
-                            Total Amount Received (USD)</th>
-                        <th class="fs-5 fw-medium text-dark">付款方式
-                            Payment Method</th>
-                        <th class="fs-5 fw-medium text-dark">現金 - 總額 （美金）
-                            注：如零請寫零
-                            
-                            Cash - Amount (USD)
-                            Note: If it's none, please insert zero</th>
-                        <th class="fs-5 fw-medium text-dark">"如支付的貨幣：
-                            （1） 非美金，請選擇支付的貨幣。
-                            （2）是美金，請選擇 ‘不適用’。
-                            
-                            If the cash payment is made in：
-                            （1） non-USD currency, please select the currency used.
-                            (2) If cash payment is made in USD, please choose N/A."</th>
-                        <th class="fs-5 fw-medium text-dark">如支付的貨幣非美金，請列出支付貨幣的總額。
-
-                            If the cash payment is made in non-USD currency, please state the cash amount paid in said currency.</th>
-                        <th class="fs-5 fw-medium text-dark">請說明支付貨幣兌換 1 美元的匯率
-                            Please state exchange rate in terms of how much is the cash payment currency to 1 USD </th>
-                        <th class="fs-5 fw-medium text-dark">
-                            授款人是否船員本人？Is the cash beneficiary the crew member himself?
-                        </th>
-                        <th class="fs-5 fw-medium text-dark">授薪人與船員關係
-                            Cash Beneficiary's Relationship with Crew</th>
-                        <th class="fs-5 fw-medium text-dark">非船員本人,請提供帳戶聯絡
-                            資訊
-                            If cash beneficiary is not crew member him/herself, please provide contact information relating to the account
-                            
-                            （電話號碼 Telephone number、WhatsApp、FB、其他Others)</th>
-                        <th class="fs-5 fw-medium text-dark">請選擇聯絡資訊的平台
-
-                            Please choose which platform this cash beneficiary contact information is for</th>
-                        <th class="fs-5 fw-medium text-dark">匯款 - 總額 （美金）
-                            注：如零請寫零
-                            
-                            Bank transfer - Amount (USD)
-                            Note: If it's none, please insert zero</th>
-                        <th class="fs-5 fw-medium text-dark">如船員收到的貨幣：
-                            （1） 非美金，請選擇有關貨幣。
-                            （2）是美金，請選擇 ‘不適用’。
-                            
-                            If the crew is accepting bank transfer payment in：
-                            （1) non-USD currency, please select the currency used.
-                            (2) If payment is made in USD, please choose N/A.</th>
-                        <th class="fs-5 fw-medium text-dark">如支付的貨幣非美金，請列出支付貨幣的總額。
-
-                            If the bank transfer payment is made in non-USD currency, please state the amount paid in said currency.</th>
-                        <th class="fs-5 fw-medium text-dark">請說明支付貨幣兌換 1 美元的匯率
-
-                            Please state exchange rate in terms of how much is the bank transfer payment currency to 1 USD </th>
-                        <th class="fs-5 fw-medium text-dark">授款人是否船員本人？Is the bank transfer beneficiary the crew member himself?</th>
-                        <th class="fs-5 fw-medium text-dark">銀行戶名
-                            Beneficiary Account Name</th>
-                        <th class="fs-5 fw-medium text-dark">銀行帳號 
-                            Beneficiary Account No.</th>
-                        <th class="fs-5 fw-medium text-dark">銀行名稱
-                            Beneficiary Bank Name
-                            
-                            *Type it in Bahasa / English</th>
-                        <th class="fs-5 fw-medium text-dark">授薪人與船員關係
-                            Bank Transfer Beneficiary's Relationship with Crew</th>
-                        <th class="fs-5 fw-medium text-dark">非船員本人, 請提供帳戶聯絡
-                            資訊
-                            If bank transfer beneficiary is not crew member him/herself, please provide contact information relating to the account
-                            
-                            （電話號碼 Telephone number、WhatsApp、FB、其他Others)</th>
-                        <th class="fs-5 fw-medium text-dark">請選擇聯絡資訊的平台
-
-                            Please choose which platform this bank transfer beneficiary contact information is for</th>
-                        <th class="fs-5 fw-medium text-dark">是否有扣除？
-                            Are there any deductions?</th>
-                        <!-- <th>扣除一 （美金）
-                            Deduction 1 (USD)</th>
-                        <th>扣除原因
-                            Reason for deduction 1</th>
-                        <th>如扣除原因是“其他”，請列明原因
-
-                            If the reason for deduction 1 is "Others", please state the reason</th>
-                        <th>扣除2 （美金）
-                            Deduction 2 (USD)</th>
-                        <th>扣除原因
-                            Reason for deduction 2</th>
-                        <th>如扣除原因是“其他”，請列明原因
-
-                            If the reason for deduction 2 is "Others", please state the reason</th> -->
-
+                        {% for field in payment_fields %}
+                            <th>{{ english_fields |dict_get:field }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr >
+                        {% for field in payment_fields %}
+                            <th class="fs-4 fw-bold text-dark">{{ chinese_fields |dict_get:field }}</th>
+                        {% endfor %}
                     </tr>
                 </thead>
                 <tbody id="formset-body">

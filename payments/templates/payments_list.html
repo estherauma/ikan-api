@@ -63,25 +63,35 @@
 										enctype="multipart/form-data"
 									>
 										{% csrf_token %}
-                                        <fieldset>
-                                            <legend class="mt-3 fs-5 fw-medium text-dark">Select Vessel</legend>
-                                            {{ vessel_form.vessel }}
-                                        </fieldset>
-                                        
-                                        {% if vessel_form.errors %}
-										<div class="alert alert-danger">{{ vessel_form.errors }}</div>
-										{% endif %}
 
-										<div class="mb-3 mt-3 text-center">
-											<button
-												id="vessel-submit-btn"
-												class="btn btn-primary"
-												type="submit"
-												disabled
-											>
-												Next
-											</button>
-										</div>
+                                        {% if not has_vessel %}
+                                            <div class="row m-3">
+                                                <div class="col">
+                                                    <p>No vessels added.</p>
+                                                    <p>Please first add a vessel.</p>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <fieldset>
+                                                <legend class="mt-3 fs-5 fw-medium text-dark">Select Vessel</legend>
+                                                {{ vessel_form.vessel }}
+                                            </fieldset>
+                                            
+                                            {% if vessel_form.errors %}
+                                            <div class="alert alert-danger">{{ vessel_form.errors }}</div>
+                                            {% endif %}
+
+                                            <div class="mb-3 mt-3 text-center">
+                                                <button
+                                                    id="vessel-submit-btn"
+                                                    class="btn btn-primary"
+                                                    type="submit"
+                                                    disabled
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        {% endif %}
 									</form>
 								</div>
 							</div>
@@ -202,17 +212,7 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const fileInput = document.getElementById('file');
-        const submitButton = document.getElementById('upload-btn');
-
-        // Enable submit button when a file is selected
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                submitButton.disabled = false;
-            } else {
-                submitButton.disabled = true;
-            }
-        });
+        
 
         const vesselSelectField = document.getElementById('vessel-select');
         const vesselSubmitButton = document.getElementById('vessel-submit-btn');

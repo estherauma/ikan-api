@@ -7,6 +7,9 @@ from django.contrib import messages
 from payments.utils import (
     methods_map,
     categories_map,
+    payment_fields,
+    payment_fields_map_english,
+    payment_fields_map_chinese,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -24,6 +27,7 @@ class PaymentListView(LoginRequiredMixin, ListView):
         user = self.request.user
         is_super_user = user.is_superuser
         roles = user.groups.all().values_list("name", flat=True)
+        has_vessel = Vessel.objects.filter(created_by=user.id).exists()
         payments = Payment.objects.filter(created_by=user.id)
         if is_super_user:
             payments = Payment.objects.all()
@@ -31,6 +35,7 @@ class PaymentListView(LoginRequiredMixin, ListView):
             payments = Payment.objects.filter(user=user)
 
         context["payments"] = payments
+        context["has_vessel"] = has_vessel
         context["vessel_form"] = VesselSelectForm(user=user)
 
         # group payments by vessel
@@ -88,7 +93,13 @@ class AddPayment(LoginRequiredMixin, View):
         return render(
             request,
             self.template_name,
-            {"vessel": vessel, "formset": formset},
+            {
+                "vessel": vessel,
+                "formset": formset,
+                "payment_fields": payment_fields,
+                "english_fields": payment_fields_map_english,
+                "chinese_fields": payment_fields_map_chinese,
+            },
         )
 
     def post(self, request):
@@ -111,5 +122,11 @@ class AddPayment(LoginRequiredMixin, View):
             return render(
                 request,
                 self.template_name,
-                {"vessel": vessel, "formset": formset},
+                {
+                    "vessel": vessel,
+                    "formset": formset,
+                    "payment_fields": payment_fields,
+                    "english_fields": payment_fields_map_english,
+                    "chinese_fields": payment_fields_map_chinese,
+                },
             )
