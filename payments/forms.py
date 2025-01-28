@@ -186,7 +186,8 @@ class AddPaymentsForm(forms.ModelForm):
             if end_date <= start_date:
                 self.add_error("end_date", "End date must be greater than start date.")
 
-        if payment_method == "cash":
+        # if the paymnet method is either cash or both
+        if payment_method != "bank_transfer":
             self.validate_cash_fields(
                 cash_currency=cash_currency,
                 cash_usd_amount=cash_usd_amount,
@@ -197,31 +198,8 @@ class AddPaymentsForm(forms.ModelForm):
                 cash_beneficiary_contact=cash_beneficiary_contact,
                 cash_beneficiary_contact_platform=cash_beneficiary_contact_platform,
             )
-        elif payment_method == "bank_transfer":
-            self.validate_bank_transfer_fields(
-                bank_transfer_currency=bank_transfer_currency,
-                bank_transfer_usd_amount=bank_transfer_usd_amount,
-                bank_transfer_local_amount=bank_transfer_local_amount,
-                bank_transfer_exchange_rate=bank_transfer_exchange_rate,
-                is_bank_transfer_beneficiary_crew=is_bank_transfer_beneficiary_crew,
-                bank_transfer_beneficiary_relationship=bank_transfer_beneficiary_relationship,
-                bank_transfer_beneficiary_contact=bank_transfer_beneficiary_contact,
-                bank_transfer_beneficiary_contact_platform=bank_transfer_beneficiary_contact_platform,
-                bank_name=bank_name,
-                bank_account_name=bank_account_name,
-                bank_account_number=bank_account_number,
-            )
-        elif payment_method == "both":
-            self.validate_cash_fields(
-                cash_currency=cash_currency,
-                cash_usd_amount=cash_usd_amount,
-                cash_local_amount=cash_local_amount,
-                cash_exchange_rate=cash_exchange_rate,
-                is_cash_beneficiary_crew=is_cash_beneficiary_crew,
-                cash_beneficiary_relationship=cash_beneficiary_relationship,
-                cash_beneficiary_contact=cash_beneficiary_contact,
-                cash_beneficiary_contact_platform=cash_beneficiary_contact_platform,
-            )
+        # if the payment method is either bank_transfer or both
+        if payment_method != "cash":
             self.validate_bank_transfer_fields(
                 bank_transfer_currency=bank_transfer_currency,
                 bank_transfer_usd_amount=bank_transfer_usd_amount,
