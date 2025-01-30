@@ -8,6 +8,8 @@ from payments.utils import (
     payment_currencies,
     payment_fields,
     get_workers_on_vessel,
+    cash_fields,
+    bank_transfer_fields,
 )
 from django.core.exceptions import ValidationError
 
@@ -70,6 +72,15 @@ class AddPaymentsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.vessel = vessel
         empty_select_choice = [("", "")]
+
+        # change backgroud color of cash and bank-transfer fields
+        # add cash-field class to all cash fields
+        # for field in cash_fields:
+        #     self.fields[field].widget.attrs["class"] = "cash-field"
+
+        # # add bank-transfer-field class to all bank transfer fields
+        # for field in bank_transfer_fields:
+        #     self.fields[field].widget.attrs["class"] = "bank-transfer-field"
 
         for field in self.fields:
             self.fields[field].widget.attrs[

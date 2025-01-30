@@ -10,6 +10,8 @@ from payments.utils import (
     payment_fields,
     payment_fields_map_english,
     payment_fields_map_chinese,
+    cash_fields,
+    bank_transfer_fields,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -99,6 +101,8 @@ class AddPayment(LoginRequiredMixin, View):
                 "payment_fields": payment_fields,
                 "english_fields": payment_fields_map_english,
                 "chinese_fields": payment_fields_map_chinese,
+                "cash_fields": cash_fields,
+                "bank_transfer_fields": bank_transfer_fields,
             },
         )
 
@@ -128,5 +132,7 @@ class AddPayment(LoginRequiredMixin, View):
                     "payment_fields": payment_fields,
                     "english_fields": payment_fields_map_english,
                     "chinese_fields": payment_fields_map_chinese,
+                    "cash_fields": cash_fields,
+                    "bank_transfer_fields": bank_transfer_fields,
                 },
             )
