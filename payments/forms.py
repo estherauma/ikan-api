@@ -8,6 +8,7 @@ from payments.utils import (
     payment_currencies,
     payment_fields,
     get_workers_on_vessel,
+    payment_beneficiarires,
     cash_fields,
     bank_transfer_fields,
 )
@@ -61,6 +62,8 @@ class AddPaymentsForm(forms.ModelForm):
     payment_method = forms.ChoiceField()
     cash_currency = forms.ChoiceField(required=False)
     bank_transfer_currency = forms.ChoiceField(required=False)
+    cash_beneficiary_relationship = forms.ChoiceField(required=False)
+    bank_transfer_beneficiary_relationship = forms.ChoiceField(required=False)
 
     class Meta:
         model = Payment
@@ -99,6 +102,12 @@ class AddPaymentsForm(forms.ModelForm):
         ]
         self.fields["bank_transfer_currency"].choices = empty_select_choice + [
             (item["key"], item["value"]) for item in payment_currencies
+        ]
+        self.fields["cash_beneficiary_relationship"].choices = empty_select_choice + [
+            (item["key"], item["value"]) for item in payment_beneficiarires
+        ]
+        self.fields["bank_transfer_beneficiary_relationship"].choices = empty_select_choice + [
+            (item["key"], item["value"]) for item in payment_beneficiarires
         ]
 
         if vessel:
