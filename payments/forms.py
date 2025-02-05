@@ -113,34 +113,34 @@ class AddPaymentsForm(forms.ModelForm):
 
     def clean_total_usd_amount_received(self):
         total_usd_amount_received = self.cleaned_data.get("total_usd_amount_received")
-        if total_usd_amount_received and total_usd_amount_received < 0:
-            raise ValidationError("Total USD amount received cannot be negative.")
+        if total_usd_amount_received and total_usd_amount_received <= 0:
+            raise ValidationError("Total USD amount received cannot be 0 or negative.")
         return total_usd_amount_received
 
     def clean_cash_amount(self):
         cash_amount = self.cleaned_data.get("cash_amount")
-        if cash_amount and cash_amount < 0:
-            raise ValidationError("USD cash amount cannot be negative.")
+        if cash_amount and cash_amount <= 0:
+            raise ValidationError("USD cash amount cannot be 0 or negative.")
         return cash_amount
 
     def clean_cash_exchange_rate(self):
         cash_exchange_rate = self.cleaned_data.get("cash_exchange_rate")
-        if cash_exchange_rate and cash_exchange_rate < 0:
-            raise ValidationError("Cash exchange rate cannot be negative.")
+        if cash_exchange_rate and cash_exchange_rate <= 0:
+            raise ValidationError("Cash exchange rate cannot be 0 or negative.")
         return cash_exchange_rate
 
     def clean_bank_transfer_amount(self):
         bank_transfer_amount = self.cleaned_data.get("bank_transfer_amount")
-        if bank_transfer_amount and bank_transfer_amount < 0:
-            raise ValidationError("USD bank transfer amount cannot be negative.")
+        if bank_transfer_amount and bank_transfer_amount <= 0:
+            raise ValidationError("USD bank transfer amount cannot be 0 or negative.")
         return bank_transfer_amount
 
     def clean_bank_transfer_exchange_rate(self):
         bank_transfer_exchange_rate = self.cleaned_data.get(
             "bank_transfer_exchange_rate"
         )
-        if bank_transfer_exchange_rate and bank_transfer_exchange_rate < 0:
-            raise ValidationError("Bank exchange rate cannot be negative.")
+        if bank_transfer_exchange_rate and bank_transfer_exchange_rate <= 0:
+            raise ValidationError("Bank exchange rate cannot be 0 or negative.")
         return bank_transfer_exchange_rate
 
     def clean(self):

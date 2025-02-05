@@ -285,6 +285,54 @@
                 //         field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
                 //     });
                 // }
+
+                endDate?.addEventListener("change", function () {
+                    if (startDate.value && endDate.value && startDate.value < endDate.value) {
+                        endDate.closest('.field').classList.remove("field-error");
+                        endDate.closest('.field').querySelector('.error-message').innerHTML = '';
+                        endDate.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+
+                totalUsdAmountReceived?.addEventListener("change", function () {
+                    if (totalUsdAmountReceived.value && totalUsdAmountReceived.value > 0) {
+                        totalUsdAmountReceived.closest('.field').classList.remove("field-error");
+                        totalUsdAmountReceived.closest('.field').querySelector('.error-message').innerHTML = '';
+                        totalUsdAmountReceived.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+
+                cashAmount?.addEventListener("change", function () {
+                    if (cashAmount.value && cashAmount.value > 0) {
+                        cashAmount.closest('.field').classList.remove("field-error");
+                        cashAmount.closest('.field').querySelector('.error-message').innerHTML = '';
+                        cashAmount.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+
+                cashExchangeRate?.addEventListener("change", function () {
+                    if (cashExchangeRate.value && cashExchangeRate.value > 0) {
+                        cashExchangeRate.closest('.field').classList.remove("field-error");
+                        cashExchangeRate.closest('.field').querySelector('.error-message').innerHTML = '';
+                        cashExchangeRate.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+
+                bankTransferAmount?.addEventListener("change", function () {
+                    if (bankTransferAmount.value && bankTransferAmount.value > 0) {
+                        bankTransferAmount.closest('.field').classList.remove("field-error");
+                        bankTransferAmount.closest('.field').querySelector('.error-message').innerHTML = '';
+                        bankTransferAmount.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+
+                bankTransferExchangeRate?.addEventListener("change", function () {
+                    if (bankTransferExchangeRate.value && bankTransferExchangeRate.value > 0) {
+                        bankTransferExchangeRate.closest('.field').classList.remove("field-error");
+                        bankTransferExchangeRate.closest('.field').querySelector('.error-message').innerHTML = '';
+                        bankTransferExchangeRate.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
                 
                 validateInitialRequiredCashFields = (cashAmount, cashCurrency, cashBeneficiaryRelationship) => {
                     if(cashAmount) {
