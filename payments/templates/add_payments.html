@@ -410,7 +410,7 @@
                     bankAccountName.closest('.field').querySelector('.indicator').classList.add("d-none");
                 }
                 
-                paymentMethod.addEventListener("change", function () {
+                paymentMethod?.addEventListener("change", function () {
                     if (paymentMethod.value) {
                         if (paymentMethod.value === "cash") {
                             validateInitialRequiredCashFields(
@@ -485,7 +485,7 @@
                     }
                 });
 
-                cashCurrency.addEventListener("change", function () {
+                cashCurrency?.addEventListener("change", function () {
                     if (cashCurrency.value && cashCurrency.value != "USD") {
                         cashExchangeRate.required = true;
                         cashExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-none");
@@ -497,7 +497,7 @@
                     }
                 });
 
-                cashBeneficiaryRelationship.addEventListener("change", function () {
+                cashBeneficiaryRelationship?.addEventListener("change", function () {
                     if (cashBeneficiaryRelationship.value && cashBeneficiaryRelationship.value !== "self") {
                         cashBeneficiaryName.required = true;
                         cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
@@ -517,7 +517,7 @@
                     }
                 });
             
-                bankTransferCurrency.addEventListener("change", function () {
+                bankTransferCurrency?.addEventListener("change", function () {
                     if (bankTransferCurrency.value && bankTransferCurrency.value != "USD") {
                         bankTransferExchangeRate.required = true;
                         bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-none");
@@ -529,7 +529,7 @@
                     }
                 });
 
-                bankTransferBeneficiaryRelationship.addEventListener("change", function () {
+                bankTransferBeneficiaryRelationship?.addEventListener("change", function () {
                     if (bankTransferBeneficiaryRelationship.value && bankTransferBeneficiaryRelationship.value !== "self") {
                         bankTransferBeneficiaryName.required = true;
                         bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");

@@ -20,7 +20,7 @@ class VesselSelectForm(forms.Form):
         widget=forms.Select(
             attrs={
                 "placeholder": "Select Vessel",
-                "style": "min-height: 45px; border-radius: 10px; border-width: 1px; min-width: 300px;\
+                "style": "min-height: 45px; border-radius: 10px; border-width: 1px; min-width: 200px;\
                     max-width: 500px; padding: 0 10px; font-size: 1.1rem;",
                 "id": "vessel-select",
             }
@@ -85,7 +85,7 @@ class AddPaymentsForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs[
                 "style"
-            ] = "min-height: 45px; border-radius: 10px; border-width: 1px; min-width: 250px;\
+            ] = "min-height: 45px; border-radius: 10px; border-width: 1px; min-width: 200px;\
                 max-width: 300px;padding: 0 10px; font-size: 1rem;"
 
         self.fields["payment_category"].choices = empty_select_choice + [
@@ -178,7 +178,7 @@ class AddPaymentsForm(forms.ModelForm):
                 self.add_error("end_date", "End date must be greater than start date.")
 
         # if the paymnet method is either cash or both
-        if payment_method != "bank_transfer":
+        if payment_method and payment_method != "bank_transfer":
             self.validate_cash_fields(
                 cash_currency=cash_currency,
                 cash_amount=cash_amount,
@@ -188,7 +188,7 @@ class AddPaymentsForm(forms.ModelForm):
                 cash_beneficiary_contact=cash_beneficiary_contact,
             )
         # if the payment method is either bank_transfer or both
-        if payment_method != "cash":
+        if payment_method and payment_method != "cash":
             self.validate_bank_transfer_fields(
                 bank_transfer_currency=bank_transfer_currency,
                 bank_transfer_amount=bank_transfer_amount,
