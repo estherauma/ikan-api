@@ -51,6 +51,15 @@ class Payment(AuditableModel):
     has_deductions = models.BooleanField(default=False)
     deductions = models.JSONField(null=True, blank=True)
 
+    @property
+    def duration(self):
+        if self.start_date and self.end_date:
+            years = self.end_date.year - self.start_date.year
+            months = self.end_date.month - self.start_date.month
+            total_months = (years * 12) + months
+            return total_months
+        return None
+
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}, {self.start_date.strftime("%b %d, %Y")} - \
             {self.end_date.strftime("%b %d, %Y")}'
