@@ -47,7 +47,16 @@
                                 <h5 class="text-muted">Duration:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.duration |default:0}} months</h4>
+                                <!-- <h4 class="">{{payment.duration |default:0}} months</h4> -->
+                                <h4>
+                                    {% if payment.duration < 1 %}
+                                        Less than a month
+                                    {% elif payment.duration == 1 %}
+                                        1 month
+                                    {% elif payment.duration > 1 %}
+                                        {{payment.duration}} months
+                                    {% endif %}
+                                </h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
