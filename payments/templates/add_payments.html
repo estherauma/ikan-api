@@ -13,6 +13,10 @@
     {% if vessel %}
     <h2 class="mb-4 mt-4 text-center" style="color: #191970;">Add Payments for {{vessel.name | upper }} vessel</h2>
 
+    {% if not workers_on_vessel %}
+    <h4 class="m-4 text-center">This vessel does not have workers attached to it. Please add worker contracts for this vessel.</h4>
+    {% else %}
+
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}
@@ -116,6 +120,7 @@
             </button>
         </div>
     </form>
+    {% endif %}
     {% endif %}
 
 </div>

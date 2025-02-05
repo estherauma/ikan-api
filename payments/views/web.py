@@ -12,6 +12,7 @@ from payments.utils import (
     payment_fields_map_chinese,
     cash_fields,
     bank_transfer_fields,
+    get_workers_on_vessel,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -89,6 +90,7 @@ class AddPayment(LoginRequiredMixin, View):
     def get(self, request):
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
+        workers_on_vessel = get_workers_on_vessel(vessel)
         formset = PaymentsFormSet(
             queryset=Payment.objects.none(), vessel=vessel, loggedin_user=request.user
         )
@@ -103,12 +105,14 @@ class AddPayment(LoginRequiredMixin, View):
                 "chinese_fields": payment_fields_map_chinese,
                 "cash_fields": cash_fields,
                 "bank_transfer_fields": bank_transfer_fields,
+                "workers_on_vessel": workers_on_vessel,
             },
         )
 
     def post(self, request):
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
+        workers_on_vessel = get_workers_on_vessel(vessel)
         formset = PaymentsFormSet(
             request.POST, vessel=vessel, loggedin_user=request.user
         )
@@ -134,5 +138,6 @@ class AddPayment(LoginRequiredMixin, View):
                     "chinese_fields": payment_fields_map_chinese,
                     "cash_fields": cash_fields,
                     "bank_transfer_fields": bank_transfer_fields,
+                    "workers_on_vessel": workers_on_vessel,
                 },
             )
