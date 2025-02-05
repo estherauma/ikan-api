@@ -105,29 +105,17 @@ class AddPaymentsForm(forms.ModelForm):
             workers_on_vessel = get_workers_on_vessel(vessel)
             self.fields["user"].queryset = workers_on_vessel
 
-    def clean_duration(self):
-        duration = self.cleaned_data.get("duration")
-        if duration < 0:
-            raise ValidationError("Total no of months cannot be negative.")
-        return duration
-
     def clean_total_usd_amount_received(self):
         total_usd_amount_received = self.cleaned_data.get("total_usd_amount_received")
         if total_usd_amount_received and total_usd_amount_received < 0:
             raise ValidationError("Total USD amount received cannot be negative.")
         return total_usd_amount_received
 
-    def clean_cash_usd_amount(self):
-        cash_usd_amount = self.cleaned_data.get("cash_usd_amount")
-        if cash_usd_amount and cash_usd_amount < 0:
+    def clean_cash_amount(self):
+        cash_amount = self.cleaned_data.get("cash_amount")
+        if cash_amount and cash_amount < 0:
             raise ValidationError("USD cash amount cannot be negative.")
-        return cash_usd_amount
-
-    def clean_cash_local_amount(self):
-        cash_local_amount = self.cleaned_data.get("cash_local_amount")
-        if cash_local_amount and cash_local_amount < 0:
-            raise ValidationError("Non USD cash amount cannot be negative.")
-        return cash_local_amount
+        return cash_amount
 
     def clean_cash_exchange_rate(self):
         cash_exchange_rate = self.cleaned_data.get("cash_exchange_rate")
@@ -135,17 +123,11 @@ class AddPaymentsForm(forms.ModelForm):
             raise ValidationError("Cash exchange rate cannot be negative.")
         return cash_exchange_rate
 
-    def clean_bank_transfer_usd_amount(self):
-        bank_transfer_usd_amount = self.cleaned_data.get("bank_transfer_usd_amount")
-        if bank_transfer_usd_amount and bank_transfer_usd_amount < 0:
+    def clean_bank_transfer_amount(self):
+        bank_transfer_amount = self.cleaned_data.get("bank_transfer_amount")
+        if bank_transfer_amount and bank_transfer_amount < 0:
             raise ValidationError("USD bank transfer amount cannot be negative.")
-        return bank_transfer_usd_amount
-
-    def clean_bank_transfer_local_amount(self):
-        bank_transfer_local_amount = self.cleaned_data.get("bank_transfer_local_amount")
-        if bank_transfer_local_amount and bank_transfer_local_amount < 0:
-            raise ValidationError("Non USD bank transfer amount cannot be negative.")
-        return bank_transfer_local_amount
+        return bank_transfer_amount
 
     def clean_bank_transfer_exchange_rate(self):
         bank_transfer_exchange_rate = self.cleaned_data.get(
@@ -161,33 +143,25 @@ class AddPaymentsForm(forms.ModelForm):
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
         payment_method = cleaned_data.get("payment_method")
-        cash_usd_amount = cleaned_data.get("cash_usd_amount")
+        cash_amount = cleaned_data.get("cash_amount")
         cash_currency = cleaned_data.get("cash_currency")
-        cash_local_amount = cleaned_data.get("cash_local_amount")
         cash_exchange_rate = cleaned_data.get("cash_exchange_rate")
-        is_cash_beneficiary_crew = cleaned_data.get("is_cash_beneficiary_crew")
+        cash_beneficiary_name = cleaned_data.get("cash_beneficiary_name")
         cash_beneficiary_relationship = cleaned_data.get(
             "cash_beneficiary_relationship"
         )
         cash_beneficiary_contact = cleaned_data.get("cash_beneficiary_contact")
-        cash_beneficiary_contact_platform = cleaned_data.get(
-            "cash_beneficiary_contact_platform"
-        )
-        bank_transfer_usd_amount = cleaned_data.get("bank_transfer_usd_amount")
+        bank_transfer_amount = cleaned_data.get("bank_transfer_amount")
         bank_transfer_currency = cleaned_data.get("bank_transfer_currency")
-        bank_transfer_local_amount = cleaned_data.get("bank_transfer_local_amount")
         bank_transfer_exchange_rate = cleaned_data.get("bank_transfer_exchange_rate")
-        is_bank_transfer_beneficiary_crew = cleaned_data.get(
-            "is_bank_transfer_beneficiary_crew"
+        bank_transfer_beneficiary_name = cleaned_data.get(
+            "bank_transfer_beneficiary_name"
         )
         bank_transfer_beneficiary_relationship = cleaned_data.get(
             "bank_transfer_beneficiary_relationship"
         )
         bank_transfer_beneficiary_contact = cleaned_data.get(
             "bank_transfer_beneficiary_contact"
-        )
-        bank_transfer_beneficiary_contact_platform = cleaned_data.get(
-            "bank_transfer_beneficiary_contact_platform"
         )
         bank_account_name = cleaned_data.get("bank_account_name")
         bank_account_number = cleaned_data.get("bank_account_number")
@@ -201,25 +175,21 @@ class AddPaymentsForm(forms.ModelForm):
         if payment_method != "bank_transfer":
             self.validate_cash_fields(
                 cash_currency=cash_currency,
-                cash_usd_amount=cash_usd_amount,
-                cash_local_amount=cash_local_amount,
+                cash_amount=cash_amount,
                 cash_exchange_rate=cash_exchange_rate,
-                is_cash_beneficiary_crew=is_cash_beneficiary_crew,
+                cash_beneficiary_name=cash_beneficiary_name,
                 cash_beneficiary_relationship=cash_beneficiary_relationship,
                 cash_beneficiary_contact=cash_beneficiary_contact,
-                cash_beneficiary_contact_platform=cash_beneficiary_contact_platform,
             )
         # if the payment method is either bank_transfer or both
         if payment_method != "cash":
             self.validate_bank_transfer_fields(
                 bank_transfer_currency=bank_transfer_currency,
-                bank_transfer_usd_amount=bank_transfer_usd_amount,
-                bank_transfer_local_amount=bank_transfer_local_amount,
+                bank_transfer_amount=bank_transfer_amount,
                 bank_transfer_exchange_rate=bank_transfer_exchange_rate,
-                is_bank_transfer_beneficiary_crew=is_bank_transfer_beneficiary_crew,
+                bank_transfer_beneficiary_name=bank_transfer_beneficiary_name,
                 bank_transfer_beneficiary_relationship=bank_transfer_beneficiary_relationship,
                 bank_transfer_beneficiary_contact=bank_transfer_beneficiary_contact,
-                bank_transfer_beneficiary_contact_platform=bank_transfer_beneficiary_contact_platform,
                 bank_name=bank_name,
                 bank_account_name=bank_account_name,
                 bank_account_number=bank_account_number,
@@ -244,59 +214,44 @@ class AddPaymentsForm(forms.ModelForm):
     def validate_cash_fields(
         self,
         cash_currency,
-        cash_usd_amount,
-        cash_local_amount,
+        cash_amount,
         cash_exchange_rate,
-        is_cash_beneficiary_crew,
+        cash_beneficiary_name,
         cash_beneficiary_relationship,
         cash_beneficiary_contact,
-        cash_beneficiary_contact_platform,
     ):
         if not cash_currency:
             self.add_error("cash_currency", "Cash currency is required.")
 
         if cash_currency and cash_currency == "USD":
-            if not cash_usd_amount:
+            if not cash_amount:
                 self.add_error(
-                    "cash_usd_amount",
-                    "Cash USD amount is required because you select USD currency.",
+                    "cash_amount",
+                    "Cash amount is required because you select USD currency.",
                 )
         elif cash_currency and cash_currency != "USD":
-            if not cash_local_amount:
-                self.add_error(
-                    "cash_local_amount",
-                    "Non USD cash amount is required\
-                               because you selected local currency.",
-                )
             if not cash_exchange_rate:
                 self.add_error("cash_exchange_rate", "Cash exchange rate is required.")
 
-        if not is_cash_beneficiary_crew:
-            if not cash_beneficiary_relationship:
+        if cash_beneficiary_relationship != "crew_member":
+            if not cash_beneficiary_name:
                 self.add_error(
-                    "cash_beneficiary_relationship",
-                    "Cash beneficiary relationship is required.",
+                    "cash_beneficiary_name",
+                    "Cash beneficiary name is required.",
                 )
             if not cash_beneficiary_contact:
                 self.add_error(
                     "cash_beneficiary_contact", "Cash beneficiary contact is required."
                 )
-            if not cash_beneficiary_contact_platform:
-                self.add_error(
-                    "cash_beneficiary_contact_platform",
-                    "Cash beneficiary contact platform is required.",
-                )
 
     def validate_bank_transfer_fields(
         self,
         bank_transfer_currency,
-        bank_transfer_usd_amount,
-        bank_transfer_local_amount,
+        bank_transfer_amount,
         bank_transfer_exchange_rate,
-        is_bank_transfer_beneficiary_crew,
+        bank_transfer_beneficiary_name,
         bank_transfer_beneficiary_relationship,
         bank_transfer_beneficiary_contact,
-        bank_transfer_beneficiary_contact_platform,
         bank_name,
         bank_account_name,
         bank_account_number,
@@ -307,42 +262,30 @@ class AddPaymentsForm(forms.ModelForm):
             )
 
         if bank_transfer_currency and bank_transfer_currency == "USD":
-            if not bank_transfer_usd_amount:
+            if not bank_transfer_amount:
                 self.add_error(
-                    "bank_transfer_usd_amount",
+                    "bank_transfer_amount",
                     "Bank transfer USD amount is required\
                                because you selected USD currency.",
                 )
         elif bank_transfer_currency and bank_transfer_currency != "USD":
-            if not bank_transfer_local_amount:
-                self.add_error(
-                    "bank_transfer_local_amount",
-                    "Non USD bank transfer amount is required\
-                               because you selected local currency.",
-                )
             if not bank_transfer_exchange_rate:
                 self.add_error(
                     "bank_transfer_exchange_rate",
                     "Bank transfer exchange rate is required.",
                 )
 
-        if not is_bank_transfer_beneficiary_crew:
-            if not bank_transfer_beneficiary_relationship:
+        if bank_transfer_beneficiary_relationship != "crew_member":
+            if not bank_transfer_beneficiary_name:
                 self.add_error(
-                    "bank_transfer_beneficiary_relationship",
+                    "bank_transfer_beneficiary_name",
                     "Bank transfer beneficiary\
-                               relationship is required.",
+                               name is required.",
                 )
             if not bank_transfer_beneficiary_contact:
                 self.add_error(
                     "bank_transfer_beneficiary_contact",
                     "Bank transfer beneficiary contact is required.",
-                )
-            if not bank_transfer_beneficiary_contact_platform:
-                self.add_error(
-                    "bank_transfer_beneficiary_contact_platform",
-                    "Bank transfer\
-                               beneficiary contact platform is required.",
                 )
 
         if not bank_account_name:
