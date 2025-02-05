@@ -201,6 +201,7 @@
             Array.from(newForm.querySelectorAll('.field-error')).forEach(field => {
                 field.classList.remove('field-error');
             });
+            newForm.classList.remove('invalid-form');
             
             // Clear the values of the cloned fields
             Array.from(newForm.querySelectorAll('input, select, textarea')).forEach(input => {
@@ -212,15 +213,18 @@
                 }
             });
 
-            updateRequiredFields();
+            validateFormFields();
         });
 
         const submitButton = document.getElementById('submit-button');
         submitButton.addEventListener("click", function (event) {
+            // event.preventDefault(); // TO BE REMOVED
             const forms = document.querySelectorAll('#form-row');
             forms.forEach((form, index) =>{
                 const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
                     .some(input => input.value.trim() !== "");
+                const errorFields = form.querySelectorAll('.field-error');
+                const formHasError = errorFields.length > 0;
                 if (formHasValue) {
                     form.querySelectorAll('.initial-required-field').forEach(field => {
                         field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
@@ -228,23 +232,34 @@
                     });
                 }
 
-                // TODO: fix logic, bg is set on second submission
-                const hasError = form.querySelectorAll('.field-error').length > 0;
-                if (hasError) {
+                // TODO: highlight all forms with errors not just the first one
+                if (formHasError ) {
                     event.preventDefault();
+                    form.querySelectorAll('.initial-required-field').forEach(field => {
+                        field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                        field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                    });
+                    // Highlight the form with errors
                     form.classList.add("invalid-form");
+
+                    // Scroll to the first error field
+                    errorFields[0].querySelector('input').focus();
+                    errorFields[0].querySelector('select').focus();
+                    errorFields[0].querySelector('textarea').focus();
                 } else {
                     form.style.backgroundColor = "";
                     form.classList.remove("invalid-form");
                 }
-
             });
         });
 
         // update fields required validation
-        updateRequiredFields = () => {
+        validateFormFields = () => {
             const forms = document.querySelectorAll('#form-row');
             forms.forEach((form, index) => {
+                const totalUsdAmountReceived = form.querySelector(`#id_form-${index}-total_usd_amount_received`);
+                const startDate = form.querySelector(`#id_form-${index}-start_date`);
+                const endDate = form.querySelector(`#id_form-${index}-end_date`);
                 const paymentMethod = form.querySelector(`#id_form-${index}-payment_method`);
                 const cashAmount = form.querySelector(`#id_form-${index}-cash_amount`);
                 const cashCurrency = form.querySelector(`#id_form-${index}-cash_currency`);
@@ -551,7 +566,7 @@
             });
         };
         
-        updateRequiredFields();
+        validateFormFields();
     });
 </script>
 {% endblock %}
