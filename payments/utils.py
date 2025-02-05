@@ -69,7 +69,7 @@ bank_transfer_beneficiary_fields = [
 categories_map = {"wages": "薪資 Wages", "bonus": "獎金 Bonus"}
 
 beneficiaries_map = {
-    "crew_member": "船員自己 Crew member himself",
+    "self": "船員自己 Crew member himself",
     "family_or_friend": "家人/朋友 Family/friend",
 }
 
@@ -93,7 +93,7 @@ payment_currencies = [
 ]
 
 payment_beneficiarires = [
-    {"key": "crew_member", "value": "船員自己 Crew member himself"},
+    {"key": "self", "value": "船員自己 Crew member himself"},
     {"key": "family_or_friend", "value": "家人/朋友 Family/friend"},
 ]
 
