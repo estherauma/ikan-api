@@ -9,8 +9,6 @@ from payments.utils import (
     payment_fields,
     get_workers_on_vessel,
     payment_beneficiarires,
-    cash_fields,
-    bank_transfer_fields,
 )
 from django.core.exceptions import ValidationError
 
@@ -76,14 +74,13 @@ class AddPaymentsForm(forms.ModelForm):
         self.vessel = vessel
         empty_select_choice = [("", "")]
 
-        # change backgroud color of cash and bank-transfer fields
-        # add cash-field class to all cash fields
+        # add cash-input class to all cash inputs
         # for field in cash_fields:
-        #     self.fields[field].widget.attrs["class"] = "cash-field"
+        #     self.fields[field].widget.attrs["class"] = "cash-input"
 
-        # # add bank-transfer-field class to all bank transfer fields
+        # # add bank-transfer-input class to all bank transfer inputs
         # for field in bank_transfer_fields:
-        #     self.fields[field].widget.attrs["class"] = "bank-transfer-field"
+        #     self.fields[field].widget.attrs["class"] = "bank-transfer-input"
 
         for field in self.fields:
             self.fields[field].widget.attrs[
@@ -229,20 +226,26 @@ class AddPaymentsForm(forms.ModelForm):
         cash_beneficiary_relationship,
         cash_beneficiary_contact,
     ):
+        if not cash_amount:
+            self.add_error(
+                "cash_amount",
+                "Cash amount is required.",
+            )
+
         if not cash_currency:
             self.add_error("cash_currency", "Cash currency is required.")
 
-        if cash_currency and cash_currency == "USD":
-            if not cash_amount:
-                self.add_error(
-                    "cash_amount",
-                    "Cash amount is required because you select USD currency.",
-                )
-        elif cash_currency and cash_currency != "USD":
+        if cash_currency and cash_currency != "USD":
             if not cash_exchange_rate:
                 self.add_error("cash_exchange_rate", "Cash exchange rate is required.")
 
-        if cash_beneficiary_relationship != "crew_member":
+        if not cash_beneficiary_relationship:
+            self.add_error(
+                "cash_beneficiary_relationship",
+                "Cash beneficiary relationship is required.",
+            )
+
+        if cash_beneficiary_relationship and cash_beneficiary_relationship != "self":
             if not cash_beneficiary_name:
                 self.add_error(
                     "cash_beneficiary_name",
@@ -265,26 +268,37 @@ class AddPaymentsForm(forms.ModelForm):
         bank_account_name,
         bank_account_number,
     ):
+        if not bank_transfer_amount:
+            self.add_error(
+                "bank_transfer_amount",
+                "Bank transfer amount is required.",
+            )
+
         if not bank_transfer_currency:
             self.add_error(
                 "bank_transfer_currency", "Bank transfer currency is required."
             )
 
-        if bank_transfer_currency and bank_transfer_currency == "USD":
-            if not bank_transfer_amount:
-                self.add_error(
-                    "bank_transfer_amount",
-                    "Bank transfer USD amount is required\
-                               because you selected USD currency.",
-                )
-        elif bank_transfer_currency and bank_transfer_currency != "USD":
+        if not bank_transfer_amount:
+            self.add_error(
+                "bank_transfer_amount",
+                "Bank transfer amount is required.",
+            )
+
+        if bank_transfer_currency and bank_transfer_currency != "USD":
             if not bank_transfer_exchange_rate:
                 self.add_error(
                     "bank_transfer_exchange_rate",
                     "Bank transfer exchange rate is required.",
                 )
 
-        if bank_transfer_beneficiary_relationship != "crew_member":
+        if not bank_transfer_beneficiary_relationship:
+            self.add_error(
+                "bank_transfer_beneficiary_relationship",
+                "Bank transfer beneficiary relationship is required.",
+            )
+
+        if bank_transfer_beneficiary_relationship and bank_transfer_beneficiary_relationship != "self":
             if not bank_transfer_beneficiary_name:
                 self.add_error(
                     "bank_transfer_beneficiary_name",

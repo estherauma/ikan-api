@@ -64,10 +64,18 @@
                             </tr>
                         {% endif %}
         
-                        <tr class="{% if form.non_field_errors %}err-background{% endif %}">
+                        <tr id="form-row" class="{% if form.non_field_errors %}err-background{% endif %}">
                             {% for field in form %}
-                                <td class="{% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %}">
+                                <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %}">
                                     <!-- {{ field.label_tag }} -->
+                                    {% if field.field.required %}
+                                        <div class="text-danger d-flex justify-content-end" style="height: 15px;">*</div>
+                                    {% else %}
+                                        <div class="text-danger d-flex justify-content-end" style="height: 15px;">
+                                            <span class="d-none indicator">*</span>
+                                        </div>
+                                    {% endif %}
+                                    
                                     {{ field }}
                                     
                                     {% if field.errors %}
@@ -178,7 +186,317 @@
                     input.checked = false;
                 }
             });
+
+            updateRequiredFields();
         });
+
+        // update fields required validation
+        updateRequiredFields = () => {
+            const forms = document.querySelectorAll('#form-row');
+            forms.forEach((form, index) => {
+                const paymentMethod = form.querySelector(`#id_form-${index}-payment_method`);
+                const cashAmount = form.querySelector(`#id_form-${index}-cash_amount`);
+                const cashCurrency = form.querySelector(`#id_form-${index}-cash_currency`);
+                const cashExchangeRate = form.querySelector(`#id_form-${index}-cash_exchange_rate`);
+                const cashBeneficiaryName = form.querySelector(`#id_form-${index}-cash_beneficiary_name`);
+                const cashBeneficiaryRelationship = form.querySelector(`#id_form-${index}-cash_beneficiary_relationship`);
+                const cashBeneficiaryContact = form.querySelector(`#id_form-${index}-cash_beneficiary_contact`);
+                const bankTransferAmount = form.querySelector(`#id_form-${index}-bank_transfer_amount`);
+                const bankTransferCurrency = form.querySelector(`#id_form-${index}-bank_transfer_currency`);
+                const bankTransferExchangeRate = form.querySelector(`#id_form-${index}-bank_transfer_exchange_rate`);
+                const bankTransferBeneficiaryName = form.querySelector(`#id_form-${index}-bank_transfer_beneficiary_name`);
+                const bankTransferBeneficiaryRelationship = form.querySelector(`#id_form-${index}-bank_transfer_beneficiary_relationship`);
+                const bankTransferBeneficiaryContact = form.querySelector(`#id_form-${index}-bank_transfer_beneficiary_contact`);
+                const bankName = form.querySelector(`#id_form-${index}-bank_name`);
+                const bankAccountNumber = form.querySelector(`#id_form-${index}-bank_account_number`);
+                const bankAccountName = form.querySelector(`#id_form-${index}-bank_account_name`);
+                
+                // form.querySelectorAll('.initial-required-field').forEach(field => {
+                //     field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                //     field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                // });
+                
+                validateInitialRequiredCashFields = (cashAmount, cashCurrency, cashBeneficiaryRelationship) => {
+                    if(cashAmount) {
+                        cashAmount.required = true;
+                        cashAmount.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        cashAmount.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(cashCurrency) {
+                        cashCurrency.required = true;
+                        cashCurrency.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        cashCurrency.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(cashBeneficiaryRelationship) {
+                        cashBeneficiaryRelationship.required = true;
+                        cashBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        cashBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                }
+                
+                removeCashFieldsValidation = (
+                    cashAmount,
+                    cashCurrency,
+                    cashExchangeRate,
+                    cashBeneficiaryName,
+                    cashBeneficiaryRelationship,
+                    cashBeneficiaryContact,
+                ) => {
+                    cashAmount.required = false;
+                    cashAmount.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    cashAmount.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    cashCurrency.required = false;
+                    cashCurrency.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    cashCurrency.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    cashExchangeRate.required = false;
+                    cashExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    cashExchangeRate.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    cashBeneficiaryName.required = false;
+                    cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    cashBeneficiaryRelationship.required = false;
+                    cashBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    cashBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    cashBeneficiaryContact.required = false;
+                    cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+                }
+
+                validateInitialRequiredBankTransferFields = (
+                    bankTransferAmount,
+                    bankTransferCurrency,
+                    bankTransferBeneficiaryRelationship,
+                    bankName,
+                    bankAccountNumber,
+                    bankAccountName
+                ) => {
+                    if(bankTransferAmount) {
+                        bankTransferAmount.required = true;
+                        bankTransferAmount.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankTransferAmount.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(bankTransferCurrency) {
+                        bankTransferCurrency.required = true;
+                        bankTransferCurrency.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankTransferCurrency.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(bankTransferBeneficiaryRelationship) {
+                        bankTransferBeneficiaryRelationship.required = true;
+                        bankTransferBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankTransferBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(bankName) {
+                        bankName.required = true;
+                        bankName.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankName.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(bankAccountNumber) {
+                        bankAccountNumber.required = true;
+                        bankAccountNumber.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankAccountNumber.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                    if(bankAccountName) {
+                        bankAccountName.required = true;
+                        bankAccountName.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankAccountName.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    }
+                }
+
+                removeBankTransferFieldsValidation = (
+                    bankTransferAmount,
+                    bankTransferCurrency,
+                    bankTransferExchangeRate,
+                    bankTransferBeneficiaryName,
+                    bankTransferBeneficiaryRelationship,
+                    bankTransferBeneficiaryContact,
+                    bankName,
+                    bankAccountNumber,
+                    bankAccountName
+                ) => {
+                    bankTransferAmount.required = false;
+                    bankTransferAmount.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankTransferAmount.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankTransferCurrency.required = false;
+                    bankTransferCurrency.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankTransferCurrency.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankTransferExchangeRate.required = false;
+                    bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankTransferBeneficiaryName.required = false;
+                    bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankTransferBeneficiaryRelationship.required = false;
+                    bankTransferBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankTransferBeneficiaryRelationship.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankTransferBeneficiaryContact.required = false;
+                    bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankName.required = false;
+                    bankName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankName.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankAccountNumber.required = false;
+                    bankAccountNumber.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankAccountNumber.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                    bankAccountName.required = false;
+                    bankAccountName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                    bankAccountName.closest('.field').querySelector('.indicator').classList.add("d-none");
+                }
+                
+                paymentMethod.addEventListener("change", function () {
+                    if (paymentMethod.value) {
+                        if (paymentMethod.value === "cash") {
+                            validateInitialRequiredCashFields(
+                                cashAmount,
+                                cashCurrency,
+                                cashBeneficiaryRelationship,
+                            );
+                            removeBankTransferFieldsValidation(
+                                bankTransferAmount,
+                                bankTransferCurrency,
+                                bankTransferExchangeRate,
+                                bankTransferBeneficiaryName,
+                                bankTransferBeneficiaryRelationship,
+                                bankTransferBeneficiaryContact,
+                                bankName,
+                                bankAccountNumber,
+                                bankAccountName
+                            );
+                        } else if (paymentMethod.value === "bank_transfer") {
+                            validateInitialRequiredBankTransferFields(
+                                bankTransferAmount,
+                                bankTransferCurrency,
+                                bankTransferBeneficiaryRelationship,
+                                bankName,
+                                bankAccountNumber,
+                                bankAccountName
+                            );
+                            removeCashFieldsValidation(
+                                cashAmount,
+                                cashCurrency,
+                                cashExchangeRate,
+                                cashBeneficiaryName,
+                                cashBeneficiaryRelationship,
+                                cashBeneficiaryContact,
+                            );
+                        } else if (paymentMethod.value === "both") {
+                            validateInitialRequiredCashFields(
+                                cashAmount,
+                                cashCurrency,
+                                cashBeneficiaryRelationship
+                            );
+                            validateInitialRequiredBankTransferFields(
+                                bankTransferAmount,
+                                bankTransferCurrency,
+                                bankTransferBeneficiaryRelationship,
+                                bankName,
+                                bankAccountNumber,
+                                bankAccountName
+                            );
+                        }
+
+                    } else {
+                        removeCashFieldsValidation(
+                            cashAmount,
+                            cashCurrency,
+                            cashExchangeRate,
+                            cashBeneficiaryName,
+                            cashBeneficiaryRelationship,
+                            cashBeneficiaryContact
+                        );
+                        removeBankTransferFieldsValidation(
+                            bankTransferAmount,
+                            bankTransferCurrency,
+                            bankTransferExchangeRate,
+                            bankTransferBeneficiaryName,
+                            bankTransferBeneficiaryRelationship,
+                            bankTransferBeneficiaryContact,
+                            bankName,
+                            bankAccountNumber,
+                            bankAccountName
+                        );
+                    }
+                });
+
+                cashCurrency.addEventListener("change", function () {
+                    if (cashCurrency.value && cashCurrency.value != "USD") {
+                        cashExchangeRate.required = true;
+                        cashExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        cashExchangeRate.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    } else {
+                        cashExchangeRate.required = false;
+                        cashExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                        cashExchangeRate.closest('.field').querySelector('.indicator').classList.add("d-none");
+                    }
+                });
+
+                cashBeneficiaryRelationship.addEventListener("change", function () {
+                    if (cashBeneficiaryRelationship.value && cashBeneficiaryRelationship.value !== "self") {
+                        cashBeneficiaryName.required = true;
+                        cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-flex");
+
+                        cashBeneficiaryContact.required = true;
+                        cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    } else {
+                        cashBeneficiaryName.required = false;
+                        cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                        cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                        cashBeneficiaryContact.required = false;
+                        cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                        cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+                    }
+                });
+            
+                bankTransferCurrency.addEventListener("change", function () {
+                    if (bankTransferCurrency.value && bankTransferCurrency.value != "USD") {
+                        bankTransferExchangeRate.required = true;
+                        bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    } else {
+                        bankTransferExchangeRate.required = false;
+                        bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                        bankTransferExchangeRate.closest('.field').querySelector('.indicator').classList.add("d-none");
+                    }
+                });
+
+                bankTransferBeneficiaryRelationship.addEventListener("change", function () {
+                    if (bankTransferBeneficiaryRelationship.value && bankTransferBeneficiaryRelationship.value !== "self") {
+                        bankTransferBeneficiaryName.required = true;
+                        bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-flex");
+
+                        bankTransferBeneficiaryContact.required = true;
+                        bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                        bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                    } else {
+                        bankTransferBeneficiaryName.required = false;
+                        bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                        bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                        bankTransferBeneficiaryContact.required = false;
+                        bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                        bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+                    }
+                });
+            });
+        };
+        
+        updateRequiredFields();
     });
 </script>
 {% endblock %}
