@@ -25,6 +25,10 @@
             </div>
         {% endif %}
         
+        <div class="text-danger mx-2">
+           <p class="my-1 fs-5 fw-bold">* indicates mandatory field</p>
+           <p class="my-1 fs-5 fw-bold">* 表示必填之欄</p> 
+        </div>
         <div
             class="table-wrapper"
             style="overflow-x: scroll; overflow-y: auto; border-radius: 20px; border: 1px solid #EAE4E4; margin-top: 10px;"
@@ -69,10 +73,10 @@
                                 <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %}">
                                     <!-- {{ field.label_tag }} -->
                                     {% if field.field.required %}
-                                        <div class="text-danger d-flex justify-content-end" style="height: 15px;">*</div>
+                                        <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
                                     {% else %}
                                         <div class="text-danger d-flex justify-content-end" style="height: 15px;">
-                                            <span class="d-none indicator">*</span>
+                                            <span class="d-none fs-5 fw-bold indicator">*</span>
                                         </div>
                                     {% endif %}
                                     
