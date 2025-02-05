@@ -112,6 +112,7 @@
         
         <div class="btn-wrapper my-3 mb-5 d-flex justify-content-center">
             <button
+                id="submit-button"
                 type="submit"
                 class="border rounded-pill text-white"
                 style="min-width: 300px; max-width: 500px; font-size: 1.1rem; padding: 10px 20px; background: #3565FF;"
@@ -166,6 +167,11 @@
         background: #d0e2f4 !important;
         border-color: #c7c9cc;
     }
+    .invalid-form,
+    .invalid-form .cash-field,
+    .invalid-form .bank-transfer-field {
+        background: rgb(243 229 229) !important;
+    }
 </style>
 {% endblock %}
 
@@ -188,15 +194,51 @@
 
             totalForms.value = formCount + 1;
 
+            // Clear errors of the cloned fields
+            Array.from(newForm.querySelectorAll('.errorlist')).forEach(error => {
+                error.innerHTML = '';
+            });
+            Array.from(newForm.querySelectorAll('.field-error')).forEach(field => {
+                field.classList.remove('field-error');
+            });
+            
             // Clear the values of the cloned fields
             Array.from(newForm.querySelectorAll('input, select, textarea')).forEach(input => {
                 input.value = '';
                 if (input.type === 'checkbox' || input.type === 'radio') {
                     input.checked = false;
+                    // remove border-color
+                    input.style.borderColor = 'rgb(118, 118, 118)';
                 }
             });
 
             updateRequiredFields();
+        });
+
+        const submitButton = document.getElementById('submit-button');
+        submitButton.addEventListener("click", function (event) {
+            const forms = document.querySelectorAll('#form-row');
+            forms.forEach((form, index) =>{
+                const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
+                    .some(input => input.value.trim() !== "");
+                if (formHasValue) {
+                    form.querySelectorAll('.initial-required-field').forEach(field => {
+                        field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                        field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                    });
+                }
+
+                // TODO: fix logic, bg is set on second submission
+                const hasError = form.querySelectorAll('.field-error').length > 0;
+                if (hasError) {
+                    event.preventDefault();
+                    form.classList.add("invalid-form");
+                } else {
+                    form.style.backgroundColor = "";
+                    form.classList.remove("invalid-form");
+                }
+
+            });
         });
 
         // update fields required validation
@@ -220,10 +262,14 @@
                 const bankAccountNumber = form.querySelector(`#id_form-${index}-bank_account_number`);
                 const bankAccountName = form.querySelector(`#id_form-${index}-bank_account_name`);
                 
-                // form.querySelectorAll('.initial-required-field').forEach(field => {
-                //     field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
-                //     field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
-                // });
+                // const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
+                //     .some(input => input.value.trim() !== "");
+                // if (formHasValue) {
+                //     form.querySelectorAll('.initial-required-field').forEach(field => {
+                //         field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                //         field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                //     });
+                // }
                 
                 validateInitialRequiredCashFields = (cashAmount, cashCurrency, cashBeneficiaryRelationship) => {
                     if(cashAmount) {
