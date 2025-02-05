@@ -88,7 +88,7 @@ class AddPaymentsForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs[
                 "style"
-            ] = "min-height: 45px; border-radius: 10px; border-width: 1px; min-width: 200px;\
+            ] = "min-height: 45px; border-radius: 10px; border-width: 1px; min-width: 250px;\
                 max-width: 300px;padding: 0 10px; font-size: 1rem;"
 
         self.fields["payment_category"].choices = empty_select_choice + [
