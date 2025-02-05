@@ -183,6 +183,7 @@
         const formsetBody = document.getElementById('formset-body');
         let totalForms = document.getElementById('id_form-TOTAL_FORMS');
 
+        // Add a new row/form to the formset
         addRowButton.addEventListener('click', function() {
             const formCount = parseInt(totalForms.value);
             const lastForm = formsetBody.lastElementChild;
@@ -253,7 +254,6 @@
             });
         });
 
-        // update fields required validation
         validateFormFields = () => {
             const forms = document.querySelectorAll('#form-row');
             forms.forEach((form, index) => {
@@ -286,6 +286,7 @@
                 //     });
                 // }
 
+                // clear end date error
                 endDate?.addEventListener("change", function () {
                     if (startDate.value && endDate.value && startDate.value < endDate.value) {
                         endDate.closest('.field').classList.remove("field-error");
@@ -294,6 +295,7 @@
                     }
                 });
 
+                // clear total usd amount received error
                 totalUsdAmountReceived?.addEventListener("change", function () {
                     if (totalUsdAmountReceived.value && totalUsdAmountReceived.value > 0) {
                         totalUsdAmountReceived.closest('.field').classList.remove("field-error");
@@ -302,6 +304,7 @@
                     }
                 });
 
+                // clear cash amount error
                 cashAmount?.addEventListener("change", function () {
                     if (cashAmount.value && cashAmount.value > 0) {
                         cashAmount.closest('.field').classList.remove("field-error");
@@ -310,6 +313,7 @@
                     }
                 });
 
+                // clear cash exchange rate error
                 cashExchangeRate?.addEventListener("change", function () {
                     if (cashExchangeRate.value && cashExchangeRate.value > 0) {
                         cashExchangeRate.closest('.field').classList.remove("field-error");
@@ -318,6 +322,7 @@
                     }
                 });
 
+                // clear bank transfer amount error
                 bankTransferAmount?.addEventListener("change", function () {
                     if (bankTransferAmount.value && bankTransferAmount.value > 0) {
                         bankTransferAmount.closest('.field').classList.remove("field-error");
@@ -326,6 +331,7 @@
                     }
                 });
 
+                // clear bank transfer exchange rate error
                 bankTransferExchangeRate?.addEventListener("change", function () {
                     if (bankTransferExchangeRate.value && bankTransferExchangeRate.value > 0) {
                         bankTransferExchangeRate.closest('.field').classList.remove("field-error");
