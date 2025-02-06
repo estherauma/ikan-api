@@ -47,7 +47,16 @@
                                 <h5 class="text-muted">Duration:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.duration}} months</h4>
+                                <!-- <h4 class="">{{payment.duration |default:0}} months</h4> -->
+                                <h4>
+                                    {% if payment.duration < 1 %}
+                                        Less than a month
+                                    {% elif payment.duration == 1 %}
+                                        1 month
+                                    {% elif payment.duration > 1 %}
+                                        {{payment.duration}} months
+                                    {% endif %}
+                                </h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
@@ -74,10 +83,10 @@
                         {% if payment.payment_method != 'bank_transfer' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Cash USD amount:</h5>
+                                    <h5 class="text-muted">Cash amount:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
-                                    <h4 class="">USD {{payment.cash_usd_amount |default:0.00}}</h4>
+                                    <h4 class="">USD {{payment.cash_amount |default:0.00}}</h4>
                                 </div>
                             </div>
                             
@@ -87,7 +96,7 @@
                                         <h5 class="text-muted">Cash local amount:</h5>
                                     </div>
                                     <div class="col-12 col-sm-8">
-                                        <h4 class="">{{ payment.cash_currency }} {{payment.cash_local_amount}}</h4>
+                                        <h4 class="">{{ payment.cash_currency }} {{payment.cash_amount}}</h4>
                                     </div>
                                 </div>
                                 <div class="row d-flex align-items-center">
@@ -99,22 +108,14 @@
                                     </div>
                                 </div>
                             {% endif %}
-                            <div class="row d-flex align-items-center">
-                                <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Cash beneficiary:</h5>
-                                </div>
-                                <div class="col-12 col-sm-8">
-                                    <h4 class="">{{payment.beneficiary_name}}</h4>
-                                </div>
-                            </div>
                             
-                            {% if not payment.is_cash_beneficiary_crew %}
+                            {% if payment.cash_beneficiary_relationship and payment.cash_beneficiary_relationship != 'self' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary relationship:</h5>
+                                    <h5 class="text-muted">Beneficiary name:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
-                                    <h4 class="">{{payment.cash_beneficiary_relationship}}</h4>
+                                    <h4 class="">{{payment.cash_beneficiary_name}}</h4>
                                 </div>
                             </div>
                             <div class="row d-flex align-items-center">
@@ -125,14 +126,14 @@
                                     <h4 class="">{{payment.cash_beneficiary_contact}}</h4>
                                 </div>
                             </div>
-                            <div class="row d-flex align-items-center">
+                            <!-- <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
                                     <h5 class="text-muted">Beneficiary contact platform:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.cash_beneficiary_contact_platform}}</h4>
                                 </div>
-                            </div>
+                            </div> -->
                             {% endif %}
                             <hr class="my-2 mx-0">
                         {% endif %}
@@ -144,7 +145,7 @@
                                     <h5 class="text-muted">Bank transfer USD amount:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
-                                    <h4 class="">USD {{payment.bank_transfer_usd_amount | default:0.00}}</h4>
+                                    <h4 class="">USD {{payment.bank_transfer_amount | default:0.00}}</h4>
                                 </div>
                             </div>
                             
@@ -154,7 +155,7 @@
                                         <h5 class="text-muted">Bank transfer local amount:</h5>
                                     </div>
                                     <div class="col-12 col-sm-8">
-                                        <h4 class="">{{ payment.bank_transfer_currency }} {{payment.bank_transfer_local_amount}}</h4>
+                                        <h4 class="">{{ payment.bank_transfer_currency }} {{payment.bank_transfer_amount}}</h4>
                                     </div>
                                 </div>
                                 <div class="row d-flex align-items-center">
@@ -191,22 +192,14 @@
                                     <h4 class="">{{payment.bank_name}}</h4>
                                 </div>
                             </div>
-                            <div class="row d-flex align-items-center">
-                                <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Bank transfer beneficiary:</h5>
-                                </div>
-                                <div class="col-12 col-sm-8">
-                                    <h4 class="">{{payment.beneficiary_name}}</h4>
-                                </div>
-                            </div>
                             
-                            {% if not payment.is_bank_transfer_beneficiary_crew %}
+                            {% if payment.bank_transfer_beneficiary_relationship != 'self' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary relationship:</h5>
+                                    <h5 class="text-muted">Beneficiary name:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
-                                    <h4 class="">{{payment.bank_transfer_beneficiary_relationship}}</h4>
+                                    <h4 class="">{{payment.bank_transfer_beneficiary_name}}</h4>
                                 </div>
                             </div>
                             <div class="row d-flex align-items-center">
@@ -217,14 +210,14 @@
                                     <h4 class="">{{payment.bank_transfer_beneficiary_contact}}</h4>
                                 </div>
                             </div>
-                            <div class="row d-flex align-items-center">
+                            <!-- <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
                                     <h5 class="text-muted">Beneficiary contact platform:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_transfer_beneficiary_contact_platform}}</h4>
                                 </div>
-                            </div>
+                            </div> -->
                             {% endif %}
                             <hr class="my-2 mx-0">
                         {% endif %}
