@@ -39,17 +39,14 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         access_users = UserContractAccess.objects.filter(
             contract=self.object
         ).select_related('user')
-    
+
         # Create a set of users from the access_users queryset
         users_set = set(access.user for access in access_users)
-    
+
         # Add the contract's creator to the set of users
-        users_set.add(User.objects.get( pk = self.object.created_by))
+        users_set.add(User.objects.get(pk=self.object.created_by))
 
         return users_set
-
-    
-    
 
 
 class ContractsDataView(LoginRequiredMixin, View):
@@ -81,11 +78,19 @@ class ContractAccessView(CreateView):
     form_class = ContractAccessForm
     template_name = 'contracts/add_access.html'
 
+    def get_form(self, form_class=None):
+        if form_class is None:
+            form_class = self.get_form_class()
+        return form_class(
+                request=self.request,
+                **self.get_form_kwargs()
+            )
+
     def get_initial(self):
         initial = super().get_initial()
         initial['contract'] = self.kwargs.get('pk')
         return initial
-    
+
     def get_success_url(self):
         return reverse_lazy(
             'contracts-web:contract-details',
@@ -96,11 +101,11 @@ class ContractAccessView(CreateView):
         if UserContractAccess.objects.filter(
             user=form.cleaned_data['user'],
             contract=form.cleaned_data['contract']
-            ).exists():
-                messages.error(self.request, 'Access already granted')
-                return self.form_invalid(form)
+        ).exists():
+            messages.error(self.request, 'Access already granted')
+            return self.form_invalid(form)
         messages.success(self.request, 'Access granted successfully')
         return super(ContractAccessView, self).form_valid(form)
-    
+
     def form_invalid(self, form):
         return super().form_invalid(form)
