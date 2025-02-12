@@ -81,7 +81,7 @@ payment_categories = [
 payment_methods = [
     {"key": "bank_transfer", "value": "匯款 Bank Transfer"},
     {"key": "cash", "value": "現金 Cash"},
-    {"key": "both", "value": "两个都 Both"},
+    {"key": "both", "value": "現金和匯款 Cash and Bank transfer"},
 ]
 
 payment_currencies = [
