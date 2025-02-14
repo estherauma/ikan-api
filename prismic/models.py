@@ -23,3 +23,11 @@ class MessagingContent(AuditableModel):
 
     def __str__(self) -> str:
         return f'Messaging Content. Last updated on {self.updated_at}'
+
+
+class PushNotificationsContent(AuditableModel):
+    content = models.JSONField(blank=True, null=True)
+    aggregated_content = models.JSONField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f'Notification triggered/ published on {self.updated_at}'
