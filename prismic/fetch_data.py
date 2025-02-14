@@ -1,6 +1,6 @@
 import requests
 from decouple import config
-from prismic.models import AggregatedContent, MessagingContent
+from prismic.models import AggregatedContent, MessagingContent, PushNotificationsContent
 import re
 
 
@@ -263,6 +263,61 @@ class PrismicMessagingAPI():
                 return None
 
 
+class PrismicPushNotificationAPI():
+    def __init__(self, req, access_token):
+        self.push_notification_api_url = config('PUSH_NOTIFICATION_CMS_API_URL')
+        self.push_notification_access_token = config('PUSH_NOTIFICATION_CMS_ACCESS_TOKEN')
+        self.data = req.data
+        self.doc_ref = self.data['documents'][0] if self.data['documents'] else None
+        self.access_token = access_token
+
+    def get_published_notif_content(self):
+        masterRef = self.data.get('master_ref', None)
+        url = f'{self.push_notification_api_url}/documents/search?ref={masterRef}&lang=*'\
+            f'&q=[[at(document.id, "{self.doc_ref}")]]&access_token={self.access_token}'
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        res_data = data['results']
+
+        return {
+            'content': res_data,
+            'aggregated_content': self.aggregate_push_notification(res_data),
+        }
+
+    def aggregate_push_notification(self, notif_to_agg):
+        db_messaging_content = PushNotificationsContent.objects.first()
+        saved_agg_content = getattr(db_messaging_content, 'aggregated_content') if db_messaging_content else None
+
+        if notif_to_agg and saved_agg_content is None:
+            result = {}
+            agg_notif_content = aggregate_content(notif_to_agg)
+            for key, value in agg_notif_content.items():
+                lang = value['language']
+                if lang not in result:
+                    result[lang] = agg_notif_content
+                else:
+                    result[lang] = {**result[lang], **agg_notif_content}
+            return result
+        elif notif_to_agg and saved_agg_content:
+            agg_notif_content = aggregate_content(notif_to_agg)
+            if bool(agg_notif_content):
+                final_data = {}
+                for el, value in agg_notif_content.items():
+                    lang = value['language']
+                    updated_data = agg_notif_content[el]
+                    saved_data = saved_agg_content.get(lang, None)
+                    saved_data[el] = updated_data
+
+                    if lang not in final_data:
+                        final_data[lang] = saved_data
+                    else:
+                        final_data[lang] = {**final_data[lang], **saved_data}
+                return final_data
+            else:
+                return None
+
+
 def aggregate_content(data):
     agg_data = {}
 
@@ -302,6 +357,29 @@ def aggregate_content(data):
         if item['type'] == 'case_study':
             case_study = format_case_study(item)
             agg_data[item['uid']] = case_study
+
+        if item['type'] == 'notification':
+            vessels = item['data'].get('vessels') if item['data'].get('vessels') else None
+
+            # split string by comma and remove any leading or trailing spaces
+            vessels_list = re.split(r',\s*|\s*,\s*', vessels) if vessels else []
+            notif_result = {
+                'id': item['id'],
+                'uid': item['uid'],
+                'type': item['type'],
+                'language': item['lang'],
+                'notifData': {
+                   'enTitle': item['data'].get('en-title') if item['data'].get('en-title') else None,
+                   'zhTitle': item['data'].get('zh-title') if item['data'].get('zh-title') else None,
+                   'idTitle': item['data'].get('id-title') if item['data'].get('id-title') else None,
+                   'enBody': item['data'].get('en-body') if item['data'].get('en-body') else None,
+                   'zhBody': item['data'].get('zh-body') if item['data'].get('zh-body') else None,
+                   'idBody': item['data'].get('id-body') if item['data'].get('id-body') else None,
+                   'userRole': item['data'].get('user-role') if item['data'].get('user-role') else None,
+                   'vessels': vessels_list,
+                }
+            }
+            agg_data[item['uid']] = notif_result
     return agg_data
 
 
