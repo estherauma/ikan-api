@@ -1,14 +1,19 @@
 from django.utils.dateparse import parse_datetime
 from http import HTTPStatus
-from prismic.models import (
-    AggregatedContent,
-    PrismicWebhookNotificationsLog
+from prismic.models import AggregatedContent, PrismicWebhookNotificationsLog
+from prismic.fetch_data import (
+    PrismicAPI,
+    PrismicMessagingAPI,
+    PrismicPushNotificationAPI,
 )
-from prismic.fetch_data import PrismicAPI, PrismicMessagingAPI
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
-from .serializers import AggregatedContentSerializer, MessageContentSerializer
+from .serializers import (
+    AggregatedContentSerializer,
+    MessageContentSerializer,
+    PushNotificationsContentSerializer,
+)
 from decouple import config
 import requests
 
@@ -95,7 +100,7 @@ class MessagingWebhookView(APIView):
         if serializer.is_valid():
             serializer.save()
 
-            # publish notification
+            # publish message
             aggregated_content = hook_data.get('aggregated_content')
 
             # TODO: Refactor this code to use selected language
@@ -112,16 +117,18 @@ class MessagingWebhookView(APIView):
                 if stop_execution:
                     break
 
-            return Response({
-                'status': 'OK',
-                'data': serializer.data,
-            }, HTTPStatus.OK)
+            return Response(
+                {
+                    "status": "OK",
+                    "data": serializer.data,
+                },
+                HTTPStatus.OK,
+            )
         else:
-            return Response({
-                'status': 'FAIL',
-                'data': [],
-                'errors': serializer.errors
-            }, HTTPStatus.BAD_REQUEST)
+            return Response(
+                {"status": "FAIL", "data": [], "errors": serializer.errors},
+                HTTPStatus.BAD_REQUEST,
+            )
 
     def get_push_notifications_base_url(self):
         environment = config('ENVIRONMENT')
@@ -143,6 +150,9 @@ class MessagingWebhookView(APIView):
                 'message': 'No push notifications url provided'
             }, HTTPStatus.BAD_REQUEST)
 
+        # Logic push notification server needs to be updated to cater for the message format
+        # that will be sent from the tuna-messaging webhook from prismic
+        # Currently works for triggers from prismic push notification webhook
         url = f'{base_url}tuna/v1/message-notification'
 
         try:
@@ -150,3 +160,82 @@ class MessagingWebhookView(APIView):
             response.raise_for_status()
         except requests.exceptions.RequestException as error:
             print(f"Could not publish notification. {error}")
+
+
+class PushNotificationWebhookView(APIView):
+    def post(self, request):
+        access_token = request.headers.get("token")
+        domain = request.data.get("domain")
+        docs = request.data.get("documents")
+        doc_id = docs[0]
+
+        notif_content = PrismicPushNotificationAPI(request, access_token)
+        hook_data = None
+
+        try:
+            hook_data = notif_content.get_published_notif_content()
+        except Exception as e:
+            print(e)
+
+            return Response(
+                {"status": "FAIL", "error": "Internal server error"},
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+
+        serializer = PushNotificationsContentSerializer(data=hook_data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            # publish notification
+            aggregated_notif_content = hook_data.get("aggregated_content")
+
+            stop_execution = False
+            for lang in aggregated_notif_content:
+                lang_data = aggregated_notif_content.get(lang)
+                for item, value in lang_data.items():
+                    if value["id"] == doc_id:
+                        notif_obj = value
+                        notif_obj["domain"] = domain
+                        self.publish_push_notification(notif_obj)
+                        stop_execution = True
+                        break
+                if stop_execution:
+                    break
+        else:
+            return Response(
+                {"status": "FAIL", "data": [], "errors": serializer.errors},
+                HTTPStatus.BAD_REQUEST,
+            )
+
+    def get_push_notifications_base_url(self):
+        environment = config("ENVIRONMENT")
+
+        if environment == "Development" or environment == "development":
+            return config("JGW_DEV_PUSH_NOTIFICATION_API")
+        elif environment == "Staging" or environment == "staging":
+            return config("JGW_STAGING_PUSH_NOTIFICATION_API")
+        elif environment == "Production" or environment == "production":
+            return config("JGW_PROD_PUSH_NOTIFICATION_API")
+
+        return None
+
+    def publish_push_notification(self, notif_obj):
+        base_url = self.get_push_notifications_base_url()
+        if base_url is None:
+            return Response(
+                {"status": "FAIL", "message": "No push notifications url provided"},
+                HTTPStatus.BAD_REQUEST,
+            )
+
+        url = f"{base_url}tuna/v1/message-notification"
+
+        try:
+            response = requests.post(url, json=notif_obj)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as error:
+            print(f"Could not publish push notification. {error}")
+            return Response(
+                {"status": "FAIL", "message": "Could not publish push notification"},
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
