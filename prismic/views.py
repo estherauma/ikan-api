@@ -195,7 +195,7 @@ class PushNotificationWebhookView(APIView):
                 lang_data = aggregated_notif_content.get(lang)
                 for item, value in lang_data.items():
                     if value["id"] == doc_id:
-                        notif_obj = value
+                        notif_obj = value["notifData"]
                         notif_obj["domain"] = domain
                         self.publish_push_notification(notif_obj)
                         stop_execution = True
