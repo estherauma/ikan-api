@@ -202,6 +202,13 @@ class PushNotificationWebhookView(APIView):
                         break
                 if stop_execution:
                     break
+            return Response(
+                {
+                    "status": "OK",
+                    "data": serializer.data,
+                },
+                HTTPStatus.OK,
+            )
         else:
             return Response(
                 {"status": "FAIL", "data": [], "errors": serializer.errors},
