@@ -42,22 +42,34 @@
                     <tr>
                         {% for field in payment_fields %}
                             <th
-                                class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %}"
+                                class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %}"
                                 style="font-size: 1rem; padding: 10px 10px 2px 10px;"
                             >
                                 {{ english_fields |dict_get:field }}
                             </th>
                         {% endfor %}
+                        <th
+                            class="deduction-field"
+                            style="font-size: 1rem; padding: 10px 10px 2px 10px; min-width: 300px;"
+                        >
+                            {{ english_fields.deductions }}
+                        </th>
                     </tr>
                     <tr>
                         {% for field in payment_fields %}
                             <th
-                                class="fs-4 fw-bold text-dark {% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %}"
+                                class="fs-4 fw-bold text-dark {% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %}"
                                 style="font-size: 1rem; padding: 10px 10px 2px 10px;"
                             >
                                 {{ chinese_fields |dict_get:field }}
                             </th>
                         {% endfor %}
+                        <th
+                            class="fs-4 fw-bold text-dark deduction-field"
+                            style="font-size: 1rem; padding: 10px 10px 2px 10px; min-width: 300px;"
+                        >
+                            {{ chinese_fields.deductions }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="formset-body">
@@ -74,7 +86,7 @@
         
                         <tr id="form-row" class="{% if form.non_field_errors %}err-background{% endif %}">
                             {% for field in form %}
-                                <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %}">
+                                <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name in deduction_fields %}deduction-field{% endif %} {% if field.name in 'id' %}id-field{% endif %}">
                                     <!-- {{ field.label_tag }} -->
                                     {% if field.field.required %}
                                         <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
@@ -93,6 +105,37 @@
                                     {% endif %}
                                 </td>
                             {% endfor %}
+                            <td class="field deduction-field add-deduction-container">
+                                <!-- add deductions -->
+                                <button
+                                    id="add-deduction-btn"
+                                    type="button"
+                                    class="btn btn-blue btn-sm mb-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#add-deduction-modal"
+                                    data-current-row="{{ forloop.counter }}"
+                                    onclick="openDeductionModal(this)"
+                                >
+                                    Add Deductions
+                                </button>
+                                <input type="hidden" name="deductions_{{ form.instance.id }}" id="deductions_{{ forloop.counter }}">
+                                <!-- view deductions -->
+                                <button
+                                    id="view-deductions-btn"
+                                    type="button"
+                                    class="btn btn-secondary btn-sm mb-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#view-deductions-modal"
+                                    data-current-row="{{ forloop.counter }}"
+                                    data-view-row="{{ forloop.counter }}"
+                                    style="display: none;"
+                                    onclick="viewDeductions(this)"
+                                >
+                                    View Deductions
+                                </button>
+                                <input type="hidden" name="items_{{ forloop.counter }}" id="items_{{ forloop.counter }}">
+
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -123,6 +166,58 @@
     </form>
     {% endif %}
     {% endif %}
+
+    <!-- Add deductions modal -->
+    <div id="add-deduction-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="AddDeductionsModalLabel">
+        <div class="modal-dialog" style="max-width: 80%;">
+            <div class="modal-content">
+                <div class="modal-header d-flex justify-content-center">
+                    <h3 class="modal-title" id="AddDeductionsModalLabel">Add deductions</h3>
+                    <button
+                        id="close-add-deduction-modal-btn"
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        style="position: absolute; right: 20px;"
+                    ></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="deductions-list"></div>
+                    <div class="btns-wrapper">
+                        <button type="button" class="add-item-btn" onclick="addItem()">Add Item</button>
+                        <button type="button" onclick="saveDeductions()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Deductions Modal -->
+    <div class="modal fade" id="view-deductions-modal" tabindex="-1" aria-labelledby="viewDeductionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 80%;">
+            <div class="modal-content">
+                <div class="modal-header d-flex justify-content-center">
+                    <h3 class="modal-title" id="viewDeductionsModalLabel">View added deductions</h3>
+                    <button
+                        id="close-view-deductions-modal-btn"
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        style="position: absolute; right: 20px;"
+                    ></button>
+                </div>
+                <div class="modal-body">
+                    <ul id="viewDeductionsList"></ul>
+                </div>
+                <div class="modal-footer d-flex justify-content-center" style="border-top: unset;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 <style>
@@ -621,6 +716,100 @@
         };
         
         validateFormFields();
+
+        let currentRow = null;
+        let itemsData = {};
+        const addDeductionsBtn = document.getElementById("add-deduction-btn");
+
+        window.openDeductionModal = function openDeductionModal(button) {
+            currentRow = button.getAttribute("data-current-row");
+            // clear modal
+            document.getElementById("deductions-list").innerHTML = "";
+            if (itemsData[currentRow]) {
+                (itemsData[currentRow] || []).forEach(item => addItem(item.name, item.amount, item.currency));
+            } else {
+                addItem("", "", "");
+            }
+            updateViewButton(currentRow);
+        }
+
+        window.addItem = function addItem(name = "", amount = "", currency = "") {
+            const div = document.createElement("div");
+            div.classList.add("deduction-entry");
+            div.style.marginBottom = "10px";
+            div.innerHTML = `<input type="text" placeholder="Item" value="${name}">
+                            <input type="number" placeholder="Amount" value="${amount}">
+                            <input type="text" placeholder="Currency" value="${currency}">
+                            <button
+                                type="button"
+                                style="color: white; background: #f04141; border: 1px solid red; border-radius: 50px; padding: 2px 12px;"
+                                onclick="this.parentElement.remove()"
+                            >Remove</button>`;
+            document.getElementById("deductions-list").appendChild(div);
+
+            // update view button display when item is removed
+            div.querySelector(".remove-btn").addEventListener("click", function() {
+                updateViewButton(currentRow);
+            });
+        }
+
+        window.saveDeductions = function saveDeductions() {
+            let items = [];
+            document.querySelectorAll("#deductions-list div").forEach(div => {
+                let inputs = div.getElementsByTagName("input");
+                if (inputs[0].value !== '' && inputs[1].value !== '' && inputs[2].value !== '') {
+                    items.push({ name: inputs[0].value, amount: inputs[1].value, currency: inputs[2].value });
+                }
+            });
+
+            itemsData[currentRow] = items;
+            document.getElementById(`deductions_${currentRow}`).value = JSON.stringify(items);
+            // dismiss modal
+            document.querySelector("#close-add-deduction-modal-btn").click();
+            
+            updateViewButton(currentRow);
+        }
+
+        window.viewDeductions = function viewDeductions(viewButton) {
+            let viewRow = viewButton.getAttribute("data-current-row");
+            let viewDeductionsList = document.getElementById("viewDeductionsList");
+            viewDeductionsList.innerHTML = ""; // Clear previous items
+
+            let items = itemsData[viewRow] || []; // Get saved items
+
+            if (items.length === 0) {
+                viewDeductionsList.innerHTML = "<p class='no-items'>No items added.</p>";
+            } else {
+                let table = document.createElement("table");
+                table.classList.add("view-deductions-table");
+                // header
+                table.innerHTML = `
+                    <tr class="fs-4 fw-bold">
+                        <th style="width: 40%;">Item</th>
+                        <th style="width: 60%;">Amount</th>
+                    </tr>
+                `;
+                // rows
+                items.forEach(item => {
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td style="width: 40%;">${item.name}</td>
+                        <td style="width: 60%;">${item.currency} ${item.amount}</td>
+                    `;
+                    table.appendChild(tr);
+                });
+                viewDeductionsList.appendChild(table);
+            }
+        }
+        function updateViewButton(row) {
+            const viewButton = document.querySelector(`[data-view-row="${row}"]`);
+            
+            if (itemsData[row] && itemsData[row].length > 0) {
+                viewButton.style.display = "inline-block"; // Show button
+            } else {
+                viewButton.style.display = "none"; // Hide button
+            }
+        }
     });
 </script>
 {% endblock %}
