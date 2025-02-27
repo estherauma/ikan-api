@@ -254,6 +254,9 @@
     .err-row {
         border-bottom: 1px solid rgb(243 229 229);
     }
+    .table .id-field {
+        display: none;
+    }
     .table .cash-field {
         background: #d9ead3 !important;
         border-color: #d8dbde;
@@ -262,11 +265,76 @@
         background: #d0e2f4 !important;
         border-color: #c7c9cc;
     }
+    .table .deduction-field {
+        background: #fff3cc !important;
+        border-color: #d8dbde;
+        text-align: center;
+        vertical-align: middle;
+        button {
+            width: 60%;
+            margin-bottom: 10px !important;
+            padding: 5px 12px;
+            border-radius: 20px;
+            height: 40px;
+        }
+    }
     .invalid-form,
     .invalid-form .cash-field,
-    .invalid-form .bank-transfer-field {
+    .invalid-form .bank-transfer-field,
+    .invalid-form .deduction-field {
         background: rgb(243 229 229) !important;
     }
+
+    #deductions-list {
+        display: flex;
+        flex-direction: column;
+        max-height: 90%;
+        overflow-y: auto;
+        background: #f9f9f9;
+        .deduction-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px;
+            background: #fff;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+    }
+
+    .btns-wrapper {
+        margin: 10px 20px 30px;
+        button {
+            padding: 5px 20px;
+            margin-right: 20px;
+            background: #3565FF;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            min-width: 120px;
+        }
+        .add-item-btn {
+            background: #6c757d;
+        }
+    }
+
+    .view-deductions-table {
+        width: 100%;
+        border-collapse: collapse;
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #e2e1e1;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    }
+
 </style>
 {% endblock %}
 
