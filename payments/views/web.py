@@ -122,12 +122,12 @@ class AddPayment(LoginRequiredMixin, View):
 
         if formset.is_valid():
             instances = formset.save(commit=False)
-            for instance in instances:
+            for index, instance in enumerate(instances):
                 instance.vessel = vessel
                 instance.created_by = request.user.id
                 instance.updated_by = request.user.id
 
-                json_data = request.POST.get(f'deductions_{instance.id}', None)
+                json_data = request.POST.get(f'deductions_{index}', None)
                 instance.deductions = json.loads(json_data) if json_data else None
                 instance.save()
 

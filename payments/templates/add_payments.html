@@ -113,12 +113,13 @@
                                     class="btn btn-blue btn-sm mb-1"
                                     data-bs-toggle="modal"
                                     data-bs-target="#add-deduction-modal"
-                                    data-current-row="{{ forloop.counter }}"
+                                    data-current-row="{{ forloop.counter0 }}"
                                     onclick="openDeductionModal(this)"
                                 >
                                     Add Deductions
                                 </button>
-                                <input type="hidden" name="deductions_{{ form.instance.id }}" id="deductions_{{ forloop.counter }}">
+                                {{ form.instance.id }}
+                                <input type="hidden" name="deductions_{{ forloop.counter0 }}" id="deductions_{{ forloop.counter0 }}">
                                 <!-- view deductions -->
                                 <button
                                     id="view-deductions-btn"
@@ -126,14 +127,14 @@
                                     class="btn btn-secondary btn-sm mb-1"
                                     data-bs-toggle="modal"
                                     data-bs-target="#view-deductions-modal"
-                                    data-current-row="{{ forloop.counter }}"
-                                    data-view-row="{{ forloop.counter }}"
+                                    data-current-row="{{ forloop.counter0 }}"
+                                    data-view-row="{{ forloop.counter0 }}"
                                     style="display: none;"
                                     onclick="viewDeductions(this)"
                                 >
                                     View Deductions
                                 </button>
-                                <input type="hidden" name="items_{{ forloop.counter }}" id="items_{{ forloop.counter }}">
+                                <input type="hidden" name="items_{{ forloop.counter0 }}" id="items_{{ forloop.counter0 }}">
 
                             </td>
                         </tr>
@@ -353,7 +354,15 @@
             const newForm = lastForm.cloneNode(true);
             const regex = new RegExp(`form-(\\d+)-`, 'g');
 
+            // Update the cloned form's HTML to reflect the new form count
             newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${formCount}-`);
+
+            // Clear input fields in the new form to ensure it’s treated as a new instance
+            const inputs = newForm.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.value = ''; // Clear the value
+            });
+            
             formsetBody.appendChild(newForm);
 
             totalForms.value = formCount + 1;
@@ -798,7 +807,7 @@
             } else {
                 addItem("", "", "");
             }
-            updateViewButton(currentRow);
+            // updateViewButton(currentRow);
         }
 
         window.addItem = function addItem(name = "", amount = "", currency = "") {
