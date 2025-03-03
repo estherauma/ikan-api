@@ -300,6 +300,19 @@
             background: #fff;
             border-radius: 5px;
             margin-bottom: 5px;
+
+            input {
+                padding: 3px;
+            }
+            select {
+                padding: 5px;
+            }
+            input,
+            select {
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
         }
     }
 
@@ -816,7 +829,9 @@
             div.style.marginBottom = "10px";
             div.innerHTML = `<input type="text" placeholder="Item" value="${name}">
                             <input type="number" placeholder="Amount" value="${amount}">
-                            <input type="text" placeholder="Currency" value="${currency}">
+                            <select name="currency" id="currency" placeholder="Select Currency">
+                                ${generateCurrencyOptions(currency)}
+                            </select>
                             <button
                                 type="button"
                                 style="color: white; background: #f04141; border: 1px solid red; border-radius: 50px; padding: 2px 12px;"
@@ -830,12 +845,28 @@
             });
         }
 
+        window.generateCurrencyOptions = function generateCurrencyOptions(selectedValue = "") {
+            const currencies = currencies_map = {
+                // "": "Select currency",
+                "USD": "美元 US dollar",
+                "MUR": "毛里求斯盧比 Mauritian Rupee",
+                "TWD": "新台幣 Taiwan New Dollars",
+                "IDR": "印尼盾/盧比 Indonesian Rupiah",
+                "SBD": "索羅門群島元 Solomon Islands Dollar",
+            };
+            return Object.entries(currencies).map(([key, label]) => {
+                return `<option value="${key}" ${selectedValue === key ? "selected" : ""}>${label}</option>`;
+            }).join("");
+        }
+
         window.saveDeductions = function saveDeductions() {
             let items = [];
             document.querySelectorAll("#deductions-list div").forEach(div => {
                 let inputs = div.getElementsByTagName("input");
-                if (inputs[0].value !== '' && inputs[1].value !== '' && inputs[2].value !== '') {
-                    items.push({ name: inputs[0].value, amount: inputs[1].value, currency: inputs[2].value });
+                let select = div.getElementsByTagName("select");
+                // add alert for missing values
+                if (inputs[0].value !== '' && inputs[1].value !== '' && select[0].value !== '') {
+                    items.push({ name: inputs[0].value, amount: inputs[1].value, currency: select[0].value });
                 }
             });
 
