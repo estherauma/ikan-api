@@ -105,6 +105,7 @@ payment_beneficiarires = [
 ]
 
 # These are the fields displayed in the form
+# Editing this list will affect the fields displayed in the form
 payment_fields = [
     "user",
     "payment_date",
@@ -128,6 +129,8 @@ payment_fields = [
     "bank_transfer_beneficiary_relationship",
     "bank_transfer_beneficiary_name",
     "bank_transfer_beneficiary_contact",
+    # "has_deductions",  # temporarily removed. Uncomment to display. Also uncomment field in forms.py
+    "deductions",
 ]
 
 # english fields translations

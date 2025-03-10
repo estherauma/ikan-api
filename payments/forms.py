@@ -63,6 +63,17 @@ class AddPaymentsForm(forms.ModelForm):
     cash_beneficiary_relationship = forms.ChoiceField(required=False)
     bank_transfer_beneficiary_relationship = forms.ChoiceField(required=False)
 
+    # temporarily removed. Uncomment to display. Also uncomment field in payment_fields in utils.py
+    # has_deductions = forms.BooleanField(
+    #     required=True,
+    #     widget=forms.CheckboxInput(
+    #         attrs={
+    #             "class": "form-check-input",
+    #             "id": "has_deductions",
+    #         }
+    #     ),
+    # )
+
     class Meta:
         model = Payment
         # We are listing the fields instead of using exclude
