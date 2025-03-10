@@ -138,6 +138,78 @@
                             </td>
                         </tr>
                     {% endfor %}
+
+                    <!-- Empty form to be cloned -->
+                    <div id="empty-form" style=" background: yellowgreen;">
+                        {% if formset.empty_form.non_field_errors %}
+                            <tr class="err-background err-row">
+                                <td colspan="100%">
+                                        <div class="error-message">
+                                            {{ formset.empty_form.non_field_errors }}
+                                        </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+        
+                        <tr id="empty-form-row" class="{% if formset.empty_form.non_field_errors %}err-background{% endif %}">
+                            {% for field in formset.empty_form %}
+                                <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name in deduction_fields %}deduction-field{% endif %} {% if field.name == 'id' %}hide-field{% endif %} {% if field.name == 'deductions' %}hide-field{% endif %}">
+                                    <!-- {{ field.label_tag }} -->
+                                    {{formset.empty_form.instance.id}}
+                                    <!-- <input type="hidden" name="index-__prefix__" value="__prefix__"> -->
+                                    {% if field.field.required %}
+                                        <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
+                                    {% else %}
+                                        <div class="text-danger d-flex justify-content-end" style="height: 15px;">
+                                            <span class="d-none fs-5 fw-bold indicator">*</span>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {{ field }}
+                                    
+                                    {% if field.errors %}
+                                        <div class="error-message">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                            <td class="field deduction-field add-deduction-container">
+                                {{formset.empty_form.instance.id}}
+                                <!-- add deductions -->
+                                <!-- TODO: differientiate buttons, ids -->
+                                <button
+                                    id="add-deduction-btn-__prefix__"
+                                    type="button"
+                                    class="btn btn-blue btn-sm mb-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#add-deduction-modal"
+                                    data-current-row="__prefix__"
+                                    onclick="openDeductionModal(this)"
+                                >
+                                    Add Deductions
+                                </button>
+                                <!-- <input type="hidden" name="form-__prefix__-deductions" id="form-__prefix__-deductions"> -->
+                                <!-- view deductions -->
+                                <!-- TODO: differientiate buttons, ids -->
+                                <button
+                                    id="view-deductions-btn"
+                                    type="button"
+                                    class="btn btn-secondary btn-sm mb-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#view-deductions-modal"
+                                    data-current-row="__prefix__"
+                                    data-view-row="__prefix__"
+                                    style="display: none;"
+                                    onclick="viewDeductions(this)"
+                                >
+                                    View Deductions
+                                </button>
+                                <!-- <input type="hidden" name="items-__prefix__" id="items-__prefix__"> -->
+        
+                            </td>
+                        </tr>
+                    </div>
                 </tbody>
             </table>
 
@@ -370,18 +442,15 @@
             const formCount = parseInt(totalForms.value);
             const lastForm = formsetBody.lastElementChild;
             const newForm = lastForm.cloneNode(true);
-            const regex = new RegExp(`form-(\\d+)-`, 'g');
+            const regex = new RegExp('__prefix__', 'g');
 
             // Update the cloned form's HTML to reflect the new form count
-            newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${formCount}-`);
+            newForm.innerHTML = newForm.innerHTML.replace(regex, formCount);
+            // update row id
+            newForm.innerHTML = newForm.innerHTML.replace(/id="empty-form-row"/g, `id="form-row"`);
 
-            // Clear input fields in the new form to ensure it’s treated as a new instance
-            const inputs = newForm.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.value = ''; // Clear the value
-            });
-            
-            formsetBody.appendChild(newForm);
+            // append before last form because last form is used to clone
+            formsetBody.insertBefore(newForm, lastForm);
 
             totalForms.value = formCount + 1;
 
@@ -875,7 +944,7 @@
             });
 
             itemsData[currentRow] = items;
-            document.getElementById(`deductions_${currentRow}`).value = JSON.stringify(items);
+            document.getElementById(`id_form-${currentRow}-deductions`).value = JSON.stringify(items);
             // dismiss modal
             document.querySelector("#close-add-deduction-modal-btn").click();
             
