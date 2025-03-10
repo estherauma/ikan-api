@@ -42,7 +42,7 @@
                     <tr>
                         {% for field in payment_fields %}
                             <th
-                                class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %}"
+                                class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %} {% if field == 'deductions' %}hide-field{% endif %}"
                                 style="font-size: 1rem; padding: 10px 10px 2px 10px;"
                             >
                                 {{ english_fields |dict_get:field }}
@@ -58,7 +58,7 @@
                     <tr>
                         {% for field in payment_fields %}
                             <th
-                                class="fs-4 fw-bold text-dark {% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %}"
+                                class="fs-4 fw-bold text-dark {% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %} {% if field == 'deductions' %}hide-field{% endif %}"
                                 style="font-size: 1rem; padding: 10px 10px 2px 10px;"
                             >
                                 {{ chinese_fields |dict_get:field }}
@@ -86,7 +86,7 @@
         
                         <tr id="form-row" class="{% if form.non_field_errors %}err-background{% endif %}">
                             {% for field in form %}
-                                <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name in deduction_fields %}deduction-field{% endif %} {% if field.name in 'id' %}id-field{% endif %}">
+                                <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name in deduction_fields %}deduction-field{% endif %} {% if field.name == 'id' %}hide-field{% endif %} {% if field.name == 'deductions' %}hide-field{% endif %}">
                                     <!-- {{ field.label_tag }} -->
                                     {% if field.field.required %}
                                         <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
@@ -107,8 +107,9 @@
                             {% endfor %}
                             <td class="field deduction-field add-deduction-container">
                                 <!-- add deductions -->
+                                <!-- TODO: differientiate buttons, ids -->
                                 <button
-                                    id="add-deduction-btn"
+                                    id="add-deduction-btn-{{ forloop.counter0 }}"
                                     type="button"
                                     class="btn btn-blue btn-sm mb-1"
                                     data-bs-toggle="modal"
@@ -118,8 +119,8 @@
                                 >
                                     Add Deductions
                                 </button>
-                                <input type="hidden" name="deductions_{{ forloop.counter0 }}" id="deductions_{{ forloop.counter0 }}">
                                 <!-- view deductions -->
+                                <!-- TODO: differientiate buttons, ids -->
                                 <button
                                     id="view-deductions-btn"
                                     type="button"
@@ -133,7 +134,6 @@
                                 >
                                     View Deductions
                                 </button>
-                                <input type="hidden" name="items_{{ forloop.counter0 }}" id="items_{{ forloop.counter0 }}">
 
                             </td>
                         </tr>
@@ -254,7 +254,7 @@
     .err-row {
         border-bottom: 1px solid rgb(243 229 229);
     }
-    .table .id-field {
+    .table .hide-field {
         display: none;
     }
     .table .cash-field {
@@ -284,6 +284,11 @@
     .invalid-form .bank-transfer-field,
     .invalid-form .deduction-field {
         background: rgb(243 229 229) !important;
+    }
+
+    /* Hide last form so it's used to make duplicates */
+    #empty-form-row:last-child {
+        display: none;
     }
 
     #deductions-list {
@@ -809,7 +814,6 @@
 
         let currentRow = null;
         let itemsData = {};
-        const addDeductionsBtn = document.getElementById("add-deduction-btn");
 
         window.openDeductionModal = function openDeductionModal(button) {
             currentRow = button.getAttribute("data-current-row");
