@@ -89,10 +89,10 @@
                                 <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name in deduction_fields %}deduction-field{% endif %} {% if field.name == 'id' %}hide-field{% endif %} {% if field.name == 'deductions' %}hide-field{% endif %}">
                                     <!-- {{ field.label_tag }} -->
                                     {% if field.field.required %}
-                                        <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
+                                        <div class="text-danger d-flex justify-content-end align-items-center fs-4 fw-bold" style="height: 15px;">*</div>
                                     {% else %}
-                                        <div class="text-danger d-flex justify-content-end" style="height: 15px;">
-                                            <span class="d-none fs-5 fw-bold indicator">*</span>
+                                        <div class="text-danger d-flex justify-content-end align-items-center" style="height: 15px;">
+                                            <span class="d-none fs-4 fw-bold indicator">*</span>
                                         </div>
                                     {% endif %}
                                     
