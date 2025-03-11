@@ -29,7 +29,7 @@ class ContractListView(ListCreateAPIView):
 
         # Filter contracts created by the user or where the user has access
         return Contract.objects.filter(
-            Q(created_by=user.id) | 
+            Q(created_by=user.id) |
             Q(contract_user_access__user=user.id)
         ).distinct()
 
@@ -97,7 +97,28 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
 class ContractClauseListView(ListCreateAPIView):
     permission_classes = ([IsAuthenticated, ])
     serializer_class = contractClauseSerializer
-    queryset = ContractClause.objects.all()
+
+    def get_queryset(self):
+        """
+        Return the list of contract clauses based on the user's contract access.
+        """
+        user = self.request.user
+
+        if user.is_superuser:
+            return ContractClause.objects.all()
+
+        return ContractClause.objects.filter(
+            Q(contract__created_by=user.id) |
+            Q(contract__contract_user_access__user=user.id)
+        ).distinct()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response({
+            'status': 'OK',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
 
     def create(self, request):
         request.data.pop('id', None)
