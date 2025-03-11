@@ -12,6 +12,7 @@ from payments.utils import (
     payment_fields_map_chinese,
     cash_fields,
     bank_transfer_fields,
+    deduction_fields,
     get_workers_on_vessel,
 )
 from vessels.models import Vessel
@@ -106,6 +107,7 @@ class AddPayment(LoginRequiredMixin, View):
                 "cash_fields": cash_fields,
                 "bank_transfer_fields": bank_transfer_fields,
                 "workers_on_vessel": workers_on_vessel,
+                "deduction_fields": deduction_fields,
             },
         )
 
@@ -123,6 +125,7 @@ class AddPayment(LoginRequiredMixin, View):
                 instance.vessel = vessel
                 instance.created_by = request.user.id
                 instance.updated_by = request.user.id
+
                 instance.save()
 
             # Save many-to-many data if applicable
@@ -141,5 +144,6 @@ class AddPayment(LoginRequiredMixin, View):
                     "cash_fields": cash_fields,
                     "bank_transfer_fields": bank_transfer_fields,
                     "workers_on_vessel": workers_on_vessel,
+                    "deduction_fields": deduction_fields,
                 },
             )

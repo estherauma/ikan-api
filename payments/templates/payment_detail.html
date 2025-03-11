@@ -215,6 +215,36 @@
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+                        
+                        <div class="row {% if not payment.deductions %}d-flex align-items-center{% endif %}">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Deductions:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8 deductions">
+                                {% if payment.deductions %}
+                                    <div class="row d-flex align-items-center title-row">
+                                        <div class="col-5">
+                                            <h4>Item</h4>
+                                        </div>
+                                        <div class="col-7">
+                                            <h4>Amount</h4>
+                                        </div>
+                                    </div>
+                                    {% for deduction in payment.deductions %}
+                                        <div class="row d-flex align-items-center items-row">
+                                            <div class="col-5">
+                                                <p>{{deduction.name}}</p>
+                                            </div>
+                                            <div class="col-7">
+                                                <p>{{deduction.currency}} {{deduction.amount}}</p>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <h4 class="">None</h4>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -224,6 +254,23 @@
 <style>
     hr {
         margin: 0;
+    }
+    .deductions {
+        .row {
+            border: 1px solid black;
+        }
+        .title-row {
+            border-bottom: 2px solid black;
+        }
+        .items-row {
+            border-top: unset;
+        }
+        .col-7 {
+            border-left: 1px solid black;
+        }
+        p {
+            margin: 7px 0;
+        }
     }
 </style>
 {% endblock %}

@@ -61,6 +61,13 @@ bank_transfer_fields = [
     "bank_transfer_beneficiary_contact",
 ]
 
+deduction_fields = [
+    "has_deductions",
+    "add_deduction",
+    "view_deductions",
+    "deductions",
+]
+
 bank_transfer_beneficiary_fields = [
     "bank_transfer_beneficiary_name",
     "bank_transfer_beneficiary_contact",
@@ -98,6 +105,7 @@ payment_beneficiarires = [
 ]
 
 # These are the fields displayed in the form
+# Editing this list will affect the fields displayed in the form
 payment_fields = [
     "user",
     "payment_date",
@@ -120,7 +128,9 @@ payment_fields = [
     "bank_name",
     "bank_transfer_beneficiary_relationship",
     "bank_transfer_beneficiary_name",
-    "bank_transfer_beneficiary_contact"
+    "bank_transfer_beneficiary_contact",
+    # "has_deductions",  # temporarily removed. Uncomment to display. Also uncomment field in forms.py
+    "deductions",
 ]
 
 # english fields translations
@@ -156,6 +166,9 @@ payment_fields_map_english = {
     "deduction_2": "deduction_2",
     "deduction_2_reason": "deduction_2_reason",
     "deduction_2_other_reason": "deduction_2_other_reason",
+    "add_deduction": "Add Deduction",
+    "view_deductions": "View Deductions",
+    "deductions": "Deductions",
 }
 
 # chinese fields translations
@@ -190,16 +203,10 @@ payment_fields_map_chinese = {
     "deduction_2": "扣除2 Deduction 2",
     "deduction_2_reason": "扣除原因 Reason for deduction 2",
     "deduction_2_other_reason": '如扣除原因是“其他”，請列明原因 If the reason for deduction 2 is "Others", please state the reason',
+    "add_deduction": "新增扣除",
+    "view_deductions": "查看扣除",
+    "deductions": "扣除",
 }
-
-deduction_fields = [
-    "deduction_1",
-    "deduction_1_reason",
-    "deduction_1_other_reason",
-    "deduction_2",
-    "deduction_2_reason",
-    "deduction_2_other_reason",
-]
 
 
 def get_workers_on_vessel(vessel):
