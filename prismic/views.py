@@ -195,13 +195,20 @@ class PushNotificationWebhookView(APIView):
                 lang_data = aggregated_notif_content.get(lang)
                 for item, value in lang_data.items():
                     if value["id"] == doc_id:
-                        notif_obj = value
+                        notif_obj = value["notifData"]
                         notif_obj["domain"] = domain
                         self.publish_push_notification(notif_obj)
                         stop_execution = True
                         break
                 if stop_execution:
                     break
+            return Response(
+                {
+                    "status": "OK",
+                    "data": serializer.data,
+                },
+                HTTPStatus.OK,
+            )
         else:
             return Response(
                 {"status": "FAIL", "data": [], "errors": serializer.errors},
@@ -232,10 +239,19 @@ class PushNotificationWebhookView(APIView):
 
         try:
             response = requests.post(url, json=notif_obj)
-            response.raise_for_status()
+
+            return Response(response.json(), status=response.status_code)
+
         except requests.exceptions.RequestException as error:
-            print(f"Could not publish push notification. {error}")
+            print(f"Could not publish notification. {error}")
             return Response(
                 {"status": "FAIL", "message": "Could not publish push notification"},
-                HTTPStatus.INTERNAL_SERVER_ERROR,
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+
+        except Exception as e:
+            print(f"An error ccurred. {e}")
+            return Response(
+                {"status": "FAIL", "message": "Unexpected server error"},
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
