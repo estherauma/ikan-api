@@ -18,7 +18,6 @@ from payments.utils import (
 from vessels.models import Vessel
 from django.views.generic import DetailView
 from payments.forms import VesselSelectForm, PaymentsFormSet
-import json
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -122,13 +121,11 @@ class AddPayment(LoginRequiredMixin, View):
 
         if formset.is_valid():
             instances = formset.save(commit=False)
-            for index, instance in enumerate(instances):
+            for instance in instances:
                 instance.vessel = vessel
                 instance.created_by = request.user.id
                 instance.updated_by = request.user.id
 
-                json_data = request.POST.get(f'deductions_{index}', None)
-                instance.deductions = json.loads(json_data) if json_data else None
                 instance.save()
 
             # Save many-to-many data if applicable
