@@ -140,7 +140,7 @@
                     {% endfor %}
 
                     <!-- Empty form to be cloned -->
-                    <div id="empty-form" style=" background: yellowgreen;">
+                    <div id="empty-form">
                         {% if formset.empty_form.non_field_errors %}
                             <tr class="err-background err-row">
                                 <td colspan="100%">
@@ -468,8 +468,7 @@
                 }
             });
 
-
-            // updateViewButton(formCount);
+            updateViewButton(formCount);
 
             validateFormFields();
         });
@@ -898,20 +897,30 @@
                         bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
                     }
                 });
+            
+                updateViewButton(index);
             });
         };
         
         validateFormFields();
 
         let currentRow = null;
-        let itemsData = {};
 
         window.openDeductionModal = function openDeductionModal(button) {
             currentRow = button.getAttribute("data-current-row");
             // clear modal
             document.getElementById("deductions-list").innerHTML = "";
-            if (itemsData[currentRow]) {
-                (itemsData[currentRow] || []).forEach(item => addItem(item.name, item.amount, item.currency));
+            // document.getElementById(`id_form-${currentRow}-deductions`).value = JSON.stringify(items);
+
+            // get saved items 
+            let savedItems = document.getElementById(`id_form-${currentRow}-deductions`).value;
+            let parsedSavedItems;
+            if (savedItems) {
+                parsedSavedItems = JSON.parse(savedItems);
+            }
+
+            if (parsedSavedItems?.length > 0) {
+                parsedSavedItems.forEach(item => addItem(item.name, item.amount, item.currency));
             } else {
                 addItem("", "", "");
             }
@@ -968,7 +977,6 @@
                 }
             });
 
-            itemsData[currentRow] = items;
             document.getElementById(`id_form-${currentRow}-deductions`).value = JSON.stringify(items);
             // dismiss modal
             document.querySelector("#close-add-deduction-modal-btn").click();
@@ -981,9 +989,15 @@
             let viewDeductionsList = document.getElementById("viewDeductionsList");
             viewDeductionsList.innerHTML = ""; // Clear previous items
 
-            let items = itemsData[viewRow] || []; // Get saved items
+            // Get saved items
+            let items = JSON.parse(document.getElementById(`id_form-${viewRow}-deductions`).value) || [];// get saved items 
+            let savedItems = document.getElementById(`id_form-${viewRow}-deductions`).value;
+            let parsedSavedItems;
+            if (savedItems) {
+                parsedSavedItems = JSON.parse(savedItems);
+            }
 
-            if (items.length === 0) {
+            if (parsedSavedItems.length === 0) {
                 viewDeductionsList.innerHTML = "<p class='no-items'>No items added.</p>";
             } else {
                 let table = document.createElement("table");
@@ -1009,9 +1023,15 @@
         }
         function updateViewButton(row) {
             const viewButton = document.querySelector(`[data-view-row="${row}"]`);
+            // get saved items 
+            let savedItems = document.getElementById(`id_form-${row}-deductions`).value;
+            let parsedSavedItems;
+            if (savedItems) {
+                parsedSavedItems = JSON.parse(savedItems);
+            }
             
             if (viewButton) {
-                if (itemsData[row] && itemsData[row].length > 0) {
+                if (parsedSavedItems && parsedSavedItems.length > 0) {
                     viewButton.style.display = "inline-block"; // Show button
                 } else {
                     viewButton.style.display = "none"; // Hide button
