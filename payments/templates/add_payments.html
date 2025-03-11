@@ -155,8 +155,6 @@
                             {% for field in formset.empty_form %}
                                 <td class="field {% if field.errors %}field-error{% endif %} {% if field.name in cash_fields %}cash-field{% endif %} {% if field.name in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name in deduction_fields %}deduction-field{% endif %} {% if field.name == 'id' %}hide-field{% endif %} {% if field.name == 'deductions' %}hide-field{% endif %}">
                                     <!-- {{ field.label_tag }} -->
-                                    {{formset.empty_form.instance.id}}
-                                    <!-- <input type="hidden" name="index-__prefix__" value="__prefix__"> -->
                                     {% if field.field.required %}
                                         <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
                                     {% else %}
@@ -175,7 +173,6 @@
                                 </td>
                             {% endfor %}
                             <td class="field deduction-field add-deduction-container">
-                                {{formset.empty_form.instance.id}}
                                 <!-- add deductions -->
                                 <!-- TODO: differientiate buttons, ids -->
                                 <button
@@ -189,11 +186,10 @@
                                 >
                                     Add Deductions
                                 </button>
-                                <!-- <input type="hidden" name="form-__prefix__-deductions" id="form-__prefix__-deductions"> -->
                                 <!-- view deductions -->
                                 <!-- TODO: differientiate buttons, ids -->
                                 <button
-                                    id="view-deductions-btn"
+                                    id="view-deductions-btn-__prefix__"
                                     type="button"
                                     class="btn btn-secondary btn-sm mb-1"
                                     data-bs-toggle="modal"
@@ -205,7 +201,6 @@
                                 >
                                     View Deductions
                                 </button>
-                                <!-- <input type="hidden" name="items-__prefix__" id="items-__prefix__"> -->
         
                             </td>
                         </tr>
@@ -473,6 +468,9 @@
                 }
             });
 
+
+            // updateViewButton(formCount);
+
             validateFormFields();
         });
 
@@ -482,7 +480,7 @@
             const forms = document.querySelectorAll('#form-row');
             forms.forEach((form, index) =>{
                 const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
-                    .some(input => input.value.trim() !== "");
+                    .some(input => input.value.trim() && input.value.trim() !== "" && input.value.trim() !== "null");
                 const errorFields = form.querySelectorAll('.field-error');
                 const formHasError = errorFields.length > 0;
                 if (formHasValue) {
@@ -503,9 +501,15 @@
                     form.classList.add("invalid-form");
 
                     // Scroll to the first error field
-                    errorFields[0].querySelector('input').focus();
-                    errorFields[0].querySelector('select').focus();
-                    errorFields[0].querySelector('textarea').focus();
+                    form.style.backgroundColor = "rgb(243 229 229)";
+                    errorFields[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                    if (errorFields[0].querySelector('input')) {
+                        errorFields[0].querySelector('input').focus();
+                    } else if (errorFields[0].querySelector('select')) {
+                        errorFields[0].querySelector('select').focus();
+                    } else if (errorFields[0].querySelector('textarea')) {
+                        errorFields[0].querySelector('textarea').focus();
+                    }
                 } else {
                     form.style.backgroundColor = "";
                     form.classList.remove("invalid-form");
@@ -549,7 +553,10 @@
                 endDate?.addEventListener("change", function () {
                     if (startDate.value && endDate.value && startDate.value < endDate.value) {
                         endDate.closest('.field').classList.remove("field-error");
-                        endDate.closest('.field').querySelector('.error-message').innerHTML = '';
+                        const endDateErr = endDate.closest('.field').querySelector('.error-message');
+                        if (endDateErr) {
+                            endDateErr.innerHTML = '';
+                        }
                         endDate.style.borderColor = 'rgb(118, 118, 118)';
                     }
                 });
@@ -558,7 +565,10 @@
                 totalUsdAmountReceived?.addEventListener("change", function () {
                     if (totalUsdAmountReceived.value && totalUsdAmountReceived.value > 0) {
                         totalUsdAmountReceived.closest('.field').classList.remove("field-error");
-                        totalUsdAmountReceived.closest('.field').querySelector('.error-message').innerHTML = '';
+                        const totalUsdAmountReceivedErr = totalUsdAmountReceived.closest('.field').querySelector('.error-message');
+                        if (totalUsdAmountReceivedErr) {
+                            totalUsdAmountReceivedErr.innerHTML = '';
+                        }
                         totalUsdAmountReceived.style.borderColor = 'rgb(118, 118, 118)';
                     }
                 });
@@ -567,16 +577,22 @@
                 cashAmount?.addEventListener("change", function () {
                     if (cashAmount.value && cashAmount.value > 0) {
                         cashAmount.closest('.field').classList.remove("field-error");
-                        cashAmount.closest('.field').querySelector('.error-message').innerHTML = '';
+                        const cashAmountErr = cashAmount.closest('.field').querySelector('.error-message');
+                        if (cashAmountErr) {
+                            cashAmountErr.innerHTML = '';
+                        }
                         cashAmount.style.borderColor = 'rgb(118, 118, 118)';
-                    }
+                    } 
                 });
 
                 // clear cash exchange rate error
                 cashExchangeRate?.addEventListener("change", function () {
                     if (cashExchangeRate.value && cashExchangeRate.value > 0) {
                         cashExchangeRate.closest('.field').classList.remove("field-error");
-                        cashExchangeRate.closest('.field').querySelector('.error-message').innerHTML = '';
+                        const cashExchangeRateErr = cashExchangeRate.closest('.field').querySelector('.error-message');
+                        if (cashExchangeRateErr) {
+                            cashExchangeRateErr.innerHTML = '';
+                        }
                         cashExchangeRate.style.borderColor = 'rgb(118, 118, 118)';
                     }
                 });
@@ -585,7 +601,10 @@
                 bankTransferAmount?.addEventListener("change", function () {
                     if (bankTransferAmount.value && bankTransferAmount.value > 0) {
                         bankTransferAmount.closest('.field').classList.remove("field-error");
-                        bankTransferAmount.closest('.field').querySelector('.error-message').innerHTML = '';
+                        const bankTransferAmountErr = bankTransferAmount.closest('.field').querySelector('.error-message');
+                        if (bankTransferAmountErr) {
+                            bankTransferAmountErr.innerHTML = '';
+                        }
                         bankTransferAmount.style.borderColor = 'rgb(118, 118, 118)';
                     }
                 });
@@ -594,7 +613,10 @@
                 bankTransferExchangeRate?.addEventListener("change", function () {
                     if (bankTransferExchangeRate.value && bankTransferExchangeRate.value > 0) {
                         bankTransferExchangeRate.closest('.field').classList.remove("field-error");
-                        bankTransferExchangeRate.closest('.field').querySelector('.error-message').innerHTML = '';
+                        const bankTransferExchangeRateErr = bankTransferExchangeRate.closest('.field').querySelector('.error-message');
+                        if (bankTransferExchangeRateErr) {
+                            bankTransferExchangeRateErr.innerHTML = '';
+                        }
                         bankTransferExchangeRate.style.borderColor = 'rgb(118, 118, 118)';
                     }
                 });
@@ -913,9 +935,12 @@
             document.getElementById("deductions-list").appendChild(div);
 
             // update view button display when item is removed
-            div.querySelector(".remove-btn").addEventListener("click", function() {
-                updateViewButton(currentRow);
-            });
+            const removeBtn = div.querySelector(".remove-btn");
+            if (removeBtn) {
+                removeBtn.addEventListener("click", function() {
+                    updateViewButton(currentRow);
+                });
+            }
         }
 
         window.generateCurrencyOptions = function generateCurrencyOptions(selectedValue = "") {
@@ -985,10 +1010,12 @@
         function updateViewButton(row) {
             const viewButton = document.querySelector(`[data-view-row="${row}"]`);
             
-            if (itemsData[row] && itemsData[row].length > 0) {
-                viewButton.style.display = "inline-block"; // Show button
-            } else {
-                viewButton.style.display = "none"; // Hide button
+            if (viewButton) {
+                if (itemsData[row] && itemsData[row].length > 0) {
+                    viewButton.style.display = "inline-block"; // Show button
+                } else {
+                    viewButton.style.display = "none"; // Hide button
+                }
             }
         }
     });
