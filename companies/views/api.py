@@ -44,9 +44,9 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
         try:
             super_user = self.request.user.is_superuser
             if super_user:
-                return Company.objects.get(app_ref=id)
+                return Company.objects.get(id=id)
             else:
-                return Company.objects.get(app_ref=id, created_by=req.user.id)
+                return Company.objects.get(id=id, created_by=req.user.id)
         except Company.DoesNotExist:
             raise ValidationError('Company does not exist')
 

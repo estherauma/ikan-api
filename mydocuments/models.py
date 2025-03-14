@@ -13,7 +13,7 @@ class Document(AuditableModel):
     is_essential = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.file_name} - {self.file_url}'
+        return f'{self.user.first_name} {self.user.last_name} - {self.file_name}'
 
 
 class Passport(AuditableModel):
