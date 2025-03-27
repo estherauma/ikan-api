@@ -7,7 +7,6 @@ from contracts.models import Contract, ContractClause, ContractDocument
 class ContractSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     app_ref = serializers.CharField(required=True)
-    internal_ref = serializers.CharField(required=True)
     start_date = serializers.DateField(required=True)
     end_date = serializers.DateField(required=True)
     description = serializers.CharField(required=False)

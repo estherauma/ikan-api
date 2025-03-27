@@ -59,7 +59,6 @@ class ContractsDataView(LoginRequiredMixin, View):
                 "id": contract.id,
                 "name": contract.name,
                 "app_ref": contract.app_ref,
-                "internal_ref": contract.internal_ref,
                 "start_date": contract.start_date,
                 "end_date": contract.end_date,
                 "description": contract.description,
