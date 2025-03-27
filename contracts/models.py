@@ -7,7 +7,6 @@ import uuid
 class Contract(AuditableModel):
     name = models.CharField(max_length=255, null=False, blank=False)
     app_ref = models.CharField(max_length=255, null=False, blank=False)
-    internal_ref = models.CharField(max_length=255, null=False, blank=False)
     start_date = models.DateField(null=False, blank=False)
     end_date = models.DateField(null=False, blank=False)
     description = models.TextField(null=True, blank=True)
