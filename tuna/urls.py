@@ -56,6 +56,7 @@ urlpatterns = [
     path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),
     path('api/v1/', include('mydocuments.urls.api')),
     path('api/v1/', include('payments.urls.api')),
+    path('api/v1/', include('notifications.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
@@ -65,6 +66,7 @@ urlpatterns = [
     path('surveys/', include('survey.urls.web')),
     path('vessels/', include('vessels.urls.web')),
     path('payments/', include('payments.urls.web')),
+    path('notifications/', include('notifications.urls.web')),
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),
