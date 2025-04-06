@@ -5,6 +5,7 @@ from accounts.models import User
 
 class Notification(AuditableModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.CharField(max_length=255, default='general')
     title = models.CharField(max_length=255)
     message = models.TextField()
     status = models.CharField(max_length=255)
