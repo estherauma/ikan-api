@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'vessels',
     'mydocuments',
     'payments',
+    'notifications',
 ]
 AUTH_USER_MODEL = "accounts.User"
 
