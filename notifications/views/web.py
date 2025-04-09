@@ -25,6 +25,7 @@ class NotificationsDataView(LoginRequiredMixin, View):
         for notification in notifications:
             notification = {
                 "id": notification.id,
+                "app_ref": notification.app_ref,
                 "user": notification.user,
                 "title": notification.title,
                 "message": notification.message,

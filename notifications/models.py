@@ -1,9 +1,11 @@
 from django.db import models
 from common.models import AuditableModel
 from accounts.models import User
+from common.utils import generate_uuid
 
 
 class Notification(AuditableModel):
+    app_ref = models.CharField(max_length=40, default=generate_uuid, unique=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.CharField(max_length=255, default='general')
     title = models.CharField(max_length=255)
