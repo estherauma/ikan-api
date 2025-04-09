@@ -155,7 +155,7 @@ class AddPayment(LoginRequiredMixin, View):
             user=payment.user,
             category='payment',
             title='Payment Received',
-            message=f'Payment of {float(payment.total_usd_amount_received)} USD received for {vessel.name}.',
+            message=f'Payment of {payment.total_usd_amount_received:.2f} USD received for {vessel.name}.',
             status='unread',
             is_displayed=False,
             is_deleted=False,
