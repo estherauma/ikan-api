@@ -18,6 +18,7 @@ from payments.utils import (
 from vessels.models import Vessel
 from django.views.generic import DetailView
 from payments.forms import VesselSelectForm, PaymentsFormSet
+from notifications.models import Notification
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -128,6 +129,12 @@ class AddPayment(LoginRequiredMixin, View):
 
                 instance.save()
 
+                # Create payment notification
+                try:
+                    self.send_payment_notification(instance, vessel)
+                except Exception as e:
+                    print(f"Failed to send notification: {e}")
+
             # Save many-to-many data if applicable
             formset.save_m2m()
             return redirect("payments:payments-list")
@@ -147,3 +154,22 @@ class AddPayment(LoginRequiredMixin, View):
                     "deduction_fields": deduction_fields,
                 },
             )
+
+    def send_payment_notification(self, payment, vessel):
+        Notification.objects.create(
+            user=payment.user,
+            category='payment',
+            title='Payment Received',
+            message=f'Payment of {payment.total_usd_amount_received:.2f} USD received for {vessel.name}.',
+            status='unread',
+            is_displayed=False,
+            is_deleted=False,
+            metadata={
+                'payment_id': payment.id,
+                'vessel_id': vessel.id,
+                'vessel_name': vessel.name,
+                'amount': float(payment.total_usd_amount_received),
+                'currency': 'USD',
+                'payment_date': payment.payment_date.isoformat(),
+            }
+        )
