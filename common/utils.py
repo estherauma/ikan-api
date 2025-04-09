@@ -5,6 +5,7 @@ from accounts.models import User
 from common.email import TunaEmailHelper, EmailTemplate
 from rest_framework.response import Response
 from rest_framework import status
+import uuid
 
 
 def write_json_to_file(file_name, data, mode='w'):
@@ -95,3 +96,8 @@ def get_clause_order(clause_kind):
       'contract-clauses-attachments': 11,
     }
     return clause_order[clause_kind] if clause_kind in clause_order else None
+
+
+def generate_uuid():
+    random_uuid = str(uuid.uuid4())
+    return random_uuid
