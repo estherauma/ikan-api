@@ -12,3 +12,6 @@ class Notification(AuditableModel):
     is_displayed = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict, null=True, blank=True)
+
+    def __str__(self):
+        return f"Notification for {self.user.first_name} {self.user.last_name} - {self.title}"
