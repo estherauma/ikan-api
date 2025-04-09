@@ -128,7 +128,12 @@ class AddPayment(LoginRequiredMixin, View):
                 instance.updated_by = request.user.id
 
                 instance.save()
-                self.send_payment_notification(instance, vessel)
+
+                # Create payment notification
+                try:
+                    self.send_payment_notification(instance, vessel)
+                except Exception as e:
+                    print(f"Failed to send notification: {e}")
 
             # Save many-to-many data if applicable
             formset.save_m2m()
