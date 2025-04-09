@@ -11,4 +11,4 @@ class Notification(AuditableModel):
     status = models.CharField(max_length=255)
     is_displayed = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-    meta = models.JSONField(default=dict, null=True, blank=True)
+    metadata = models.JSONField(default=dict, null=True, blank=True)
