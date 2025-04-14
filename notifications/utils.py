@@ -1,11 +1,9 @@
 from notifications.models import Notification
 
 
-def create_notification(user, title, message, status, meta=None):
-    if meta is None:
-        meta = {}
+def create_notification(user, title, message, status, metadata=None):
 
     notification = Notification.objects.create(
-        user=user, title=title, message=message, status=status, meta=meta
+        user=user, title=title, message=message, status=status, metadata=metadata
     )
     return notification

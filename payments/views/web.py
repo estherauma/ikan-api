@@ -19,6 +19,7 @@ from vessels.models import Vessel
 from django.views.generic import DetailView
 from payments.forms import VesselSelectForm, PaymentsFormSet
 from notifications.models import Notification
+import json
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -156,6 +157,16 @@ class AddPayment(LoginRequiredMixin, View):
             )
 
     def send_payment_notification(self, payment, vessel):
+        notif_data = {
+            'payment_id': payment.id,
+            'vessel_id': vessel.id,
+            'vessel_name': vessel.name,
+            'amount': float(payment.total_usd_amount_received),
+            'currency': 'USD',
+            'payment_date': payment.payment_date.isoformat(),
+        }
+        json_notif_data = json.dumps(notif_data)
+
         Notification.objects.create(
             user=payment.user,
             category='payment',
@@ -164,12 +175,7 @@ class AddPayment(LoginRequiredMixin, View):
             status='unread',
             is_displayed=False,
             is_deleted=False,
-            metadata={
-                'payment_id': payment.id,
-                'vessel_id': vessel.id,
-                'vessel_name': vessel.name,
-                'amount': float(payment.total_usd_amount_received),
-                'currency': 'USD',
-                'payment_date': payment.payment_date.isoformat(),
-            }
+            metadata=json_notif_data,
+            created_by=payment.created_by,
+            updated_by=payment.updated_by,
         )

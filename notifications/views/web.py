@@ -30,7 +30,7 @@ class NotificationsDataView(LoginRequiredMixin, View):
                 "title": notification.title,
                 "message": notification.message,
                 "status": notification.status,
-                # "meta": notification.meta,
+                # "metadata": notification.metadata,
                 "is_displayed": notification.is_displayed,
                 "is_deleted": notification.is_deleted,
                 "created_at": notification.created_at,
