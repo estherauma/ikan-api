@@ -104,7 +104,7 @@ payment_beneficiarires = [
     {"key": "family_or_friend", "value": "家人/朋友 Family/friend"},
 ]
 
-deductions = [
+deductions_list = [
     {"key": "", "value": "請選擇項目 Please select item"},
     {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目 Deductions allowed under employment contract"},
     {"key": "cigarettes", "value": "香菸 Cigarettes"},
@@ -116,7 +116,7 @@ deductions = [
     {"key": "other", "value": "其他 Other"},
 ]
 
-deductions_chinese = [
+deductions_list_chinese = [
     {"key": "", "value": "請選擇項目"},
     {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目"},
     {"key": "cigarettes", "value": "香菸"},
@@ -128,7 +128,7 @@ deductions_chinese = [
     {"key": "other", "value": "其他"},
 ]
 
-deductions_bahasa = [
+deductions_list_bahasa = [
     {"key": "", "value": ""},
     {"key": "deductions_allowed_under_employment_contract", "value": "Potongan yang diizinkan dalam kontrak kerja"},
     {"key": "cigarettes", "value": "Rokok"},

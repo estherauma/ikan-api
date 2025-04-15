@@ -14,6 +14,7 @@ from payments.utils import (
     bank_transfer_fields,
     deduction_fields,
     get_workers_on_vessel,
+    deductions_list,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -66,6 +67,7 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
 
         context["methods_map"] = methods_map
         context["categories_map"] = categories_map
+        context["deductions_list"] = deductions_list
         return context
 
 
