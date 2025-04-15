@@ -11,7 +11,7 @@ def dict_get(dictionary, key):
 @register.filter
 def filter_and_get_value(array, args):
     """
-    Find object with key_name == key_value, return another property. Simliar to array.find() in JS.
+    Find object with key_name == key_value, return another property. Similar to array.find() in JS.
 
     :param array: array of objects
     :param args: comma separated string ("key_name,key_value,return_attr"), first value is the attribute name, second value is the value to match, third value is the attribute to return
