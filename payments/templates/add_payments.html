@@ -442,7 +442,11 @@
             // Update the cloned form's HTML to reflect the new form count
             newForm.innerHTML = newForm.innerHTML.replace(regex, formCount);
             // update row id
-            newForm.innerHTML = newForm.innerHTML.replace(/id="empty-form-row"/g, `id="form-row"`);
+            newForm.innerHTML = newForm.innerHTML.replace("empty-form-row", "form-row");
+            // above seems not to work. This is to reiterate that the id is updated to form-row
+            if (newForm.id === "empty-form-row") {
+                newForm.id = "form-row";
+            }
 
             // append before last form because last form is used to clone
             formsetBody.insertBefore(newForm, lastForm);
