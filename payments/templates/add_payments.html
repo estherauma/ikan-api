@@ -383,6 +383,11 @@
             select {
                 border: 1px solid #ccc;
                 border-radius: 5px;
+                max-width: 250px;
+            }
+            select option[disabled],
+            select:invalid {
+                color: gray;
             }
 
         }
@@ -904,6 +909,17 @@
         
         validateFormFields();
 
+        const deductions = [
+            {"key": "", "label": "請選擇項目 Please select item"},
+            {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
+            {"key": "cigarettes", "label": "香菸 Cigarettes"},
+            {"key": "toiletries", "label": "浴室用品 Toiletries"},
+            {"key": "food_and_or_drinks", "label": "食物和/或飲料 Food and/or Drinks"},
+            {"key": "medicine", "label": "藥物 Medicine"},
+            {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用 Wifi and/or Phone calls"},
+            {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資 Loans and/or wage advances"},
+            {"key": "other", "label": "其他 Other"},
+        ];
         let currentRow = null;
 
         window.openDeductionModal = function openDeductionModal(button) {
@@ -931,9 +947,11 @@
             const div = document.createElement("div");
             div.classList.add("deduction-entry");
             div.style.marginBottom = "10px";
-            div.innerHTML = `<input type="text" placeholder="Item" value="${name}">
-                            <input type="number" placeholder="Amount" value="${amount}">
-                            <select name="currency" id="currency" placeholder="Select Currency">
+            div.innerHTML = `<select name="name" id="name" class="name-field" required>
+                                ${generateDeductionOptions()}
+                            </select>
+                            <input type="number" placeholder="Amount" value="${amount}" class="amount-field">
+                            <select name="currency" id="currency" class="currency-field">
                                 ${generateCurrencyOptions(currency)}
                             </select>
                             <button
@@ -966,14 +984,31 @@
             }).join("");
         }
 
+        window.generateDeductionOptions = function generateDeductionOptions(selectedValue = "") {
+            return deductions.map((item) => {
+                return `<option \
+                            value="${item.key}" \
+                            class="${item.key === "" ? "placeholder" : ""}" \
+                            ${item.key === "" ? "disabled selected" : ""} \
+                        >${item.label}</option>`;
+            }).join("");
+        }
+
         window.saveDeductions = function saveDeductions() {
             let items = [];
             document.querySelectorAll("#deductions-list div").forEach(div => {
-                let inputs = div.getElementsByTagName("input");
-                let select = div.getElementsByTagName("select");
-                // add alert for missing values
-                if (inputs[0].value !== '' && inputs[1].value !== '' && select[0].value !== '') {
-                    items.push({ name: inputs[0].value, amount: inputs[1].value, currency: select[0].value });
+                let nameElement = div.getElementsByClassName("name-field")[0];
+                let amountElement = div.getElementsByClassName("amount-field")[0];
+                let currencyElement = div.getElementsByClassName("currency-field")[0];
+
+                if (nameElement && amountElement && currencyElement) {
+                    let name = nameElement.value;
+                    let amount = amountElement.value;
+                    let currency = currencyElement.value;
+
+                    if (name !== '' && amount !== '' && currency !== '') {
+                        items.push({ name, amount, currency });
+                    }
                 }
             });
 
@@ -1011,9 +1046,12 @@
                 `;
                 // rows
                 items.forEach(item => {
+                    // get label
+                    const label = deductions.find(deduction => deduction.key === item.name)?.label || item.name;
+                    
                     let tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td style="width: 40%;">${item.name}</td>
+                        <td style="width: 40%;">${label}</td>
                         <td style="width: 60%;">${item.currency} ${item.amount}</td>
                     `;
                     table.appendChild(tr);

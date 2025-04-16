@@ -104,6 +104,42 @@ payment_beneficiarires = [
     {"key": "family_or_friend", "value": "家人/朋友 Family/friend"},
 ]
 
+deductions_list = [
+    {"key": "", "value": "請選擇項目 Please select item"},
+    {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目 Deductions allowed under employment contract"},
+    {"key": "cigarettes", "value": "香菸 Cigarettes"},
+    {"key": "toiletries", "value": "浴室用品 Toiletries"},
+    {"key": "food_and_or_drinks", "value": "食物和/或飲料 Food and/or Drinks"},
+    {"key": "medicine", "value": "藥物 Medicine"},
+    {"key": "wifi_or_phone_calls", "value": "無線上網和/或電話費用 Wifi and/or Phone calls"},
+    {"key": "loans_or_wage_advances", "value": "借貸和/或預支薪資 Loans and/or wage advances"},
+    {"key": "other", "value": "其他 Other"},
+]
+
+deductions_list_chinese = [
+    {"key": "", "value": "請選擇項目"},
+    {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目"},
+    {"key": "cigarettes", "value": "香菸"},
+    {"key": "toiletries", "value": "浴室用品"},
+    {"key": "food_and_or_drinks", "value": "食物和/或飲料"},
+    {"key": "medicine", "value": "藥物"},
+    {"key": "wifi_or_phone_calls", "value": "無線上網和/或電話費用"},
+    {"key": "loans_or_wage_advances", "value": "借貸和/或預支薪資"},
+    {"key": "other", "value": "其他"},
+]
+
+deductions_list_bahasa = [
+    {"key": "", "value": ""},
+    {"key": "deductions_allowed_under_employment_contract", "value": "Potongan yang diizinkan dalam kontrak kerja"},
+    {"key": "cigarettes", "value": "Rokok"},
+    {"key": "toiletries", "value": "Peralatan mandi"},
+    {"key": "food_and_or_drinks", "value": "Makanan dan Minuman"},
+    {"key": "medicine", "value": "Obat-obatan"},
+    {"key": "wifi_or_phone_calls", "value": "Wifi dan Telepon"},
+    {"key": "loans_or_wage_advances", "value": "Pinjaman dan uang muka gaji"},
+    {"key": "other", "value": "lain-lain"},
+]
+
 # These are the fields displayed in the form
 # Editing this list will affect the fields displayed in the form
 payment_fields = [
