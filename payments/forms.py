@@ -363,6 +363,24 @@ class BasePaymentFormSet(BaseModelFormSet):
 
         return super().clean()
 
+    # Overides the default empty_form method to set the custom queryset for the user field
+    def empty_form(self):
+        form = self.form(
+            auto_id=self.auto_id,
+            prefix=self.add_prefix("__prefix__"),
+            empty_permitted=True,
+            use_required_attribute=False,
+            **self.get_form_kwargs(None),
+            renderer=self.renderer,
+        )
+        self.add_fields(form, None)
+
+        # set the queryset for the user field in the empty form to the workers on the vessel
+        workers_on_vessel = get_workers_on_vessel(self.vessel)
+        form.fields["user"].queryset = workers_on_vessel
+
+        return form
+
 
 PaymentsFormSet = modelformset_factory(
     Payment, form=AddPaymentsForm, formset=BasePaymentFormSet, extra=3
