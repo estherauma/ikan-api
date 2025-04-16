@@ -363,7 +363,7 @@ class BasePaymentFormSet(BaseModelFormSet):
 
         return super().clean()
 
-    # Overides the default empty_form method to set the custom queryset for the user field
+    # Overrides the default empty_form method to set the custom queryset for the user field
     def empty_form(self):
         form = self.form(
             auto_id=self.auto_id,
