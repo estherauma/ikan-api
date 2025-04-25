@@ -572,10 +572,34 @@
                             // totalUsdAmountReceived.value = userData.total_usd_amount_received;
                             paymentDate.value = userData.payment_date;
                         }
+
+                        // Use previously entered start and end dates
+                        const startDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-start_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (startDates.length > 0) {
+                            // use start date entered in previous form
+                            startDate.value = startDates[startDates.length - 1].toISOString().split('T')[0];
+                        }
+                        const endDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-end_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (endDates.length > 0) {
+                            // use end date entered in previous form
+                            endDate.value = endDates[endDates.length - 1].toISOString().split('T')[0];
+                        }
                     } else {
                         // reset previously populated fields
                         paymentDate.value = '';
                         totalUsdAmountReceived.value = '';
+                        startDate.value = '';
+                        endDate.value = '';
                     }
                 });
 
