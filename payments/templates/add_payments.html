@@ -943,7 +943,7 @@
             div.classList.add("deduction-entry");
             div.style.marginBottom = "10px";
             div.innerHTML = `<select name="name" id="name" class="name-field" required>
-                                ${generateDeductionOptions()}
+                                ${generateDeductionOptions(name)}
                             </select>
                             <input type="number" placeholder="Amount" value="${amount}" class="amount-field">
                             <select name="currency" id="currency" class="currency-field">
@@ -985,6 +985,7 @@
                             value="${item.key}" \
                             class="${item.key === "" ? "placeholder" : ""}" \
                             ${item.key === "" ? "disabled selected" : ""} \
+                            ${item.key === selectedValue ? "selected" : ""} \
                         >${item.label}</option>`;
             }).join("");
         }
