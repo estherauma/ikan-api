@@ -85,14 +85,6 @@ class AddPaymentsForm(forms.ModelForm):
         self.vessel = vessel
         empty_select_choice = [("", "")]
 
-        # add cash-input class to all cash inputs
-        # for field in cash_fields:
-        #     self.fields[field].widget.attrs["class"] = "cash-input"
-
-        # # add bank-transfer-input class to all bank transfer inputs
-        # for field in bank_transfer_fields:
-        #     self.fields[field].widget.attrs["class"] = "bank-transfer-input"
-
         for field in self.fields:
             self.fields[field].widget.attrs[
                 "style"

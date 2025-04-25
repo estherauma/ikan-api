@@ -15,6 +15,7 @@ from payments.utils import (
     deduction_fields,
     get_workers_on_vessel,
     deductions_list,
+    get_formset_initial_values,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -99,6 +100,7 @@ class AddPayment(LoginRequiredMixin, View):
         formset = PaymentsFormSet(
             queryset=Payment.objects.none(), vessel=vessel, loggedin_user=request.user
         )
+        formset_initial_values = get_formset_initial_values(vessel)
         return render(
             request,
             self.template_name,
@@ -113,6 +115,9 @@ class AddPayment(LoginRequiredMixin, View):
                 "workers_on_vessel": workers_on_vessel,
                 "deduction_fields": deduction_fields,
                 "json_deductions_list": json.dumps(deductions_list),
+                "json_formset_initial_values": json.dumps(
+                    formset_initial_values,
+                ),
             },
         )
 
@@ -143,6 +148,7 @@ class AddPayment(LoginRequiredMixin, View):
             formset.save_m2m()
             return redirect("payments:payments-list")
         else:
+            formset_initial_values = get_formset_initial_values(vessel)
             return render(
                 request,
                 self.template_name,
@@ -157,6 +163,9 @@ class AddPayment(LoginRequiredMixin, View):
                     "workers_on_vessel": workers_on_vessel,
                     "deduction_fields": deduction_fields,
                     "json_deductions_list": json.dumps(deductions_list),
+                    "json_formset_initial_values": json.dumps(
+                        formset_initial_values,
+                    ),
                 },
             )
 

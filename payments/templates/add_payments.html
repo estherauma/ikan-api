@@ -526,8 +526,14 @@
         });
 
         validateFormFields = () => {
+            // get formset initial data
+            const jsonFormsetData = '{{ json_formset_initial_values|safe }}';
+            const formsetData = JSON.parse(jsonFormsetData);
+            
             const forms = document.querySelectorAll('#form-row');
             forms.forEach((form, index) => {
+                const user = form.querySelector(`#id_form-${index}-user`);
+                const paymentDate = form.querySelector(`#id_form-${index}-payment_date`);
                 const totalUsdAmountReceived = form.querySelector(`#id_form-${index}-total_usd_amount_received`);
                 const startDate = form.querySelector(`#id_form-${index}-start_date`);
                 const endDate = form.querySelector(`#id_form-${index}-end_date`);
@@ -556,6 +562,22 @@
                 //         field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
                 //     });
                 // }
+
+                // pre-populate form
+                user?.addEventListener("change", function () {
+                    if (user.value) {
+                        const userData = formsetData.find(data => data.user_id === user.value);
+                        if (userData) {
+                            // TODO: totalUsdAmountReceived to be calculated from monthly_wage and selected period
+                            // totalUsdAmountReceived.value = userData.total_usd_amount_received;
+                            paymentDate.value = userData.payment_date;
+                        }
+                    } else {
+                        // reset previously populated fields
+                        paymentDate.value = '';
+                        totalUsdAmountReceived.value = '';
+                    }
+                });
 
                 // clear end date error
                 endDate?.addEventListener("change", function () {
