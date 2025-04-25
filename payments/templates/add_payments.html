@@ -566,11 +566,11 @@
                 // pre-populate form
                 user?.addEventListener("change", function () {
                     if (user.value) {
-                        const userData = formsetData.find(data => data.user_id === user.value);
-                        if (userData) {
+                        const formData = formsetData.find(data => data.user_id === user.value);
+                        if (formData) {
                             // TODO: totalUsdAmountReceived to be calculated from monthly_wage and selected period
-                            // totalUsdAmountReceived.value = userData.total_usd_amount_received;
-                            paymentDate.value = userData.payment_date;
+                            // totalUsdAmountReceived.value = formData.total_usd_amount_received;
+                            // paymentDate.value = formData.payment_date;
                         }
 
                         // Use previously entered start and end dates
@@ -593,6 +593,20 @@
                         if (endDates.length > 0) {
                             // use end date entered in previous form
                             endDate.value = endDates[endDates.length - 1].toISOString().split('T')[0];
+                        }
+                        const paymentDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-payment_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        console.log('paymentDates', paymentDates);
+                        if (paymentDates.length > 0) {
+                            // use payment date entered in previous form
+                            paymentDate.value = paymentDates[paymentDates.length - 1].toISOString().split('T')[0];
+                        } else {
+                            // use payment date entered in current form
+                            paymentDate.value = new Date().toISOString().split('T')[0];
                         }
                     } else {
                         // reset previously populated fields
