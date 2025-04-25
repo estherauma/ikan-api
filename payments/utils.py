@@ -2,6 +2,7 @@ from contracts.models import ContractClause
 import json
 from django.db.models import Q
 from accounts.models import User
+from django.utils.timezone import now
 
 
 currencies_map = {
@@ -261,3 +262,51 @@ def get_workers_on_vessel(vessel):
             Q(user_contract_access__contract__in=contracts_with_vessel)
         ).distinct()
     return workers_on_vessel
+
+
+def get_formset_initial_values(vessel):
+    initial_data = []
+
+    workers_on_vessel = get_workers_on_vessel(vessel)
+    for worker in workers_on_vessel:
+        worker_initial_data = {
+            "user": str(worker),
+            "user_id": worker.id,
+            "payment_date": str(now().date()),
+            "payment_category": None,
+            "start_date": None,
+            "end_date": None,
+            "total_usd_amount_received": None,
+            "payment_method": None,
+            "cash_amount": None,
+            "cash_currency": None,
+            "cash_exchange_rate": None,
+            "cash_beneficiary_relationship": None,
+            "cash_beneficiary_name": None,
+            "cash_beneficiary_contact": None,
+            "bank_transfer_amount": None,
+            "bank_transfer_currency": None,
+            "bank_transfer_exchange_rate": None,
+            "bank_account_name": None,
+            "bank_account_number": None,
+            "bank_name": None,
+            "bank_transfer_beneficiary_relationship": None,
+            "bank_transfer_beneficiary_name": None,
+            "bank_transfer_beneficiary_contact": None,
+            "monthly_wage": None,  # to be used to calculate wages for entered work period
+        }
+        worker_contract_clauses = ContractClause.objects.filter(contract__contract_user_access__user=worker)
+
+        wage_benefits_clause = None
+        has_wage_benefits_clause = worker_contract_clauses.filter(kind="contract-clauses-wage-benefits").exists()
+        if has_wage_benefits_clause:
+            wage_benefits_clause = worker_contract_clauses.filter(kind="contract-clauses-wage-benefits").first()
+            wage_benefits = json.loads(wage_benefits_clause.content)
+            worker_initial_data["monthly_wage"] = wage_benefits.get("monthlyWage")
+            # TODO: get add cash and bank transfer amounts and beneficiary details when
+            # implemented (data is captured when creating clause).
+
+        # add worker_initial_data to initial_data
+        initial_data.append(worker_initial_data)
+
+    return initial_data
