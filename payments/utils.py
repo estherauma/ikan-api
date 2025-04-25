@@ -81,63 +81,63 @@ beneficiaries_map = {
 }
 
 payment_categories = [
-    {"key": "wages", "value": "薪資 Wages"},
-    {"key": "bonus", "value": "獎金 Bonus"},
+    {"key": "wages", "label": "薪資 Wages"},
+    {"key": "bonus", "label": "獎金 Bonus"},
 ]
 
 payment_methods = [
-    {"key": "bank_transfer", "value": "匯款 Bank Transfer"},
-    {"key": "cash", "value": "現金 Cash"},
-    {"key": "both", "value": "現金和匯款 Cash and Bank transfer"},
+    {"key": "bank_transfer", "label": "匯款 Bank Transfer"},
+    {"key": "cash", "label": "現金 Cash"},
+    {"key": "both", "label": "現金和匯款 Cash and Bank transfer"},
 ]
 
 payment_currencies = [
-    {"key": "USD", "value": "US Dollar"},
-    {"key": "TWD", "value": "新台幣 Taiwan New Dollars"},
-    {"key": "MUR", "value": "毛里求斯盧比 Mauritian Rupee"},
-    {"key": "IDR", "value": "印尼盾/盧比 Indonesian Rupiah"},
-    {"key": "SBD", "value": "索羅門群島元 Solomon Islands Dollar"},
+    {"key": "USD", "label": "US Dollar"},
+    {"key": "TWD", "label": "新台幣 Taiwan New Dollars"},
+    {"key": "MUR", "label": "毛里求斯盧比 Mauritian Rupee"},
+    {"key": "IDR", "label": "印尼盾/盧比 Indonesian Rupiah"},
+    {"key": "SBD", "label": "索羅門群島元 Solomon Islands Dollar"},
 ]
 
 payment_beneficiarires = [
-    {"key": "self", "value": "船員自己 Crew member himself"},
-    {"key": "family_or_friend", "value": "家人/朋友 Family/friend"},
+    {"key": "self", "label": "船員自己 Crew member himself"},
+    {"key": "family_or_friend", "label": "家人/朋友 Family/friend"},
 ]
 
 deductions_list = [
-    {"key": "", "value": "請選擇項目 Please select item"},
-    {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目 Deductions allowed under employment contract"},
-    {"key": "cigarettes", "value": "香菸 Cigarettes"},
-    {"key": "toiletries", "value": "浴室用品 Toiletries"},
-    {"key": "food_and_or_drinks", "value": "食物和/或飲料 Food and/or Drinks"},
-    {"key": "medicine", "value": "藥物 Medicine"},
-    {"key": "wifi_or_phone_calls", "value": "無線上網和/或電話費用 Wifi and/or Phone calls"},
-    {"key": "loans_or_wage_advances", "value": "借貸和/或預支薪資 Loans and/or wage advances"},
-    {"key": "other", "value": "其他 Other"},
+    {"key": "", "label": "請選擇項目 Please select item"},
+    {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
+    {"key": "cigarettes", "label": "香菸 Cigarettes"},
+    {"key": "toiletries", "label": "浴室用品 Toiletries"},
+    {"key": "food_and_or_drinks", "label": "食物和/或飲料 Food and/or Drinks"},
+    {"key": "medicine", "label": "藥物 Medicine"},
+    {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用 Wifi and/or Phone calls"},
+    {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資 Loans and/or wage advances"},
+    {"key": "other", "label": "其他 Other"},
 ]
 
 deductions_list_chinese = [
-    {"key": "", "value": "請選擇項目"},
-    {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目"},
-    {"key": "cigarettes", "value": "香菸"},
-    {"key": "toiletries", "value": "浴室用品"},
-    {"key": "food_and_or_drinks", "value": "食物和/或飲料"},
-    {"key": "medicine", "value": "藥物"},
-    {"key": "wifi_or_phone_calls", "value": "無線上網和/或電話費用"},
-    {"key": "loans_or_wage_advances", "value": "借貸和/或預支薪資"},
-    {"key": "other", "value": "其他"},
+    {"key": "", "label": "請選擇項目"},
+    {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目"},
+    {"key": "cigarettes", "label": "香菸"},
+    {"key": "toiletries", "label": "浴室用品"},
+    {"key": "food_and_or_drinks", "label": "食物和/或飲料"},
+    {"key": "medicine", "label": "藥物"},
+    {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用"},
+    {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資"},
+    {"key": "other", "label": "其他"},
 ]
 
 deductions_list_bahasa = [
-    {"key": "", "value": ""},
-    {"key": "deductions_allowed_under_employment_contract", "value": "Potongan yang diizinkan dalam kontrak kerja"},
-    {"key": "cigarettes", "value": "Rokok"},
-    {"key": "toiletries", "value": "Peralatan mandi"},
-    {"key": "food_and_or_drinks", "value": "Makanan dan Minuman"},
-    {"key": "medicine", "value": "Obat-obatan"},
-    {"key": "wifi_or_phone_calls", "value": "Wifi dan Telepon"},
-    {"key": "loans_or_wage_advances", "value": "Pinjaman dan uang muka gaji"},
-    {"key": "other", "value": "lain-lain"},
+    {"key": "", "label": ""},
+    {"key": "deductions_allowed_under_employment_contract", "label": "Potongan yang diizinkan dalam kontrak kerja"},
+    {"key": "cigarettes", "label": "Rokok"},
+    {"key": "toiletries", "label": "Peralatan mandi"},
+    {"key": "food_and_or_drinks", "label": "Makanan dan Minuman"},
+    {"key": "medicine", "label": "Obat-obatan"},
+    {"key": "wifi_or_phone_calls", "label": "Wifi dan Telepon"},
+    {"key": "loans_or_wage_advances", "label": "Pinjaman dan uang muka gaji"},
+    {"key": "other", "label": "lain-lain"},
 ]
 
 # These are the fields displayed in the form

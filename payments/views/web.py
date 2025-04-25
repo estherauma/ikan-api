@@ -112,6 +112,7 @@ class AddPayment(LoginRequiredMixin, View):
                 "bank_transfer_fields": bank_transfer_fields,
                 "workers_on_vessel": workers_on_vessel,
                 "deduction_fields": deduction_fields,
+                "json_deductions_list": json.dumps(deductions_list),
             },
         )
 
@@ -155,6 +156,7 @@ class AddPayment(LoginRequiredMixin, View):
                     "bank_transfer_fields": bank_transfer_fields,
                     "workers_on_vessel": workers_on_vessel,
                     "deduction_fields": deduction_fields,
+                    "json_deductions_list": json.dumps(deductions_list),
                 },
             )
 

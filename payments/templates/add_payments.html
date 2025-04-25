@@ -913,17 +913,8 @@
         
         validateFormFields();
 
-        const deductions = [
-            {"key": "", "label": "請選擇項目 Please select item"},
-            {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
-            {"key": "cigarettes", "label": "香菸 Cigarettes"},
-            {"key": "toiletries", "label": "浴室用品 Toiletries"},
-            {"key": "food_and_or_drinks", "label": "食物和/或飲料 Food and/or Drinks"},
-            {"key": "medicine", "label": "藥物 Medicine"},
-            {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用 Wifi and/or Phone calls"},
-            {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資 Loans and/or wage advances"},
-            {"key": "other", "label": "其他 Other"},
-        ];
+        const jsonDeductionsList = '{{ json_deductions_list|safe|escapejs }}';
+        const deductions = JSON.parse(jsonDeductionsList);
         let currentRow = null;
 
         window.openDeductionModal = function openDeductionModal(button) {

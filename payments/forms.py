@@ -100,22 +100,22 @@ class AddPaymentsForm(forms.ModelForm):
                 max-width: 300px;padding: 0 10px; font-size: 1rem;"
 
         self.fields["payment_category"].choices = empty_select_choice + [
-            (item["key"], item["value"]) for item in payment_categories
+            (item["key"], item["label"]) for item in payment_categories
         ]
         self.fields["payment_method"].choices = empty_select_choice + [
-            (item["key"], item["value"]) for item in payment_methods
+            (item["key"], item["label"]) for item in payment_methods
         ]
         self.fields["cash_currency"].choices = empty_select_choice + [
-            (item["key"], item["value"]) for item in payment_currencies
+            (item["key"], item["label"]) for item in payment_currencies
         ]
         self.fields["bank_transfer_currency"].choices = empty_select_choice + [
-            (item["key"], item["value"]) for item in payment_currencies
+            (item["key"], item["label"]) for item in payment_currencies
         ]
         self.fields["cash_beneficiary_relationship"].choices = empty_select_choice + [
-            (item["key"], item["value"]) for item in payment_beneficiarires
+            (item["key"], item["label"]) for item in payment_beneficiarires
         ]
         self.fields["bank_transfer_beneficiary_relationship"].choices = empty_select_choice + [
-            (item["key"], item["value"]) for item in payment_beneficiarires
+            (item["key"], item["label"]) for item in payment_beneficiarires
         ]
 
         if vessel:

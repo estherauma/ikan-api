@@ -233,7 +233,7 @@
                                     {% for deduction in payment.deductions %}
                                         <div class="row d-flex align-items-center items-row">
                                             <div class="col-5">
-                                                {% with lookup="key, "|add:deduction.name|add:" ,value" %}
+                                                {% with lookup="key, "|add:deduction.name|add:" ,label" %}
                                                     <p>{{ deductions_list|filter_and_get_value:lookup }}</p>
                                                 {% endwith %}
                                             </div>
