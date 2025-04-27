@@ -526,8 +526,14 @@
         });
 
         validateFormFields = () => {
+            // get formset initial data
+            const jsonFormsetData = '{{ json_formset_initial_values|safe }}';
+            const formsetData = JSON.parse(jsonFormsetData);
+            
             const forms = document.querySelectorAll('#form-row');
             forms.forEach((form, index) => {
+                const user = form.querySelector(`#id_form-${index}-user`);
+                const paymentDate = form.querySelector(`#id_form-${index}-payment_date`);
                 const totalUsdAmountReceived = form.querySelector(`#id_form-${index}-total_usd_amount_received`);
                 const startDate = form.querySelector(`#id_form-${index}-start_date`);
                 const endDate = form.querySelector(`#id_form-${index}-end_date`);
@@ -556,6 +562,59 @@
                 //         field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
                 //     });
                 // }
+
+                // pre-populate form
+                user?.addEventListener("change", function () {
+                    if (user.value) {
+                        const formData = formsetData.find(data => data.user_id === user.value);
+                        if (formData) {
+                            // TODO: totalUsdAmountReceived to be calculated from monthly_wage and selected period
+                            // totalUsdAmountReceived.value = formData.total_usd_amount_received;
+                            // paymentDate.value = formData.payment_date;
+                        }
+
+                        // Use previously entered start and end dates
+                        const startDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-start_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (startDates.length > 0) {
+                            // use start date entered in previous form
+                            startDate.value = startDates[startDates.length - 1].toISOString().split('T')[0];
+                        }
+                        const endDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-end_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (endDates.length > 0) {
+                            // use end date entered in previous form
+                            endDate.value = endDates[endDates.length - 1].toISOString().split('T')[0];
+                        }
+                        const paymentDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-payment_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (paymentDates.length > 0) {
+                            // use payment date entered in previous form
+                            paymentDate.value = paymentDates[paymentDates.length - 1].toISOString().split('T')[0];
+                        } else {
+                            // use payment date entered in current form
+                            paymentDate.value = new Date().toISOString().split('T')[0];
+                        }
+                    } else {
+                        // reset previously populated fields
+                        paymentDate.value = '';
+                        totalUsdAmountReceived.value = '';
+                        startDate.value = '';
+                        endDate.value = '';
+                    }
+                });
 
                 // clear end date error
                 endDate?.addEventListener("change", function () {
@@ -629,7 +688,7 @@
                     }
                 });
                 
-                validateInitialRequiredCashFields = (cashAmount, cashCurrency, cashBeneficiaryRelationship) => {
+                const validateInitialRequiredCashFields = (cashAmount, cashCurrency, cashBeneficiaryRelationship) => {
                     if(cashAmount) {
                         cashAmount.required = true;
                         cashAmount.closest('.field').querySelector('.indicator').classList.remove("d-none");
@@ -647,7 +706,7 @@
                     }
                 }
                 
-                removeCashFieldsValidation = (
+                const removeCashFieldsValidation = (
                     cashAmount,
                     cashCurrency,
                     cashExchangeRate,
@@ -680,7 +739,16 @@
                     cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
                 }
 
-                validateInitialRequiredBankTransferFields = (
+                const resetCashFields = () => {
+                    cashAmount.value = '';
+                    cashCurrency.value = '';
+                    cashExchangeRate.value = '';
+                    cashBeneficiaryName.value = '';
+                    cashBeneficiaryRelationship.value = '';
+                    cashBeneficiaryContact.value = '';
+                }
+
+                const validateInitialRequiredBankTransferFields = (
                     bankTransferAmount,
                     bankTransferCurrency,
                     bankTransferBeneficiaryRelationship,
@@ -720,7 +788,7 @@
                     }
                 }
 
-                removeBankTransferFieldsValidation = (
+                const removeBankTransferFieldsValidation = (
                     bankTransferAmount,
                     bankTransferCurrency,
                     bankTransferExchangeRate,
@@ -767,6 +835,51 @@
                     bankAccountName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
                     bankAccountName.closest('.field').querySelector('.indicator').classList.add("d-none");
                 }
+
+                const resetBankTransferFields = () => {
+                    bankTransferAmount.value = '';
+                    bankTransferCurrency.value = '';
+                    bankTransferExchangeRate.value = '';
+                    bankTransferBeneficiaryName.value = '';
+                    bankTransferBeneficiaryRelationship.value = '';
+                    bankTransferBeneficiaryContact.value = '';
+                    bankName.value = '';
+                    bankAccountNumber.value = '';
+                    bankAccountName.value = '';
+                }
+
+                const prePopulateCashBeneficiaryFields = () => {
+                    const formData = formsetData.find(data => data.user_id === user.value);
+                    if (formData) {
+                        cashBeneficiaryName.value = formData.cash_beneficiary_name;
+                        cashBeneficiaryContact.value = formData.cash_beneficiary_contact;
+                    }
+                }
+
+                const resetCashBeneficiaryFields = () => {
+                    cashBeneficiaryName.value = '';
+                    cashBeneficiaryContact.value = '';
+                }
+
+                const prePopulateBankTransferBeneficiaryFields = () => {
+                    const formData = formsetData.find(data => data.user_id === user.value);
+                    if (formData) {
+                        bankTransferBeneficiaryName.value = formData.bank_transfer_beneficiary_name;
+                        bankTransferBeneficiaryContact.value = formData.bank_transfer_beneficiary_contact;
+                    }
+                }
+                const prePopulateBankTransferFields = () => {
+                    const formData = formsetData.find(data => data.user_id === user.value);
+                    if (formData) {
+                        bankName.value = formData.bank_name;
+                        bankAccountNumber.value = formData.bank_account_number;
+                        bankAccountName.value = formData.bank_account_name;
+                    }
+                }
+                const resetBankTransferBeneficiaryFields = () => {
+                    bankTransferBeneficiaryName.value = '';
+                    bankTransferBeneficiaryContact.value = '';
+                }
                 
                 paymentMethod?.addEventListener("change", function () {
                     if (paymentMethod.value) {
@@ -787,6 +900,7 @@
                                 bankAccountNumber,
                                 bankAccountName
                             );
+                            resetBankTransferFields();
                         } else if (paymentMethod.value === "bank_transfer") {
                             validateInitialRequiredBankTransferFields(
                                 bankTransferAmount,
@@ -804,6 +918,8 @@
                                 cashBeneficiaryRelationship,
                                 cashBeneficiaryContact,
                             );
+                            resetCashFields();
+                            prePopulateBankTransferFields();
                         } else if (paymentMethod.value === "both") {
                             validateInitialRequiredCashFields(
                                 cashAmount,
@@ -840,6 +956,8 @@
                             bankAccountNumber,
                             bankAccountName
                         );
+                        resetBankTransferFields();
+                        resetCashFields();
                     }
                 });
 
@@ -864,6 +982,8 @@
                         cashBeneficiaryContact.required = true;
                         cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
                         cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+
+                        prePopulateCashBeneficiaryFields();
                     } else {
                         cashBeneficiaryName.required = false;
                         cashBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
@@ -872,6 +992,8 @@
                         cashBeneficiaryContact.required = false;
                         cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
                         cashBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                        resetCashBeneficiaryFields();
                     }
                 });
             
@@ -896,6 +1018,8 @@
                         bankTransferBeneficiaryContact.required = true;
                         bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
                         bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+
+                        prePopulateBankTransferBeneficiaryFields();
                     } else {
                         bankTransferBeneficiaryName.required = false;
                         bankTransferBeneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
@@ -904,6 +1028,8 @@
                         bankTransferBeneficiaryContact.required = false;
                         bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
                         bankTransferBeneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+
+                        resetBankTransferBeneficiaryFields();
                     }
                 });
             
@@ -913,17 +1039,8 @@
         
         validateFormFields();
 
-        const deductions = [
-            {"key": "", "label": "請選擇項目 Please select item"},
-            {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
-            {"key": "cigarettes", "label": "香菸 Cigarettes"},
-            {"key": "toiletries", "label": "浴室用品 Toiletries"},
-            {"key": "food_and_or_drinks", "label": "食物和/或飲料 Food and/or Drinks"},
-            {"key": "medicine", "label": "藥物 Medicine"},
-            {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用 Wifi and/or Phone calls"},
-            {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資 Loans and/or wage advances"},
-            {"key": "other", "label": "其他 Other"},
-        ];
+        const jsonDeductionsList = '{{ json_deductions_list|safe|escapejs }}';
+        const deductions = JSON.parse(jsonDeductionsList);
         let currentRow = null;
 
         window.openDeductionModal = function openDeductionModal(button) {
@@ -952,7 +1069,7 @@
             div.classList.add("deduction-entry");
             div.style.marginBottom = "10px";
             div.innerHTML = `<select name="name" id="name" class="name-field" required>
-                                ${generateDeductionOptions()}
+                                ${generateDeductionOptions(name)}
                             </select>
                             <input type="number" placeholder="Amount" value="${amount}" class="amount-field">
                             <select name="currency" id="currency" class="currency-field">
@@ -994,6 +1111,7 @@
                             value="${item.key}" \
                             class="${item.key === "" ? "placeholder" : ""}" \
                             ${item.key === "" ? "disabled selected" : ""} \
+                            ${item.key === selectedValue ? "selected" : ""} \
                         >${item.label}</option>`;
             }).join("");
         }

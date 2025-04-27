@@ -2,6 +2,7 @@ from contracts.models import ContractClause
 import json
 from django.db.models import Q
 from accounts.models import User
+from django.utils.timezone import now
 
 
 currencies_map = {
@@ -81,63 +82,63 @@ beneficiaries_map = {
 }
 
 payment_categories = [
-    {"key": "wages", "value": "薪資 Wages"},
-    {"key": "bonus", "value": "獎金 Bonus"},
+    {"key": "wages", "label": "薪資 Wages"},
+    {"key": "bonus", "label": "獎金 Bonus"},
 ]
 
 payment_methods = [
-    {"key": "bank_transfer", "value": "匯款 Bank Transfer"},
-    {"key": "cash", "value": "現金 Cash"},
-    {"key": "both", "value": "現金和匯款 Cash and Bank transfer"},
+    {"key": "bank_transfer", "label": "匯款 Bank Transfer"},
+    {"key": "cash", "label": "現金 Cash"},
+    {"key": "both", "label": "現金和匯款 Cash and Bank transfer"},
 ]
 
 payment_currencies = [
-    {"key": "USD", "value": "US Dollar"},
-    {"key": "TWD", "value": "新台幣 Taiwan New Dollars"},
-    {"key": "MUR", "value": "毛里求斯盧比 Mauritian Rupee"},
-    {"key": "IDR", "value": "印尼盾/盧比 Indonesian Rupiah"},
-    {"key": "SBD", "value": "索羅門群島元 Solomon Islands Dollar"},
+    {"key": "USD", "label": "US Dollar"},
+    {"key": "TWD", "label": "新台幣 Taiwan New Dollars"},
+    {"key": "MUR", "label": "毛里求斯盧比 Mauritian Rupee"},
+    {"key": "IDR", "label": "印尼盾/盧比 Indonesian Rupiah"},
+    {"key": "SBD", "label": "索羅門群島元 Solomon Islands Dollar"},
 ]
 
 payment_beneficiarires = [
-    {"key": "self", "value": "船員自己 Crew member himself"},
-    {"key": "family_or_friend", "value": "家人/朋友 Family/friend"},
+    {"key": "self", "label": "船員自己 Crew member himself"},
+    {"key": "family_or_friend", "label": "家人/朋友 Family/friend"},
 ]
 
 deductions_list = [
-    {"key": "", "value": "請選擇項目 Please select item"},
-    {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目 Deductions allowed under employment contract"},
-    {"key": "cigarettes", "value": "香菸 Cigarettes"},
-    {"key": "toiletries", "value": "浴室用品 Toiletries"},
-    {"key": "food_and_or_drinks", "value": "食物和/或飲料 Food and/or Drinks"},
-    {"key": "medicine", "value": "藥物 Medicine"},
-    {"key": "wifi_or_phone_calls", "value": "無線上網和/或電話費用 Wifi and/or Phone calls"},
-    {"key": "loans_or_wage_advances", "value": "借貸和/或預支薪資 Loans and/or wage advances"},
-    {"key": "other", "value": "其他 Other"},
+    {"key": "", "label": "請選擇項目 Please select item"},
+    {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
+    {"key": "cigarettes", "label": "香菸 Cigarettes"},
+    {"key": "toiletries", "label": "浴室用品 Toiletries"},
+    {"key": "food_and_or_drinks", "label": "食物和/或飲料 Food and/or Drinks"},
+    {"key": "medicine", "label": "藥物 Medicine"},
+    {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用 Wifi and/or Phone calls"},
+    {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資 Loans and/or wage advances"},
+    {"key": "other", "label": "其他 Other"},
 ]
 
 deductions_list_chinese = [
-    {"key": "", "value": "請選擇項目"},
-    {"key": "deductions_allowed_under_employment_contract", "value": "契約允許的扣除項目"},
-    {"key": "cigarettes", "value": "香菸"},
-    {"key": "toiletries", "value": "浴室用品"},
-    {"key": "food_and_or_drinks", "value": "食物和/或飲料"},
-    {"key": "medicine", "value": "藥物"},
-    {"key": "wifi_or_phone_calls", "value": "無線上網和/或電話費用"},
-    {"key": "loans_or_wage_advances", "value": "借貸和/或預支薪資"},
-    {"key": "other", "value": "其他"},
+    {"key": "", "label": "請選擇項目"},
+    {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目"},
+    {"key": "cigarettes", "label": "香菸"},
+    {"key": "toiletries", "label": "浴室用品"},
+    {"key": "food_and_or_drinks", "label": "食物和/或飲料"},
+    {"key": "medicine", "label": "藥物"},
+    {"key": "wifi_or_phone_calls", "label": "無線上網和/或電話費用"},
+    {"key": "loans_or_wage_advances", "label": "借貸和/或預支薪資"},
+    {"key": "other", "label": "其他"},
 ]
 
 deductions_list_bahasa = [
-    {"key": "", "value": ""},
-    {"key": "deductions_allowed_under_employment_contract", "value": "Potongan yang diizinkan dalam kontrak kerja"},
-    {"key": "cigarettes", "value": "Rokok"},
-    {"key": "toiletries", "value": "Peralatan mandi"},
-    {"key": "food_and_or_drinks", "value": "Makanan dan Minuman"},
-    {"key": "medicine", "value": "Obat-obatan"},
-    {"key": "wifi_or_phone_calls", "value": "Wifi dan Telepon"},
-    {"key": "loans_or_wage_advances", "value": "Pinjaman dan uang muka gaji"},
-    {"key": "other", "value": "lain-lain"},
+    {"key": "", "label": ""},
+    {"key": "deductions_allowed_under_employment_contract", "label": "Potongan yang diizinkan dalam kontrak kerja"},
+    {"key": "cigarettes", "label": "Rokok"},
+    {"key": "toiletries", "label": "Peralatan mandi"},
+    {"key": "food_and_or_drinks", "label": "Makanan dan Minuman"},
+    {"key": "medicine", "label": "Obat-obatan"},
+    {"key": "wifi_or_phone_calls", "label": "Wifi dan Telepon"},
+    {"key": "loans_or_wage_advances", "label": "Pinjaman dan uang muka gaji"},
+    {"key": "other", "label": "lain-lain"},
 ]
 
 # These are the fields displayed in the form
@@ -261,3 +262,66 @@ def get_workers_on_vessel(vessel):
             Q(user_contract_access__contract__in=contracts_with_vessel)
         ).distinct()
     return workers_on_vessel
+
+
+def get_formset_initial_values(vessel):
+    initial_data = []
+
+    workers_on_vessel = get_workers_on_vessel(vessel)
+    for worker in workers_on_vessel:
+        worker_initial_data = {
+            "user": str(worker),
+            "user_id": worker.id,
+            "payment_date": str(now().date()),
+            "payment_category": None,
+            "start_date": None,
+            "end_date": None,
+            "total_usd_amount_received": None,
+            "payment_method": None,
+            "cash_amount": None,
+            "cash_currency": None,
+            "cash_exchange_rate": None,
+            "cash_beneficiary_relationship": None,
+            "cash_beneficiary_name": None,
+            "cash_beneficiary_contact": None,
+            "bank_transfer_amount": None,
+            "bank_transfer_currency": None,
+            "bank_transfer_exchange_rate": None,
+            "bank_account_name": None,
+            "bank_account_number": None,
+            "bank_name": None,
+            "bank_transfer_beneficiary_relationship": None,
+            "bank_transfer_beneficiary_name": None,
+            "bank_transfer_beneficiary_contact": None,
+            "monthly_wage": None,  # to be used to calculate wages for entered work period
+        }
+        worker_contract_clauses = ContractClause.objects.filter(contract__contract_user_access__user=worker)
+
+        wage_benefits_clause = None
+        has_wage_benefits_clause = worker_contract_clauses.filter(kind="contract-clauses-wage-benefits").exists()
+        if has_wage_benefits_clause:
+            wage_benefits_clause = worker_contract_clauses.filter(kind="contract-clauses-wage-benefits").first()
+            wage_benefits = json.loads(wage_benefits_clause.content)
+            worker_initial_data["monthly_wage"] = wage_benefits.get("monthlyWage")
+            # TODO: get add cash and bank transfer amounts and beneficiary details when
+            # implemented (data is captured when creating clause).
+
+        attachments_clause = None
+        has_attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").exists()
+        if has_attachments_clause:
+            attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").first()
+            attachments_content = json.loads(attachments_clause.content)
+            # is_crew_account = attachments_content.get("isCrewMemberAccount")
+
+            worker_initial_data["bank_account_name"] = attachments_content.get("accountName", None)
+            worker_initial_data["bank_account_number"] = attachments_content.get("accountNumber", None)
+            worker_initial_data["bank_name"] = attachments_content.get("bankName", None)
+            worker_initial_data["cash_beneficiary_name"] = attachments_content.get("beneficiaryName", None)
+            worker_initial_data["cash_beneficiary_contact"] = attachments_content.get("relativePhoneNumber", None)
+            worker_initial_data["bank_transfer_beneficiary_name"] = attachments_content.get("beneficiaryName", None)
+            worker_initial_data["bank_transfer_beneficiary_contact"] = attachments_content.get("relativePhoneNumber", None)
+
+        # add worker_initial_data to initial_data
+        initial_data.append(worker_initial_data)
+
+    return initial_data
