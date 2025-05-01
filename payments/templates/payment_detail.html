@@ -6,7 +6,10 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row d-flex justify-content-center">
-        <div class="col-12 col-sm-10 col-md-8">
+        <div class="col-12 m-3 d-flex justify-content-end">
+            <button class="print-btn" onclick="printSection('print-section')">Print</button>
+        </div>
+        <div id="print-section" class="col-12 col-sm-10 col-md-8">
             <div class="card">
                 <div class="card-header bg-light text-dark">
                     <h3 class="card-title text-center">
@@ -274,5 +277,27 @@
             margin: 7px 0;
         }
     }
+    .print-btn {
+        background: #3565FF;
+        color: white;
+        width: 150px;
+        padding: 7px;
+        border: none;
+        border-radius: 20px;
+        font-size: 1rem;
+    }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function printSection(sectionId) {
+        const printContents = document.getElementById(sectionId).innerHTML;
+        const originalContents = document.body.innerHTML;
+
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
+</script>
 {% endblock %}
