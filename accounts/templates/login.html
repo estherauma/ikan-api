@@ -23,12 +23,13 @@
                                     </span>
                                 </a>
                             </div>
-                            <p class="text-muted mb-4 mt-3">Enter your email address and password to your account.</p>
+                            <p class="text-muted mb-4 mt-3">Enter your email address (or phone number) and password to your account.</p>
                         </div>
 
                         <form action="/account/login" method="POST">
                             {% csrf_token %}
-                            <div class="mb-3">
+                            {{ form.as_p }}
+                            <!-- <div class="mb-3">
                                 <label for="emailaddress" class="form-label">Email address</label>
                                 <input class="form-control" type="email" id="email" name="email" required="" placeholder="Enter your email">
                             </div>
@@ -41,7 +42,7 @@
                                         <span class="password-eye"></span>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="text-center d-grid">
                                 <button class="btn btn-primary" type="submit"> Log In </button>
                             </div>
@@ -65,4 +66,11 @@
     </div>
     <!-- end container -->
 </div>
+
+<style>
+    .form-control {
+        margin-bottom: 20px;
+        min-height: 45px;
+    }
+</style>
 {% endblock %}
