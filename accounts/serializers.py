@@ -7,7 +7,8 @@ from common.twilio import OTPVerification
 
 class LoginSerializer(serializers.Serializer):
     '''Login user serializer '''
-    email = serializers.CharField(required=True, write_only=True)
+    email = serializers.CharField(required=False, write_only=True)
+    phone_number = serializers.CharField(required=False, write_only=True)
     password = serializers.CharField(required=True, write_only=True)
     token = serializers.CharField(read_only=True)
 
