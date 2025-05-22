@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from notifications.models import Notification
+from django.db.models import Q
 
 
 import random
@@ -40,7 +41,7 @@ class LoginView(APIView):
 
     def post(self, request):
         """
-            Log in a user using their email and password.
+            Log in a user using their email or phone number and password.
 
             :param request: The HTTP request object.
             :type request: HttpRequest
@@ -71,8 +72,30 @@ class LoginView(APIView):
         is_first_login = False
 
         email = data.get('email')
+        phone_number = data.get('phone_number')
         password = data.get('password')
-        user = User.objects.filter(email=email).first()
+
+        user = None
+        if email is not None:
+            if User.objects.filter(email=email).exists():
+                user = User.objects.get(email=email)
+        elif phone_number is not None:
+            # check if user exists with either telephone or mobile
+            # number and get the first one
+            if User.objects.filter(Q(telephone=phone_number) | Q(mobile=phone_number)).exists():
+                user = User.objects.get(
+                            Q(telephone=phone_number) | Q(mobile=phone_number)
+                        )
+                # check if the phone number is verified
+                if (user.telephone == phone_number and not user.is_telephone_verified) or\
+                        (user.mobile == phone_number and not user.is_mobile_verified):
+                    raise AuthenticationFailed("Your phone number is not verified. Please verify it before logging in. OR log in with email.")
+        else:
+            return Response({
+                'status': 'FAIL',
+                'message': 'Email or phone number is required'
+            }, status.HTTP_400_BAD_REQUEST)
+
         if user:
             if user.is_active:
                 if user.check_password(password):
