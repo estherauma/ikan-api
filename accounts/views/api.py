@@ -3,7 +3,8 @@ from accounts.serializers import (
     LoginSerializer, RegisterSerializer,
     PasswordResetCheckTokenSerializer,
     PasswordResetSerializer, UserBeneficiarySerializer, UserProfileSerializer,
-    UserSerializer, UserBankDetailsSerializer
+    UserSerializer, UserBankDetailsSerializer,
+    OTPGenerateSerializer, OTPVerifySerializer
 )
 
 from common.email import TunaEmailHelper, EmailTemplate
@@ -24,6 +25,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from notifications.models import Notification
+from django.db.models import Q
 
 
 import random
@@ -38,7 +41,7 @@ class LoginView(APIView):
 
     def post(self, request):
         """
-            Log in a user using their email and password.
+            Log in a user using their email or phone number and password.
 
             :param request: The HTTP request object.
             :type request: HttpRequest
@@ -69,8 +72,30 @@ class LoginView(APIView):
         is_first_login = False
 
         email = data.get('email')
+        phone_number = data.get('phone_number')
         password = data.get('password')
-        user = User.objects.filter(email=email).first()
+
+        user = None
+        if email is not None:
+            if User.objects.filter(email=email).exists():
+                user = User.objects.get(email=email)
+        elif phone_number is not None:
+            # check if user exists with either telephone or mobile
+            # number and get the first one
+            if User.objects.filter(Q(telephone=phone_number) | Q(mobile=phone_number)).exists():
+                user = User.objects.get(
+                            Q(telephone=phone_number) | Q(mobile=phone_number)
+                        )
+                # check if the phone number is verified
+                if (user.telephone == phone_number and not user.is_telephone_verified) or\
+                        (user.mobile == phone_number and not user.is_mobile_verified):
+                    raise AuthenticationFailed("Your phone number is not verified. Please verify it before logging in. OR log in with email.")
+        else:
+            return Response({
+                'status': 'FAIL',
+                'message': 'Email or phone number is required'
+            }, status.HTTP_400_BAD_REQUEST)
+
         if user:
             if user.is_active:
                 if user.check_password(password):
@@ -821,3 +846,66 @@ class UserBeneficiariesApiView(APIView):
                     'data': [],
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetOTP(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = OTPGenerateSerializer(data=request.data)
+
+        if serializer.is_valid():
+            resp = serializer.start_otp_process()
+            if resp == 'pending':
+                num_type = serializer.validated_data['type']
+                user = User.objects.get(
+                    id=serializer.validated_data['user_id'])
+                if num_type is None or num_type == 'mobile':
+                    user.mobile = serializer.validated_data['phone_number']
+                elif num_type == 'telephone':
+                    user.telephone = serializer.validated_data['phone_number']
+                user.save()
+                return Response({"status": resp}, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": 'error',
+                    "error": resp.get('error')
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class VerifyOTP(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = OTPVerifySerializer(data=request.data)
+        if serializer.is_valid():
+            resp = serializer.verify_otp()
+            if resp == 'approved':
+                num_type = serializer.validated_data['type']
+                user = User.objects.get(
+                    id=serializer.validated_data['user_id'])
+
+                if num_type == "mobile" or num_type is None:
+                    user.is_mobile_verified = True
+                    message = 'Your mobile phone number has been verified successfully.'
+                elif num_type == "telephone":
+                    user.is_telephone_verified = True
+                    message = 'Your telephone number has been verified successfully.'
+                user.is_verified = True
+                user.is_active = True
+                user.save()
+                # TODO: Create notification
+                # Notification.objects.create(
+                #     user=user,
+                #     title='Verification sucess',
+                #     message=message,
+                #     status='unread'
+                # )
+                return Response({"status": resp}, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": 'error',
+                    "error": resp.get('error')
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
