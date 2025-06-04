@@ -2,19 +2,176 @@
 {% load static %}
 
 {% block content %}
-    <div class="container-fluid>">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <table id="contracts-table" class="table table-striped dt-responsive nowrap w-100">
-                        </table>
+    <div class="content-wrapper">
+        <div class="row mt-1">
+            <div class="col">
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li
+                        {% if message.tags %}
+                            class="alert alert-{{ message.tags }}"
+                        {% endif %}
+                    >
+                        {{ message }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if loggedin_user.is_vessel_owner %}
+            <div class="row action-buttons mb-1">
+                <div class="row">
+                    <div class="col">
+                        <button
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#add-contract-modal"
+                            class="btn btn-info btn-large waves-effect waves-light add-btn"
+                        >
+                            <i class="mdi mdi-plus"></i>
+                            New contract
+                        </button>
+                        <!-- Add contract modal -->
+                        <div
+                            id="add-contract-modal"
+                            class="modal fade"
+                            tabindex="-1"
+                            role="dialog"
+                            aria-hidden="true"
+                        >
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header row m-0">
+                                        <div class="col col-10 text-center">
+                                            <h4 class="modal-title">Create contract</h4>
+                                        </div>
+                                        <div class="col col-2 d-flex justify-content-center">
+                                            <button
+                                                type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close"
+                                            ></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <form
+                                            action="{% url 'contracts-web:new-contract' %}"
+                                            method="POST"
+                                            enctype="multipart/form-data"
+                                        >
+                                            {% csrf_token %}
+                                            
+                                            {% for field in new_contract_form %}
+                                            <div class="mb-3">
+                                                <label for="{{ field.id_for_label }}" class="form-label">
+                                                {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                </label>
+                                                {{ field }}
+                                                {{ field.errors }}
+                                            </div>
+                                            {% endfor %}
+
+                                            {% if new_contract_form.errors %}
+                                                <div class="alert alert-danger">{{ new_contract_form.errors }}</div>
+                                            {% endif %}
+                                            <div class="mb-3 mt-3 text-center">
+                                                <button
+                                                    id="contract-submit-btn"
+                                                    class="btn btn-primary contract-submit-btn"
+                                                    type="submit"
+                                                >
+                                                    Save contract
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
+            {% if not contracts %}
+                <div class="row m-3">
+                    <div class="col">
+                        <p>No contracts added.</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <table id="contracts-table" class="table table-striped dt-responsive nowrap w-100">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+<style>
+    .content {
+        background: #eaedf6;
+        .content-wrapper {
+            padding: 20px 0;
+
+            .add-btn {
+                float: right;
+                background: #3565ff;
+                border: none;
+                border-radius: 20px;
+                padding: 7px 20px;
+            }
+
+            .form-label {
+                font-size: 1rem;
+            }
+            .form-control {
+                background: #eaedf6;
+                color: #191970;
+                border: none;
+                border-radius: 10px;
+                font-size: 1rem;
+                min-height: 45px;
+                box-shadow: none;
+                &:focus {
+                    box-shadow: none;
+                    border-color: #3565ff;
+                }
+            }
+
+            .modal-content {
+                border-radius: 20px;
+                background: white;
+
+                .modal-title {
+                    font-size: 1.3rem;
+                    color: #3565ff;
+                }
+                .contract-submit-btn {
+                    background: #3565ff;
+                    color: white;
+                    border-radius: 20px;
+                    padding: 7px 20px;
+                    font-size: 1rem;
+                    border: none;
+                    &:hover {
+                        background: #2c4bbf;
+                    }
+                }
+            }
+
+        }
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
