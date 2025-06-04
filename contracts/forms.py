@@ -28,8 +28,8 @@ class ContractAccessForm(forms.ModelForm):
 
 
 class AddContractForm(forms.ModelForm):
-    taiwanese_company = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control'}))
-    indonesian_company = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control'}))
+    taiwanese_company = forms.ChoiceField(required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    indonesian_company = forms.ChoiceField(required=False, widget=forms.Select(attrs={'class': 'form-control'}))
     contract_signature = forms.FileField(required=True, widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     class Meta:
