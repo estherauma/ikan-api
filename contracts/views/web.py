@@ -7,16 +7,33 @@ from django.views import View
 from django.views import generic
 from django.views.generic import CreateView
 from accounts.models import User
-from contracts.forms import ContractAccessForm
+from contracts.forms import ContractAccessForm, AddContractForm
 from contracts.models import Contract, UserContractAccess
 import json
 from common.utils import get_clause_order
 from django.contrib import messages
+from django.db.models import Q
 
 
 class ContractsView(LoginRequiredMixin, View):
+    def get_context_data(self, **kwargs):
+        context = kwargs
+        user = self.request.user
+        if user.is_superuser:
+            contracts = Contract.objects.all()
+        else:
+            contracts = Contract.objects.filter(
+                Q(created_by=user.id) |
+                Q(contract_user_access__user=user.id)
+            ).distinct()
+        context['contracts'] = contracts
+        context['new_contract_form'] = AddContractForm(user=user)
+
+        return context
+
     def get(self, request):
-        return render(request, 'contracts/list.html')
+        context = self.get_context_data()
+        return render(request, 'contracts/list.html', context)
 
 
 class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
@@ -108,3 +125,9 @@ class ContractAccessView(CreateView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
+
+
+class AddContractView(LoginRequiredMixin, View):
+    def get(self, request):
+        form = AddContractForm(user=request.user)
+        return render(request, 'contracts/list.html', {'new_contract_form': form})
