@@ -8,11 +8,13 @@ from django.views import generic
 from django.views.generic import CreateView
 from accounts.models import User
 from contracts.forms import ContractAccessForm, AddContractForm
-from contracts.models import Contract, UserContractAccess
+from contracts.models import Contract, UserContractAccess, ContractDocument
 import json
 from common.utils import get_clause_order
 from django.contrib import messages
 from django.db.models import Q
+from common.utils import generate_uuid
+import os
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -128,6 +130,55 @@ class ContractAccessView(CreateView):
 
 
 class AddContractView(LoginRequiredMixin, View):
+    def get_context_data(self, **kwargs):
+        context = kwargs
+        user = self.request.user
+        if user.is_superuser:
+            contracts = Contract.objects.all()
+        else:
+            contracts = Contract.objects.filter(
+                Q(created_by=user.id) |
+                Q(contract_user_access__user=user.id)
+            ).distinct()
+        context['contracts'] = contracts
+        context['new_contract_form'] = AddContractForm(user=user)
+        return context
+
     def get(self, request):
-        form = AddContractForm(user=request.user)
-        return render(request, 'contracts/list.html', {'new_contract_form': form})
+        context = self.get_context_data()
+        return render(request, 'contracts/list.html', context)
+
+    def post(self, request):
+        form = AddContractForm(data=request.POST, files=request.FILES, user=request.user)
+        if form.is_valid():
+            contract = form.save(commit=False)
+            contract.taiwanese_company = form.cleaned_data['taiwanese_company'] if form.cleaned_data['taiwanese_company'] else None
+            contract.indonesian_company = form.cleaned_data['indonesian_company'] if form.cleaned_data['indonesian_company'] else None
+            contract.created_by = request.user.id
+            contract.updated_by = request.user.id
+            contract.app_ref = generate_uuid()
+            contract.save()
+
+            if 'contract_signature' in request.FILES:
+                if not os.path.exists('uploads/contracts'):
+                    os.makedirs('uploads/contracts')
+
+                file_name = request.FILES['contract_signature'].name
+                file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
+                with open(file_path, 'wb+') as destination:
+                    for chunk in request.FILES['contract_signature'].chunks():
+                        destination.write(chunk)
+
+                contract_document = ContractDocument.objects.create(
+                    contract=contract,
+                    url=file_path,
+                    name=file_name,
+                    created_by=request.user.id,
+                    updated_by=request.user.id,
+                )
+                contract_document.save()
+            messages.success(request, 'Contract created successfully')
+            return render(request, 'contracts/list.html', self.get_context_data())
+        else:
+            messages.error(request, 'Error creating contract')
+            return render(request, 'contracts/list.html', self.get_context_data())
