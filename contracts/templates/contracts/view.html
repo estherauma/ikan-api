@@ -53,7 +53,7 @@
             <div class="card">
                 <div class="card-header bg-light text-dark d-flex align-items-center">
                     <h5 class="card-title">Access</h5>
-                    <a href="access" class="btn btn-primary ms-auto add-btn">Add Access</a>
+                    <a href="access" class="btn btn-primary ms-auto ikan-primary-button">Add Access</a>
                 </div>
                 <div class="card-body table">
                     <div class="table-responsive">
@@ -81,6 +81,69 @@
             <div class="card clauses-wrapper">
                 <div class="card-header d-flex w-100 justify-content-between align-items-center">
                     <h5 class="fw-bold fs-3">Clauses</h5>
+
+                    {% if clauses_to_be_added %}
+                        <button
+                            type="button"
+                            class="btn btn-primary ikan-primary-button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#select-clause-modal"
+                        >
+                            <i class="mdi mdi-plus"></i>
+                            Add new clause
+                        </button>
+                    {% endif %}
+                    <div
+                        id="select-clause-modal"
+                        class="modal fade"
+                        tabindex="-1"
+                        role="dialog"
+                        aria-hidden="true"
+                    >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header row m-0">
+                                    <div class="col col-10 text-center">
+                                        <h4 class="modal-title">Select clause to add</h4>
+                                    </div>
+                                    <div class="col col-2 d-flex justify-content-center">
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close"
+                                        ></button>
+                                    </div>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="list-group">
+                                        {% for clause in clauses_to_be_added %}
+                                            <div
+                                                class="select-clause-item w-100 d-flex align-items-center"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#add-clause-modal"
+                                                data-clause-index="{{ forloop.counter }}"
+                                                data-clause-name="{{ clause.name }}"
+                                                data-clause-kind="{{ clause.kind }}"
+                                            >
+                                                <i class="mdi mdi-plus"></i>
+                                                <div>
+                                                {{ clause.name | upper }}
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                        <div class="w-100 d-flex align-items-center">
+                                            <p>All clauses </p>
+                                            All clauses have been added to this contract. 
+                                            <p></p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="accordion" id="clauseAccordion">
@@ -124,6 +187,65 @@
             </div>
         </div>
     </div>
+
+    <!-- Create clause modal -->
+    <div
+        id="add-clause-modal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header row m-0">
+                    <div class="col col-10 text-center">
+                        <h4 class="modal-title">Add clause: {{ clause.name }}</h4>
+                    </div>
+                    <div class="col col-2 d-flex justify-content-center">
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                </div>
+
+                <div class="modal-body">
+                    <form
+                        action="{% url 'contracts-web:contract-details' contract.id %}"
+                        method="POST"
+                        enctype="multipart/form-data"
+                    >
+                        {% csrf_token %}
+                        {% for field in clause_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                        {% endfor %}
+
+                        {% if clause_form.errors %}
+                            <div class="alert alert-danger">{{ clause_form.errors }}</div>
+                        {% endif %}
+                        <div class="mb-3 mt-3 text-center">
+                            <button
+                                id="clause-submit-btn"
+                                class="btn btn-primary clause-submit-btn ikan-primary-button"
+                                type="submit"
+                            >
+                                Save clause
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -131,14 +253,6 @@
         background: #eaedf6;
         .contract-wrapper {
             padding: 20px 0;
-            .add-btn {
-                background: #3565ff;
-                color: white;
-                border-radius: 30px;
-                padding: 7px 20px;
-                font-size: 1rem;
-                border: none;
-            }
             .clauses-wrapper {
                 background: #d3daee;
                 .card-header {
@@ -184,6 +298,36 @@
                                     color: #191970;
                                     font-size: 0.9rem;
                                 }
+                            }
+                        }
+                    }
+                }
+                #select-clause-modal {
+                    .modal-title {
+                        color: #191970;
+                        font-weight: bold;
+                        font-size: 1.3rem;
+                    }
+                    .list-group {
+                        margin: 10px 25px;
+                        .select-clause-item {
+                            background: #d3daee;
+                            margin-bottom: 20px;
+                            border-radius: 10px;
+                            padding: 10px;
+                            color: #191970;
+                            min-height: 60px;
+                            &:hover {
+                                background: #3565ff;
+                                color: white;
+                                i {
+                                    color: white;
+                                }
+                            }
+                            i {
+                                color: #3565ff;
+                                margin-right: 20px;
+                                font-size: 1.2rem;
                             }
                         }
                     }
