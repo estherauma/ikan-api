@@ -10,12 +10,12 @@ from accounts.models import User
 from contracts.forms import ContractAccessForm, AddContractForm
 from contracts.models import Contract, UserContractAccess, ContractDocument
 import json
-from common.utils import get_clause_order
 from django.contrib import messages
 from django.db.models import Q
 from common.utils import generate_uuid
 import os
 from contracts.utils import generate_static_contract_clauses
+from contracts.utils import get_clause_order
 
 
 class ContractsView(LoginRequiredMixin, View):
