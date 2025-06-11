@@ -5,52 +5,52 @@
 <div class="contract-wrapper">
     <div class="row">
         <div class="col-md-4">
-            <div class="card">
+            <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
-                    <h5 class="card-title">{{contract.name}}</h5>
+                    <h5 class="card-title">Contract Details</h5>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">App Ref</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">Contract name</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.name}}</p>
                         </div>
-                        <p class="mb-1">{{contract.app_ref}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Start Date</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">Start Date</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.start_date}}</p>
                         </div>
-                        <p class="mb-1">{{contract.start_date}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">End Date</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">End Date</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.end_date}}</p>
                         </div>
-                        <p class="mb-1">{{contract.end_date}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Description</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">Description</h5>
+                            <p class="mt-0 mb-2 detail-value">{%if contract.description %} contract.description  {%else%} None {%endif%}</p>
                         </div>
-                        <p class="mb-1">{{contract.description}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Taiwanese Company</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">Taiwanese Company</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.taiwanese_company}}</p>
                         </div>
-                        <p class="mb-1">{{contract.City}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Indonesian Company</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">Indonesian Company</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.indonesian_company}}</p>
                         </div>
-                        <p class="mb-1">{{contract.indonesian_company}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Kind</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">Kind</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.kind}}</p>
                         </div>
-                        <p class="mb-1">{{contract.kind}}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Contract access -->
-            <div class="card">
+            <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark d-flex align-items-center">
                     <h5 class="card-title">Access</h5>
                     <a href="access" class="btn btn-primary ms-auto ikan-primary-button">Add Access</a>
@@ -61,7 +61,7 @@
                             <tbody>
                                 {% for user in access_users %}
                                     <tr>
-                                        <td>{{ user }}</td>
+                                        <td class="ikan-dark-blue-100">{{ user }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -78,8 +78,8 @@
         </div>
 
         <div class="col-md-8">
-            <div class="card clauses-wrapper">
-                <div class="card-header d-flex w-100 justify-content-between align-items-center">
+            <div class="card section-wrapper">
+                <div class="card-header  bg-light text-dark d-flex w-100 justify-content-between align-items-center">
                     <h5 class="fw-bold fs-3">Clauses</h5>
 
                     {% if clauses_to_be_added %}
@@ -163,7 +163,7 @@
                                         {% for key, value in clause.content.items %}
                                             {% if value %}
                                                 <div class="d-flex w-100 justify-content-between">
-                                                <!-- <h5 class="mb-1">{{key}}</h5> -->
+                                                <h5 class="mb-1">{{key}}</h5>
                                                 </div>
                                                 <p class="mb-1">{{value }}</p>
                                             {% endif %}
@@ -177,7 +177,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
                     <h5 class="card-ttile">Documents</h5>
                 </div>
@@ -253,15 +253,27 @@
         background: #eaedf6;
         .contract-wrapper {
             padding: 20px 0;
-            .clauses-wrapper {
+            .section-wrapper {
                 background: #d3daee;
                 .card-header {
                     background: #d3daee;
                     h5 {
                         color: #3565ff;
+                        font-weight: bold;
+                        font-size: 1.3rem;
                     }
                 }
                 .card-body {
+                    .detail-name {
+                        color: black;
+                        font-weight:400;
+                        font-size: 1rem;
+                    }
+                    .detail-value {
+                        color: #191970;
+                        font-size: 1rem;
+                        font-weight: 500;
+                    }
                     .accordion {
                         border-radius: 20px;
                         .accordion-item {
