@@ -47,7 +47,7 @@ def generate_static_contract_clauses(request, contract):
             contract=contract,
             name=page_title,
             kind=value,
-            content=json.dumps(clause_data),
+            content=json.dumps({}),
             created_by=request.user.id,
             updated_by=request.user.id,
         )
