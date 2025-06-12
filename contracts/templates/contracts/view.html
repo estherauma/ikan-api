@@ -149,7 +149,7 @@
                             <div class="item-btn d-flex w-100 justify-content-between" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
                                 <div>
-                                {{clause.name}}
+                                {{ clause.name | upper}}
                                 </div>
                                 <i class="mdi mdi-chevron-down fs-3"></i>
                             </div>
@@ -243,6 +243,10 @@
                                         Save clause
                                     </button>
                                 </div>
+                                
+                                <!-- Hidden input to identify the clause kind form -->
+                                <input type="hidden" name="clause_kind" value="{{ clause.kind }}">
+                                <input type="hidden" name="page_title" value="{{ clause.name }}"> 
                             </form>
                         </div>
                     </div>
