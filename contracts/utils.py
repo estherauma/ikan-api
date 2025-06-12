@@ -27,7 +27,6 @@ def get_clause_order(clause_kind):
 
 def generate_static_contract_clauses(request, contract):
     prismic_utils = PrismicUtils(request)
-    prismic_utils.get_content()
     clause_mapping = {
         'article_3': 'contract-clauses-accident-medical-and-life-insurance',
         'article_4': 'contract-clauses-transportation-severance-food-accomodation',
@@ -52,3 +51,38 @@ def generate_static_contract_clauses(request, contract):
             updated_by=request.user.id,
         )
         clause.save()
+
+
+def get_clauses_to_be_added(request, contract):
+    prismic_utils = PrismicUtils(request)
+    clauses = contract.contract_clause.all()
+    clauses_to_be_added = []
+
+    existing_clause_kinds = {clause.kind for clause in clauses}
+    required_clause_kinds = clause_order.keys()
+    missing_clause_kinds = set(required_clause_kinds) - existing_clause_kinds
+    missing_clause_kinds = sorted(missing_clause_kinds, key=lambda x: get_clause_order(x))
+    for kind in missing_clause_kinds:
+        form_questions = prismic_utils.get_form_questions(kind)
+        # get clause form
+        Form = prismic_utils.create_form(kind)
+        form = Form()
+
+        # TODO: translate name when language switching is implemented
+        if kind == 'contract-clauses-parties-requirement-vessel':
+            name = 'Parties to this contract - Party A'
+        elif kind == 'contract-clauses-parties-requirement-fishers':
+            name = 'Parties to this contract - Party B'
+        else:
+            clause_data = prismic_utils.get_content_by_property_name(f'{kind}-content')
+            name = clause_data['pageTitle'] if clause_data else kind.replace('-', ' ')
+
+        clause_details = {
+            'kind': kind,
+            'name': name,
+            'form': form,
+            'form_questions': form_questions,
+        }
+
+        clauses_to_be_added.append(clause_details)
+    return clauses_to_be_added

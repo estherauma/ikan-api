@@ -15,7 +15,7 @@ from django.db.models import Q
 from common.utils import generate_uuid
 import os
 from contracts.utils import generate_static_contract_clauses
-from contracts.utils import get_clause_order, clause_order
+from contracts.utils import get_clause_order, clause_order, get_clauses_to_be_added
 from prismic.utils import PrismicUtils
 
 
@@ -92,25 +92,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             item.content = json.loads(item.content)
 
         clauses = sorted(context['clauses'], key=lambda x: x.order)
-        clauses_to_be_added = []
-        existing_clause_kinds = {clause.kind for clause in clauses}
-        required_clause_kinds = clause_order.keys()
-        missing_clause_kinds = set(required_clause_kinds) - existing_clause_kinds
-        missing_clause_kinds = sorted(missing_clause_kinds, key=lambda x: get_clause_order(x))
-        for kind in missing_clause_kinds:
-            # TODO: translate when language switching is implemented
-            if kind == 'contract-clauses-parties-requirement-vessel':
-                name = 'Parties to this contract - Party A'
-            elif kind == 'contract-clauses-parties-requirement-fishers':
-                name = 'Parties to this contract - Party B'
-            else:
-                clause_data = prismic_utils.get_content_by_property_name(f'{kind}-content')
-                name = clause_data['pageTitle'] if clause_data else kind.replace('-', ' ')
-            clause_details = {
-                'kind': kind,
-                'name': name,
-            }
-            clauses_to_be_added.append(clause_details)
+        clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
 
         context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
