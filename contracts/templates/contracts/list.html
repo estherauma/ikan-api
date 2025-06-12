@@ -29,7 +29,7 @@
                             type="button"
                             data-bs-toggle="modal"
                             data-bs-target="#add-contract-modal"
-                            class="btn btn-info btn-large waves-effect waves-light add-btn"
+                            class="btn btn-info btn-large waves-effect waves-light ikan-primary-button add-btn"
                         >
                             <i class="mdi mdi-plus"></i>
                             New contract
@@ -63,6 +63,7 @@
                                             action="{% url 'contracts-web:contracts' %}"
                                             method="POST"
                                             enctype="multipart/form-data"
+                                            class="ikan-form"
                                         >
                                             {% csrf_token %}
                                             
@@ -82,7 +83,7 @@
                                             <div class="mb-3 mt-3 text-center">
                                                 <button
                                                     id="contract-submit-btn"
-                                                    class="btn btn-primary contract-submit-btn"
+                                                    class="btn btn-primary ikan-primary-button"
                                                     type="submit"
                                                 >
                                                     Save contract
@@ -125,27 +126,6 @@
 
             .add-btn {
                 float: right;
-                background: #3565ff;
-                border: none;
-                border-radius: 20px;
-                padding: 7px 20px;
-            }
-
-            .form-label {
-                font-size: 1rem;
-            }
-            .form-control {
-                background: #eaedf6;
-                color: #191970;
-                border: none;
-                border-radius: 10px;
-                font-size: 1rem;
-                min-height: 45px;
-                box-shadow: none;
-                &:focus {
-                    box-shadow: none;
-                    border-color: #3565ff;
-                }
             }
 
             .modal-content {
@@ -155,17 +135,6 @@
                 .modal-title {
                     font-size: 1.3rem;
                     color: #3565ff;
-                }
-                .contract-submit-btn {
-                    background: #3565ff;
-                    color: white;
-                    border-radius: 20px;
-                    padding: 7px 20px;
-                    font-size: 1rem;
-                    border: none;
-                    &:hover {
-                        background: #2c4bbf;
-                    }
                 }
             }
 
