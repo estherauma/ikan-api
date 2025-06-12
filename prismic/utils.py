@@ -29,11 +29,10 @@ class PrismicUtils:
             return page_data['form_questions']
         return None
 
-    def create_form(self, property_name):
+    def create_form(self, form_questions):
         class Form(forms.Form):
             pass
 
-        form_questions = self.get_form_questions(property_name)
         for question in form_questions:
             if not question.get('displayquestion', True):
                 continue  # Skip questions that are not to be displayed
@@ -65,7 +64,8 @@ class PrismicUtils:
                     label=label,
                     required=required,
                     help_text=help_text,
-                    choices=[(option['value'], option['label']) for option in options],
+                    # TODO: add translation for placeholder when langiage switching is implemented
+                    choices=[('', 'Select option')]+[(option['value'], option['label']) for option in options],
                     widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
             elif field_type == 'multiple-select' or field_type == 'multi-select':
@@ -73,7 +73,8 @@ class PrismicUtils:
                     label=label,
                     required=required,
                     help_text=help_text,
-                    choices=[(option['value'], option['label']) for option in options],
+                    # TODO: add translation for placeholder when langiage switching is implemented
+                    choices=[('', 'Select options')]+[(option['value'], option['label']) for option in options],
                     widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
             elif field_type == 'tel' or field_type == 'telephone':
