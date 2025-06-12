@@ -2,6 +2,7 @@ from common.utils import generate_uuid
 import json
 from contracts.models import ContractClause
 from prismic.utils import PrismicUtils
+from vessels.models import Vessel
 
 
 clause_order = {
@@ -64,8 +65,19 @@ def get_clauses_to_be_added(request, contract):
     missing_clause_kinds = sorted(missing_clause_kinds, key=lambda x: get_clause_order(x))
     for kind in missing_clause_kinds:
         form_questions = prismic_utils.get_form_questions(kind)
+        for question in form_questions:
+            if kind == 'contract-clauses-parties-requirement-fishers' and question['key'] == 'vessel':
+                vessels = Vessel.objects.filter(created_by=request.user.id).values('app_ref', 'name')
+                question['options'] = [{'value': v['app_ref'], 'label': v['name']} for v in vessels]
+            # elif kind == 'contract-clauses-contract-validity':
+            #     if question['key'] == 'validityStartDate' and contract.start_date:
+            #         question['value'] = contract.start_date.strftime('%d/%m/%Y')
+            #     elif question['key'] == 'validityEndDate' and contract.end_date:
+            #         question['value'] = contract.end_date.strftime('%d/%m/%Y')
+            #         question['placeholder'] = 'dd/mm/yyyy'
+
         # get clause form
-        Form = prismic_utils.create_form(kind)
+        Form = prismic_utils.create_form(form_questions)
         form = Form()
 
         # TODO: translate name when language switching is implemented
