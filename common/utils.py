@@ -6,6 +6,7 @@ from common.email import TunaEmailHelper, EmailTemplate
 from rest_framework.response import Response
 from rest_framework import status
 import uuid
+from datetime import datetime
 
 
 def write_json_to_file(file_name, data, mode='w'):
@@ -82,3 +83,16 @@ def get_user_from_get_request(request):
 def generate_uuid():
     random_uuid = str(uuid.uuid4())
     return random_uuid
+
+
+def format_local_date(date, current_language='en-us'):
+    if not date:
+        return date
+
+    format_str = '%d %b %Y'
+
+    if current_language == 'qm-zh':
+        format_str = '%Y年%m月%d日'
+
+    date = date if isinstance(date, datetime) else datetime.strptime(date, '%Y-%m-%d')
+    return date.strftime(format_str)
