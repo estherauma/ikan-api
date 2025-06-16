@@ -5,6 +5,7 @@
 <div class="contract-wrapper">
     <div class="row">
         <div class="col-md-4">
+            <!-- Contract details -->
             <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
                     <h5 class="card-title">Contract Details</h5>
@@ -78,6 +79,7 @@
         </div>
 
         <div class="col-md-8">
+            <!-- Contract clauses -->
             <div class="card section-wrapper">
                 <div class="card-header  bg-light text-dark d-flex w-100 justify-content-between align-items-center">
                     <h5 class="fw-bold fs-3">Clauses</h5>
@@ -156,15 +158,9 @@
                             
                             <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
                                 <div class="accordion-body">
-                                   {% if clause.content %}
-                                        {% for key, value in clause.content.items %}
-                                            {% if value %}
-                                                <div class="d-flex w-100 justify-content-between">
-                                                <h5 class="mb-1">{{key}}</h5>
-                                                </div>
-                                                <p class="mb-1">{{value }}</p>
-                                            {% endif %}
-                                        {% endfor %}
+                                    {% if clause.html_content %}
+                                        <!-- TODO: add edit clause btn here -->
+                                        <div>{{ clause.html_content|safe }}</div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -174,6 +170,7 @@
                 </div>
             </div>
 
+            <!-- Contract Documents -->
             <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
                     <h5 class="card-ttile">Documents</h5>
@@ -305,19 +302,9 @@
                             border-bottom: 1px solid #191970;
                         }
                         .accordion-collapse {
-                            border: 1px solid #191970;
-                            border-radius: 5px;
-                            background: white;
+                            border-top: 1px solid rgb(248, 243, 243);
                             .accordion-body {
-                                padding: 20px;
-                                h5 {
-                                    color: #191970;
-                                    font-size: 1rem;
-                                }
-                                p {
-                                    color: #191970;
-                                    font-size: 0.9rem;
-                                }
+                                padding-bottom: 30px;
                             }
                         }
                     }
