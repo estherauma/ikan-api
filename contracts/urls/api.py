@@ -6,7 +6,7 @@ from contracts.views.api import ContractClauseListView, ContractListView, Contra
 app_name = 'contracts'
 
 urlpatterns = [
-    path('contracts', ContractListView.as_view(), name='contract-list'),
+    path('contracts/', ContractListView.as_view(), name='contract-list'),
     path('contracts/<str:id>', ContractDetailsView.as_view(), name='contract-detail'),
     path('contracts-clauses', ContractClauseListView.as_view(), name='contract-clause-list'),
     path('contracts-clauses/<str:id>', ContractClauseDetailsView.as_view(), name='contract-clause-detail'),
