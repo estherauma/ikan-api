@@ -23,6 +23,7 @@ from contracts.utils import (
 )
 from prismic.utils import PrismicUtils
 import datetime
+from companies.models import Company
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -92,6 +93,18 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         self.object = self.get_object()
         context = super().get_context_data(**kwargs)
         context['clauses'] = self.object.contract_clause.all()
+        if self.object.taiwanese_company:
+            taiwan_company = Company.objects.filter(
+                id=self.object.taiwanese_company
+            ).first()
+            if taiwan_company:
+                self.object.taiwanese_company = taiwan_company.name
+        if self.object.indonesian_company:
+            indonesian_company = Company.objects.filter(
+                id=self.object.indonesian_company
+            ).first()
+            if indonesian_company:
+                self.object.indonesian_company = indonesian_company.name
 
         for item in context['clauses']:
             item.order = item.order if item.order else get_clause_order(item.kind)
