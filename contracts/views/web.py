@@ -18,7 +18,8 @@ from contracts.utils import (
     generate_static_contract_clauses,
     get_clause_order,
     get_clauses_to_be_added,
-    get_clause_form_questions
+    get_clause_form_questions,
+    get_clause_html_content,
 )
 from prismic.utils import PrismicUtils
 import datetime
@@ -95,6 +96,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         for item in context['clauses']:
             item.order = item.order if item.order else get_clause_order(item.kind)
             item.content = json.loads(item.content)
+            item.html_content = get_clause_html_content(request=self.request, clause=item)
 
         clauses = sorted(context['clauses'], key=lambda x: x.order)
         clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
