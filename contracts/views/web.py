@@ -91,12 +91,17 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         self.object = self.get_object()
         context = super().get_context_data(**kwargs)
-        context['clauses'] = self.object.contract_clause.all()
+        context['clauses'] = self.object.contract_clause.all().exclude(
+            kind='contract-clauses-parties-requirement-fishers'  # party B is excluded since it's displayed with party A
+        )
 
         for item in context['clauses']:
             item.order = item.order if item.order else get_clause_order(item.kind)
             item.content = json.loads(item.content)
             item.html_content = get_clause_html_content(request=self.request, clause=item)
+            if item.kind == 'contract-clauses-parties-requirement-vessel':
+                # TODO: translate
+                item.name = 'Parties to this Contract'
 
         clauses = sorted(context['clauses'], key=lambda x: x.order)
         clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
