@@ -54,6 +54,26 @@ def generate_static_contract_clauses(request, contract):
         clause.save()
 
 
+def get_clause_form_questions(request, clause_kind):
+    prismic_utils = PrismicUtils(request)
+    form_questions = prismic_utils.get_form_questions(clause_kind)
+    if not form_questions:
+        return None
+
+    for question in form_questions:
+        if clause_kind == 'contract-clauses-parties-requirement-fishers' and question['key'] == 'vessel':
+            vessels = Vessel.objects.filter(created_by=request.user.id).values('app_ref', 'name')
+            question['options'] = [{'value': v['app_ref'], 'label': v['name']} for v in vessels]
+        # elif clause_kind == 'contract-clauses-contract-validity':
+        #     if question['key'] == 'validityStartDate' and contract.start_date:
+        #         question['value'] = contract.start_date.strftime('%d/%m/%Y')
+        #     elif question['key'] == 'validityEndDate' and contract.end_date:
+        #         question['value'] = contract.end_date.strftime('%d/%m/%Y')
+        #         question['placeholder'] = 'dd/mm/yyyy'
+
+    return form_questions
+
+
 def get_clauses_to_be_added(request, contract):
     prismic_utils = PrismicUtils(request)
     clauses = contract.contract_clause.all()
@@ -64,18 +84,7 @@ def get_clauses_to_be_added(request, contract):
     missing_clause_kinds = set(required_clause_kinds) - existing_clause_kinds
     missing_clause_kinds = sorted(missing_clause_kinds, key=lambda x: get_clause_order(x))
     for kind in missing_clause_kinds:
-        form_questions = prismic_utils.get_form_questions(kind)
-        for question in form_questions:
-            if kind == 'contract-clauses-parties-requirement-fishers' and question['key'] == 'vessel':
-                vessels = Vessel.objects.filter(created_by=request.user.id).values('app_ref', 'name')
-                question['options'] = [{'value': v['app_ref'], 'label': v['name']} for v in vessels]
-            # elif kind == 'contract-clauses-contract-validity':
-            #     if question['key'] == 'validityStartDate' and contract.start_date:
-            #         question['value'] = contract.start_date.strftime('%d/%m/%Y')
-            #     elif question['key'] == 'validityEndDate' and contract.end_date:
-            #         question['value'] = contract.end_date.strftime('%d/%m/%Y')
-            #         question['placeholder'] = 'dd/mm/yyyy'
-
+        form_questions = get_clause_form_questions(request, kind)
         # get clause form
         Form = prismic_utils.create_form(form_questions)
         form = Form()
