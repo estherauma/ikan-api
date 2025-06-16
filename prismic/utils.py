@@ -140,3 +140,26 @@ class PrismicUtils:
             Form.base_fields[key] = field
 
         return Form
+
+    def get_question_options(self, property_name, question_key):
+        """
+        Get the options for a specific question based on the property name and question key.
+        """
+        form_questions = self.get_form_questions(property_name)
+        if form_questions:
+            question = next((q for q in form_questions if q['key'] == question_key), None)
+            return question['options'] if question['options'] else None
+        return None
+
+    def get_question_option_translation(self, property_name, question_key, option_value):
+        """
+        Get the translated value for a form option based on the property name and question key.
+        """
+        options = self.get_question_options(property_name, question_key)
+        if not options:
+            return option_value  # Return the original value if no options found
+
+        option = next((opt for opt in options if opt['value'] == option_value), None)
+        if option:
+            return option.get('label', option_value)
+        return option['label'] if option['label'] else option_value
