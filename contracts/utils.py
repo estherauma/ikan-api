@@ -3,6 +3,7 @@ import json
 from contracts.models import ContractClause
 from prismic.utils import PrismicUtils
 from vessels.models import Vessel
+from common.utils import format_local_date
 
 
 clause_order = {
@@ -107,3 +108,130 @@ def get_clauses_to_be_added(request, contract):
 
         clauses_to_be_added.append(clause_details)
     return clauses_to_be_added
+
+
+def get_clause_html_content(request, clause):
+    prismic_utils = PrismicUtils(request)
+    property_name = f'{clause.kind}-content'
+    if clause.kind == 'contract-clauses-parties-requirement-vessel':
+        property_name = 'contract-clauses-parties-to-this-contract-content'
+    page_data = prismic_utils.get_content_by_property_name(property_name)
+    page_content = page_data['pageContent'] if page_data and page_data['pageContent'] else None
+    page_text_array = page_content[0]['description'] if page_content and page_content[0]['description'] else []
+    text_html = ''
+
+    for index, item in enumerate(page_text_array):
+        #  add spacing between items
+        if item['paragraph'].startswith('{{') and item['paragraph'].endswith('}}'):
+            text_html += '<br/>'
+            text_html += item['paragraph']
+        else:
+            text_html += '<br/><br/>'
+            text_html += item['paragraph']
+
+    # replace placeholders with values
+    form_values = order_clause_data(request, clause.kind, clause.content)
+    html_content = fill_placeholders(text_html, form_values)
+
+    return html_content
+
+
+def order_clause_data(request, clause_type, data):
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            return data
+    if clause_type == 'contract-clauses-parties-requirement-vessel':
+        return order_clause_one_data(request, clause_type, data)
+    else:
+        return order_other_clauses(request, clause_type, data)
+
+
+def order_clause_one_data(request, clause_type, data):
+    result = {}
+    # TODO: remove after all old records are synced
+    # This is a fix for old records that have different keys for rep details
+    data = {
+        **data,
+        'representative': data['representative'] if data['representative'] else data.get('respresentative', None),
+        'repAddress': data['repAddress'] if data['repAddress'] else data.get('address', None),
+        'repTelephone': data['repTelephone'] if data['repTelephone'] else data.get('tel', None),
+    }
+    # End of fix
+
+    for key, value in data.items():
+        formatted_value = format_clause_values(request, clause_type, key, value)
+        result[key] = formatted_value
+
+    # clause one has two entries, so we need to add the second entry from partyB details
+    if 'party_b_clause_id' in data and data['party_b_clause_id']:
+        party_b_clause_details = ContractClause.objects.filter(id=data['party_b_clause_id']).first()
+        if party_b_clause_details:
+            party_b_content = json.loads(party_b_clause_details.content) if party_b_clause_details.content else {}
+
+            # TODO: remove after all old records are synced/updated
+            # This is a fix for old records that have different keys for crew details
+            party_b_content = {
+                **party_b_content,
+                'crewAddress': party_b_content.get('crewAddress', party_b_content.get('address', None)),
+                'crewTelephone': party_b_content.get('crewTelephone', party_b_content.get('telephone', None)),
+            }
+            # End of fix
+
+            for key, value in party_b_content.items():
+                formatted_value = format_clause_values(request, clause_type, key, value)
+                result[key] = formatted_value
+
+            vessel_app_ref = party_b_content.get('vessel')
+            if vessel_app_ref:
+                vessel = Vessel.objects.filter(app_ref=vessel_app_ref).values('name', 'reg_no').first()
+                if vessel:
+                    result['vesselName'] = vessel['name']
+                    result['vesselRegNo'] = vessel['reg_no']
+    return result
+
+
+def order_other_clauses(request, clause_type, data):
+    if 'paymentFrequencyDetails' not in data:
+        data.pop('paymentFrequencyDetails', None)
+
+    result = {}
+    for key, value in data.items():
+        formatted_value = format_clause_values(request, clause_type, key, value)
+        result[key] = formatted_value
+    return result
+
+
+def format_clause_values(request, clause_type, key, value):
+    prismic_utils = PrismicUtils(request)
+    if not value or not key:
+        return value
+
+    if 'date' in key.lower():
+        # TODO: Implement localization for date formatting when language switching is available
+        # return format_local_date(value, selected_language)
+        return format_local_date(value, 'en-us')  # Default to 'en-us' for now
+    elif key in ['partyASignature', 'partyBSignature']:
+        return f'<img class="image" src="{value}" alt="image">'
+    elif clause_type == 'contract-clauses-parties-to-this-contract-content' and key == 'vessel':
+        vessel = Vessel.objects.filter(app_ref=value).values('name').first()
+        return vessel['name'] if vessel else None
+    elif clause_type == 'contract-clauses-parties-to-this-contract-content' and key == 'crewMemberRole':
+        return prismic_utils.get_question_option_translation('contract-clauses-parties-requirement-fishers', key, value)
+    elif clause_type == 'contract-clauses-wage-benefits-content' and key in ['paymentFrequency', 'paymentMethod']:
+        return prismic_utils.get_question_option_translation('contract-clauses-wage-benefits', key, value)
+    elif clause_type == 'contract-clauses-attachments-content' and key == 'isCrewMemberAccount':
+        return prismic_utils.get_question_option_translation('contract-clauses-attachments', key, value)
+
+    return value
+
+
+def fill_placeholders(input_string, placeholder_values):
+    result = input_string
+    for key, value in placeholder_values.items():
+        placeholder = f'{{{{{key}}}}}'
+        if not isinstance(value, str):
+            value = str(value)
+        result = result.replace(placeholder, value)
+    return result
