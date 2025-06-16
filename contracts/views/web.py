@@ -8,15 +8,20 @@ from django.views import generic
 from django.views.generic import CreateView
 from accounts.models import User
 from contracts.forms import ContractAccessForm, AddContractForm
-from contracts.models import Contract, UserContractAccess, ContractDocument
+from contracts.models import Contract, UserContractAccess, ContractDocument, ContractClause
 import json
 from django.contrib import messages
 from django.db.models import Q
 from common.utils import generate_uuid
 import os
-from contracts.utils import generate_static_contract_clauses
-from contracts.utils import get_clause_order, clause_order, get_clauses_to_be_added
+from contracts.utils import (
+    generate_static_contract_clauses,
+    get_clause_order,
+    get_clauses_to_be_added,
+    get_clause_form_questions
+)
 from prismic.utils import PrismicUtils
+import datetime
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -83,8 +88,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
     template_name = 'contracts/view.html'
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        self.object = self.get_object()
         context = super().get_context_data(**kwargs)
-        prismic_utils = PrismicUtils(self.request)
         context['clauses'] = self.object.contract_clause.all()
 
         for item in context['clauses']:
@@ -111,6 +116,40 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         users_set.add(User.objects.get(pk=self.object.created_by))
 
         return users_set
+
+    def post(self, request, *args, **kwargs):
+        prismic_utils = PrismicUtils(request)
+        contract = self.get_object()
+
+        clause_kind = request.POST.get('clause_kind')
+        page_title = request.POST.get('page_title')
+        form_questions = get_clause_form_questions(request, clause_kind)
+        Form = prismic_utils.create_form(form_questions)
+        form = Form(request.POST, request.FILES)
+        if form.is_valid():
+            clause_data = {
+                key: value.isoformat() if isinstance(value, datetime.date) else value
+                for key, value in form.cleaned_data.items()
+            }
+
+            clause = ContractClause.objects.create(
+                app_ref=generate_uuid(),
+                contract=contract,
+                name=page_title,
+                kind=clause_kind,
+                content=json.dumps(clause_data),
+                created_by=request.user.id,
+                updated_by=request.user.id,
+            )
+            clause.save()
+
+            messages.success(request, 'Clause added successfully')
+            return redirect('contracts-web:contract-details', pk=contract.id)
+        else:
+            # TODO: continue displaying form if invalid
+            messages.error(request, 'Error adding clause')
+            context = self.get_context_data()
+            return render(request, self.template_name, context)
 
 
 class ContractsDataView(LoginRequiredMixin, View):
