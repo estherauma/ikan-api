@@ -91,6 +91,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         self.object = self.get_object()
+        user = self.request.user
         context = super().get_context_data(**kwargs)
         context['clauses'] = self.object.contract_clause.all()
         if self.object.taiwanese_company:
@@ -98,13 +99,13 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 id=self.object.taiwanese_company
             ).first()
             if taiwan_company:
-                self.object.taiwanese_company = taiwan_company.name
+                self.object.taiwanese_company_name = taiwan_company.name
         if self.object.indonesian_company:
             indonesian_company = Company.objects.filter(
                 id=self.object.indonesian_company
             ).first()
             if indonesian_company:
-                self.object.indonesian_company = indonesian_company.name
+                self.object.indonesian_company_name = indonesian_company.name
 
         for item in context['clauses']:
             item.order = item.order if item.order else get_clause_order(item.kind)
@@ -135,6 +136,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
+        context['new_contract_form'] = AddContractForm(user=user, instance=self.object)
         return context
 
     def get_access_users(self):
