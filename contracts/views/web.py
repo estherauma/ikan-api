@@ -128,10 +128,11 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         clauses = sorted(context['clauses'], key=lambda x: x.order)
         clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
 
-        # exclude party B clause since it's displayed with party A
-        context['clauses'] = clauses.remove(
-            next((clause for clause in clauses if clause.kind == 'contract-clauses-parties-requirement-fishers'), None)
-        ) or clauses
+        # Remove party B clause since it's displayed with party A
+        if any(obj.kind == 'contract-clauses-parties-requirement-fishers' for obj in clauses):
+            clauses = [clause for clause in clauses if clause.kind != 'contract-clauses-parties-requirement-fishers']
+
+        context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
         return context
