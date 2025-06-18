@@ -45,7 +45,7 @@
 
                                     <div class="modal-body">
                                         <form
-                                            action="{% url 'contracts-web:contracts %}"
+                                            action="{% url 'contracts-web:contract-details' contract.id %}"
                                             method="POST"
                                             enctype="multipart/form-data"
                                             class="ikan-form"
