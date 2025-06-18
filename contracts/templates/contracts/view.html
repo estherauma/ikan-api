@@ -45,7 +45,7 @@
 
                                     <div class="modal-body">
                                         <form
-                                            action="{% url 'contracts-web:contracts' %}"
+                                            action="{% url 'contracts-web:contracts %}"
                                             method="POST"
                                             enctype="multipart/form-data"
                                             class="ikan-form"
@@ -116,6 +116,18 @@
                         <div>
                             <h5 class="mb-1 detail-name">Kind</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.kind}}</p>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 detail-name">Contract Signature</h5>
+                            <p class="mt-0 mb-2 detail-value">
+                                {% if contract.contract_signature_url %}
+                                    <div class="text-center" style="margin: 10px auto;">
+                                        <img src="/{{ contract.contract_signature_url }}" alt="Contract Signature" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                    </div>
+                                {% else %}
+                                    No signature uploaded
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                 </div>
