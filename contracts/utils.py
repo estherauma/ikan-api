@@ -154,9 +154,9 @@ def order_clause_one_data(request, clause_type, data):
     # This is a fix for old records that have different keys for rep details
     data = {
         **data,
-        'representative': data['representative'] if data['representative'] else data.get('respresentative', None),
-        'repAddress': data['repAddress'] if data['repAddress'] else data.get('address', None),
-        'repTelephone': data['repTelephone'] if data['repTelephone'] else data.get('tel', None),
+        'representative': data.get('representative', data.get('respresentative', None)),
+        'repAddress': data.get('repAddress', data.get('address', None)),
+        'repTelephone': data.get('repTelephone', data.get('tel', None)),
     }
     # End of fix
 

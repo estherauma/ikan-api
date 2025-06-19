@@ -50,8 +50,6 @@ class ContractsView(LoginRequiredMixin, View):
         form = AddContractForm(data=request.POST, files=request.FILES, user=request.user)
         if form.is_valid():
             contract = form.save(commit=False)
-            contract.taiwanese_company = form.cleaned_data['taiwanese_company'] if form.cleaned_data['taiwanese_company'] else None
-            contract.indonesian_company = form.cleaned_data['indonesian_company'] if form.cleaned_data['indonesian_company'] else None
             contract.created_by = request.user.id
             contract.updated_by = request.user.id
             contract.app_ref = generate_uuid()
@@ -91,6 +89,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         self.object = self.get_object()
+        user = self.request.user
         context = super().get_context_data(**kwargs)
         context['clauses'] = self.object.contract_clause.all()
         if self.object.taiwanese_company:
@@ -98,13 +97,13 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 id=self.object.taiwanese_company
             ).first()
             if taiwan_company:
-                self.object.taiwanese_company = taiwan_company.name
+                self.object.taiwanese_company_name = taiwan_company.name
         if self.object.indonesian_company:
             indonesian_company = Company.objects.filter(
                 id=self.object.indonesian_company
             ).first()
             if indonesian_company:
-                self.object.indonesian_company = indonesian_company.name
+                self.object.indonesian_company_name = indonesian_company.name
 
         for item in context['clauses']:
             item.order = item.order if item.order else get_clause_order(item.kind)
@@ -128,12 +127,20 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         clauses = sorted(context['clauses'], key=lambda x: x.order)
         clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
 
-        # exclude party B clause since it's displayed with party A
-        context['clauses'] = clauses.remove(
-            next((clause for clause in clauses if clause.kind == 'contract-clauses-parties-requirement-fishers'), None)
-        ) or clauses
+        # Remove party B clause since it's displayed with party A
+        if any(obj.kind == 'contract-clauses-parties-requirement-fishers' for obj in clauses):
+            clauses = [clause for clause in clauses if clause.kind != 'contract-clauses-parties-requirement-fishers']
+
+        context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
+        contract_signature = self.object.contract_document.first() if self.object.contract_document.exists() else None
+        if contract_signature:
+            self.object.contract_signature_url = contract_signature.url  # for the contract detail view
+        initial_data = {
+            'contract_signature': contract_signature.url if contract_signature else None,  # for the form
+        }
+        context['new_contract_form'] = AddContractForm(user=user, instance=self.object, initial=initial_data)
         return context
 
     def get_access_users(self):
@@ -150,38 +157,84 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         return users_set
 
     def post(self, request, *args, **kwargs):
-        prismic_utils = PrismicUtils(request)
-        contract = self.get_object()
+        """
+        Handles update of contract details and addition of clauses.
+        """
+        contract_id = request.POST.get('contract_id')
+        if contract_id:  # CONTRACT UPDATE
+            contract = self.get_object()
+            form = AddContractForm(request.POST, request.FILES, instance=contract, initial={}, user=request.user)
+            if form.is_valid():
+                contract = form.save(commit=False)
+                contract.updated_by = request.user.id
+                contract.save()
 
-        clause_kind = request.POST.get('clause_kind')
-        page_title = request.POST.get('page_title')
-        form_questions = get_clause_form_questions(request, clause_kind)
-        Form = prismic_utils.create_form(form_questions)
-        form = Form(request.POST, request.FILES)
-        if form.is_valid():
-            clause_data = {
-                key: value.isoformat() if isinstance(value, datetime.date) else value
-                for key, value in form.cleaned_data.items()
-            }
+                if 'contract_signature' in request.FILES:
+                    if not os.path.exists('uploads/contracts'):
+                        os.makedirs('uploads/contracts')
 
-            clause = ContractClause.objects.create(
-                app_ref=generate_uuid(),
-                contract=contract,
-                name=page_title,
-                kind=clause_kind,
-                content=json.dumps(clause_data),
-                created_by=request.user.id,
-                updated_by=request.user.id,
-            )
-            clause.save()
+                    file_name = request.FILES['contract_signature'].name
+                    file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
+                    with open(file_path, 'wb+') as destination:
+                        for chunk in request.FILES['contract_signature'].chunks():
+                            destination.write(chunk)
 
-            messages.success(request, 'Clause added successfully')
-            return redirect('contracts-web:contract-details', pk=contract.id)
-        else:
-            # TODO: continue displaying form if invalid
-            messages.error(request, 'Error adding clause')
-            context = self.get_context_data()
-            return render(request, self.template_name, context)
+                    if contract.contract_document.exists():
+                        # Update existing contract document
+                        contract_document = contract.contract_document.first()
+                        contract_document.url = file_path
+                        contract_document.name = file_name
+                        contract_document.updated_by = request.user.id
+                        contract_document.save()
+                    else:
+                        # Create new contract document
+                        contract_document = ContractDocument.objects.create(
+                            contract=contract,
+                            url=file_path,
+                            name=file_name,
+                            created_by=request.user.id,
+                            updated_by=request.user.id,
+                        )
+                        contract_document.save()
+
+                messages.success(request, 'Contract updated successfully')
+                return redirect('contracts-web:contract-details', pk=contract.id)
+            else:
+                messages.error(request, 'Error updating contract')
+                return redirect('contracts-web:contract-details', pk=contract.id)
+        else:  # CLAUSE ADDITION
+            prismic_utils = PrismicUtils(request)
+            contract = self.get_object()
+
+            clause_kind = request.POST.get('clause_kind')
+            page_title = request.POST.get('page_title')
+            form_questions = get_clause_form_questions(request, clause_kind)
+            Form = prismic_utils.create_form(form_questions)
+            form = Form(request.POST, request.FILES)
+            if form.is_valid():
+                clause_data = {
+                    key: value.isoformat() if isinstance(value, datetime.date) else value
+                    for key, value in form.cleaned_data.items()
+                }
+
+                clause = ContractClause.objects.create(
+                    app_ref=generate_uuid(),
+                    contract=contract,
+                    name=page_title,
+                    kind=clause_kind,
+                    content=json.dumps(clause_data),
+                    created_by=request.user.id,
+                    updated_by=request.user.id,
+                )
+                clause.save()
+
+                messages.success(request, 'Clause added successfully')
+                return redirect('contracts-web:contract-details', pk=contract.id)
+            else:
+                # TODO: continue displaying form if invalid
+                messages.error(request, 'Error adding clause')
+                context = self.get_context_data()
+                return render(request, self.template_name, context)
 
 
 class ContractsDataView(LoginRequiredMixin, View):

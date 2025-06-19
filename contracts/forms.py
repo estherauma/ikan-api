@@ -63,3 +63,7 @@ class AddContractForm(forms.ModelForm):
             if indonesian_companies.exists():
                 indonesian_choices += [(company.id, company.name) for company in indonesian_companies]
             self.fields['indonesian_company'].choices = indonesian_choices
+
+            # Make the file field optional when updating
+            if self.instance and self.instance.pk and self.instance.contract_document.exists():
+                self.fields['contract_signature'].required = False
