@@ -259,7 +259,7 @@
                                 <div class="accordion-body">
                                     {% if clause.html_content %}
                                         <!-- TODO: add edit clause btn here -->
-                                        <div>{{ clause.html_content|safe }}</div>
+                                        <div class="html-content">{{ clause.html_content|safe }}</div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -404,6 +404,14 @@
                             border-top: 1px solid rgb(248, 243, 243);
                             .accordion-body {
                                 padding-bottom: 30px;
+                                .html-content {
+                                    padding: 0 20px 40px 20px;
+                                    background: #eaedf6;
+                                    border-radius: 10px;
+                                    color: #191970;
+                                    font-size: 1rem;
+                                    line-height: 1.5;
+                                }
                             }
                         }
                     }
