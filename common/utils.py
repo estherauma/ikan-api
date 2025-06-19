@@ -94,5 +94,10 @@ def format_local_date(date, current_language='en-us'):
     if current_language == 'qm-zh':
         format_str = '%Y年%m月%d日'
 
-    date = date if isinstance(date, datetime) else datetime.strptime(date, '%Y-%m-%d')
+    if not isinstance(date, datetime):
+        try:
+            date = datetime.fromisoformat(date)
+        except ValueError:
+            date = datetime.strptime(date, '%Y-%m-%d')
+
     return date.strftime(format_str)
