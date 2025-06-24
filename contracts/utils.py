@@ -23,6 +23,27 @@ clause_order = {
 }
 
 
+static_clauses = [
+    'contract-clauses-accident-medical-and-life-insurance',
+    'contract-clauses-transportation-severance-food-accomodation',
+    'contract-clause-requirements-that-party-b-must-comply-with',
+    'contract-clauses-means-to-address-breach-of-contract',
+    'contract-clauses-dispute-settlement',
+    'contract-clauses-miscellaneous',
+]
+
+
+dynamic_clauses = [
+    'contract-clauses-parties-requirement-vessel',
+    'contract-clauses-parties-requirement-fishers',
+    'contract-clauses-contract-validity',
+    'contract-clauses-wage-benefits',
+    'contract-clauses-working-hours-rest-and-leave',
+    'contract-clauses-labor-protection-and-benefits',
+    'contract-clauses-attachments',
+]
+
+
 def get_clause_order(clause_kind):
     return clause_order[clause_kind] if clause_kind in clause_order else None
 

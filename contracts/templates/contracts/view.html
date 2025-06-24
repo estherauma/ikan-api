@@ -262,7 +262,7 @@
                                                 type="button"
                                                 class="btn btn-info btn-sm ikan-primary-button edit-btn"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#add-clause-modal-{{ forloop.counter }}"
+                                                data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
                                             >
                                                 <i class="mdi mdi-pencil"></i>
                                                 Edit
@@ -296,6 +296,7 @@
     </div>
 
     <!-- Create clause modals -->
+    <!-- We are not using these modals for editing because when a clause has already been created, it's create modal (generated from clauses_to_be_added) wouldn't exist -->
     {% if clauses_to_be_added %}
         {% for clause in clauses_to_be_added %}
             <div
@@ -364,6 +365,79 @@
             </div>
         {% endfor %}
     {% endif %}
+    
+    <!-- Edit clause modals -->
+    <!-- We are not using the create clause modals because if the clause is already added/created, the create modal for it doesn't exist -->
+    <!-- They are clauses already added to the contract -->
+    {% for clause in clauses %}
+        {% if loggedin_user.is_vessel_owner and clause.is_dynamic %}
+            <div
+                id="edit-clause-modal-{{ forloop.counter }}"
+                class="modal fade"
+                tabindex="-1"
+                role="dialog"
+                aria-hidden="true"
+            >
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header row m-0">
+                            <div class="col col-10 text-center">
+                                <h4 class="modal-title">{{ clause.name }}</h4>
+                            </div>
+                            <div class="col col-2 d-flex justify-content-center">
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                        </div>
+
+                        <div class="modal-body">
+                            <form
+                                action="{% url 'contracts-web:contract-details' contract.id %}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="ikan-form"
+                            >
+                                {% csrf_token %}
+                                
+                                {% for field in clause.form %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label">
+                                            {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        {{ field }}
+                                        {{ field.errors }}
+                                    </div>
+                                {% endfor %}
+
+                                {% if clause.form.errors %}
+                                    <div class="alert alert-danger">{{ clause.form.errors }}</div>
+                                {% endif %}
+                                
+                                <div class="mb-3 mt-3 text-center">
+                                    <button
+                                        id="clause-submit-btn"
+                                        class="btn btn-primary clause-submit-btn ikan-primary-button"
+                                        type="submit"
+                                    >
+                                        Save details
+                                    </button>
+                                </div>
+                                
+                                <!-- Hidden input to identify the clause kind form -->
+                                <input type="hidden" name="clause_kind" value="{{ clause.kind }}">
+                                <input type="hidden" name="page_title" value="{{ clause.name }}">
+                                <input type="hidden" name="is_editing_clause" value="{{ True }}">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}    
+    {% endfor %}
 </div>
 
 <style>

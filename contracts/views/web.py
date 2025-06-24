@@ -19,7 +19,9 @@ from contracts.utils import (
     get_clause_order,
     get_clauses_to_be_added,
     get_clause_form_questions,
+    get_clause_form,
     get_clause_html_content,
+    dynamic_clauses,
 )
 from prismic.utils import PrismicUtils
 import datetime
@@ -106,7 +108,10 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 self.object.indonesian_company_name = indonesian_company.name
 
         for item in context['clauses']:
+            # Get clause order. For ordering clauses properly when displaying
             item.order = item.order if item.order else get_clause_order(item.kind)
+
+            # Get clause text (html content) to be displayed
             item.content = json.loads(item.content)
             if item.kind == 'contract-clauses-parties-requirement-vessel':
                 # TODO: translate
@@ -121,10 +126,19 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         except json.JSONDecodeError:
                             item.content = {}
                     item.content = {**item.content, 'party_b_clause_id': party_b_clause_id}
-                    item.content = json.dumps(item.content)
             item.html_content = get_clause_html_content(request=self.request, clause=item)
 
+            # Check if clause is dynamic
+            item.is_dynamic = True if item.kind in dynamic_clauses else False
+
+            # Get clause form (for editing)
+            # Different from clauses_to_be_added, because these already exist in the contract
+            if item.is_dynamic:
+                item.form = get_clause_form(self.request, item.kind, item.content)
+
         clauses = sorted(context['clauses'], key=lambda x: x.order)
+
+        # Clauses that do not exist yet in the contract
         clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
 
         # Remove party B clause since it's displayed with party A
