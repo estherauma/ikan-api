@@ -64,7 +64,7 @@ class PrismicUtils:
                     label=label,
                     required=required,
                     help_text=help_text,
-                    # TODO: add translation for placeholder when langiage switching is implemented
+                    # TODO: add translation for placeholder when language switching is implemented
                     choices=[('', 'Select option')]+[(option['value'], option['label']) for option in options],
                     widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
