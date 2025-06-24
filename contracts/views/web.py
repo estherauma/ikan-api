@@ -119,6 +119,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 # Add party B id to party A details
                 party_b_clause = context['clauses'].filter(kind='contract-clauses-parties-requirement-fishers').first()
                 if party_b_clause:
+                    item.has_party_b_clause = True
                     party_b_clause_id = party_b_clause.id
                     if isinstance(item.content, str):
                         try:
@@ -126,6 +127,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         except json.JSONDecodeError:
                             item.content = {}
                     item.content = {**item.content, 'party_b_clause_id': party_b_clause_id}
+                else:
+                    item.has_party_b_clause = False
             item.html_content = get_clause_html_content(request=self.request, clause=item)
 
             # Check if clause is dynamic
@@ -138,12 +141,13 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
         clauses = sorted(context['clauses'], key=lambda x: x.order)
 
+        # get party B index  # should be after sorting
+        party_b_index = next((i for i, obj in enumerate(clauses) if obj.kind == 'contract-clauses-parties-requirement-fishers'), None)
+        if party_b_index is not None:
+            context['party_b_index'] = party_b_index + 1  # +1 because template is using 1-based indexing
+
         # Clauses that do not exist yet in the contract
         clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
-
-        # Remove party B clause since it's displayed with party A
-        if any(obj.kind == 'contract-clauses-parties-requirement-fishers' for obj in clauses):
-            clauses = [clause for clause in clauses if clause.kind != 'contract-clauses-parties-requirement-fishers']
 
         context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
