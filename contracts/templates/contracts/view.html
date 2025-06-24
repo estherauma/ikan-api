@@ -174,7 +174,6 @@
                 </div>
                 
             </div>
-            
         </div>
 
         <div class="col-md-8">
@@ -257,9 +256,24 @@
                             
                             <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
                                 <div class="accordion-body">
+                                    {% if loggedin_user.is_vessel_owner and clause.is_dynamic %}
+                                        <div class="d-flex justify-content-end edit-clause-btn-wrapper">
+                                            <button
+                                                type="button"
+                                                class="btn btn-info btn-sm ikan-primary-button edit-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#add-clause-modal-{{ forloop.counter }}"
+                                            >
+                                                <i class="mdi mdi-pencil"></i>
+                                                Edit
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                    
                                     {% if clause.html_content %}
-                                        <!-- TODO: add edit clause btn here -->
-                                        <div class="html-content">{{ clause.html_content|safe }}</div>
+                                        <div class="html-content {% if clause.is_dynamic %}dynamic-html-content{% endif %}">
+                                            {{ clause.html_content|safe }}
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -282,7 +296,7 @@
     </div>
 
     <!-- Create clause modals -->
-     {% if clauses_to_be_added %}
+    {% if clauses_to_be_added %}
         {% for clause in clauses_to_be_added %}
             <div
                 id="add-clause-modal-{{ forloop.counter }}"
@@ -404,6 +418,15 @@
                             border-top: 1px solid rgb(248, 243, 243);
                             .accordion-body {
                                 padding-bottom: 30px;
+                                .edit-clause-btn-wrapper {
+                                    padding: 20px;
+                                    background: #eaedf6;
+                                    border-radius: 10px 10px 0 0;
+                                    .edit-btn {
+                                        padding: 5px 15px;
+                                        font-size: 0.9rem;
+                                    }
+                                }
                                 .html-content {
                                     padding: 0 20px 40px 20px;
                                     background: #eaedf6;
@@ -411,6 +434,9 @@
                                     color: #191970;
                                     font-size: 1rem;
                                     line-height: 1.5;
+                                }
+                                .dynamic-html-content {
+                                    border-radius:  0 0 10px 10px;
                                 }
                             }
                         }
