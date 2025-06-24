@@ -143,7 +143,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         clauses = sorted(context['clauses'], key=lambda x: x.order)
 
         # get party B index  # should be after sorting
-        party_b_index = next((i for i, obj in enumerate(clauses) if obj.kind == 'contract-clauses-parties-requirement-fishers'), None)
+        party_b_index = next((i for i, obj in enumerate(clauses) if obj.kind ==
+                              'contract-clauses-parties-requirement-fishers'), None)
         if party_b_index is not None:
             context['party_b_index'] = party_b_index + 1  # +1 because template is using 1-based indexing
 
