@@ -81,6 +81,35 @@
         <script src="/static/themes/v1/assets/js/app.min.js"></script>
 
         {% block scripts %} {% endblock %}
+        
+        <!-- Common scripts -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Use empty select option as a placeholder
+                const selects = document.querySelectorAll('select');
+                selects.forEach(select => {
+                    function updatePlaceholder() {
+                        if (!select.value) {
+                            select.classList.add('empty-select');
+                            select.style.color = 'red';
+                        } else {
+                            select.classList.remove('empty-select');
+                            select.style.color = '';
+                        }
+                    }
+
+                    // Initial check
+                    updatePlaceholder();
+                    // Update on change
+                    select.addEventListener('change', updatePlaceholder);
+
+                    // Disable first option if it has no value, as it's used as a placeholder
+                    if (select.options.length > 0 && !select.options[0].value) {
+                        select.options[0].disabled = true;
+                    }
+                });
+            });
+        </script>
 
         <!-- Common styles -->
         <style>
@@ -156,6 +185,12 @@
                         box-shadow: none;
                         border-color: #3565ff;
                     }
+                }
+                select option[disabled],
+                select:invalid,
+                .empty-select {
+                    color: gray !important;
+                    font-style: italic;
                 }
             }
             .ikan-modal {
