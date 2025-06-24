@@ -233,6 +233,29 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         key: value.isoformat() if isinstance(value, datetime.date) else value
                         for key, value in form.cleaned_data.items()
                     }
+
+                    if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
+                        if not os.path.exists('uploads/contract_clause_attachments'):
+                            os.makedirs('uploads/contract_clause_attachments')
+
+                        if 'partyASignature' in request.FILES:
+                            party_a_file_name = request.FILES['partyASignature'].name
+                            party_a_file_path = f'uploads/contract_clause_attachments/\
+                                {request.user.id}_ikan_{party_a_file_name}'
+                            with open(party_a_file_path, 'wb+') as destination:
+                                for chunk in request.FILES['partyASignature'].chunks():
+                                    destination.write(chunk)
+                            clause_data['partyASignature'] = party_a_file_path
+
+                        if 'partyBSignature' in request.FILES:
+                            party_b_file_name = request.FILES['partyBSignature'].name
+                            party_b_file_path = f'uploads/contract_clause_attachments/\
+                                {request.user.id}_ikan_{party_b_file_name}'
+                            with open(party_b_file_path, 'wb+') as destination:
+                                for chunk in request.FILES['partyBSignature'].chunks():
+                                    destination.write(chunk)
+                            clause_data['partyBSignature'] = party_b_file_path
+
                     clause.content = json.dumps(clause_data)
                     clause.updated_by = request.user.id
                     clause.save()
@@ -251,6 +274,28 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     key: value.isoformat() if isinstance(value, datetime.date) else value
                     for key, value in form.cleaned_data.items()
                 }
+
+                if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
+                    if not os.path.exists('uploads/contract_clause_attachments'):
+                        os.makedirs('uploads/contract_clause_attachments')
+
+                    if 'partyASignature' in request.FILES:
+                        party_a_file_name = request.FILES['partyASignature'].name
+                        party_a_file_path = f'uploads/contract_clause_attachments/\
+                            {request.user.id}_ikan_{party_a_file_name}'
+                        with open(party_a_file_path, 'wb+') as destination:
+                            for chunk in request.FILES['partyASignature'].chunks():
+                                destination.write(chunk)
+                        clause_data['partyASignature'] = party_a_file_path
+
+                    if 'partyBSignature' in request.FILES:
+                        party_b_file_name = request.FILES['partyBSignature'].name
+                        party_b_file_path = f'uploads/contract_clause_attachments/\
+                            {request.user.id}_ikan_{party_b_file_name}'
+                        with open(party_b_file_path, 'wb+') as destination:
+                            for chunk in request.FILES['partyBSignature'].chunks():
+                                destination.write(chunk)
+                        clause_data['partyBSignature'] = party_b_file_path
 
                 clause = ContractClause.objects.create(
                     app_ref=generate_uuid(),
