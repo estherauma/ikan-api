@@ -103,14 +103,15 @@ class PrismicUtils:
                     label=label,
                     required=required,
                     help_text=help_text,
-                    widget=forms.CheckboxInput(attrs={'placeholder': placeholder})
+                    widget=forms.CheckboxInput(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
-            elif field_type == 'file':
+            # TODO: separate file, imageBox and pdfDocument field types
+            elif field_type == 'file' or field_type == 'imageBox' or field_type == 'pdfDocument':
                 field = forms.FileField(
                     label=label,
                     required=required,
                     help_text=help_text,
-                    widget=forms.ClearableFileInput(attrs={'placeholder': placeholder})
+                    widget=forms.ClearableFileInput(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
             elif field_type == 'date':
                 field = forms.DateField(
