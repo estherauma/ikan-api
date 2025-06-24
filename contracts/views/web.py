@@ -180,6 +180,29 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
         return users_set
 
+    def handle_clause_attachments_uploads(self, request):
+        obj = {}
+        if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
+            if not os.path.exists('uploads/contract_clause_attachments'):
+                os.makedirs('uploads/contract_clause_attachments')
+
+            if 'partyASignature' in request.FILES:
+                party_a_file_name = request.FILES['partyASignature'].name
+                party_a_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
+                with open(party_a_file_path, 'wb+') as destination:
+                    for chunk in request.FILES['partyASignature'].chunks():
+                        destination.write(chunk)
+                obj['partyASignature'] = party_a_file_path
+
+            if 'partyBSignature' in request.FILES:
+                party_b_file_name = request.FILES['partyBSignature'].name
+                party_b_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
+                with open(party_b_file_path, 'wb+') as destination:
+                    for chunk in request.FILES['partyBSignature'].chunks():
+                        destination.write(chunk)
+                obj['partyBSignature'] = party_b_file_path
+        return obj
+
     def post(self, request, *args, **kwargs):
         """
         Handles update of contract details, update of clause details and addition of clauses.
@@ -243,8 +266,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                                 qtn['is_required'] = False
                 Form = prismic_utils.create_form(form_questions)
                 form = Form(request.POST, request.FILES)
-                form.cleaned_data = {k: v for k, v in form.cleaned_data.items() if v is not None}
                 if form.is_valid():
+                    form.cleaned_data = {k: v for k, v in form.cleaned_data.items() if v is not None}
                     initial_values = json.loads(clause.content) if clause.content else {}
                     new_data = {
                         key: value.isoformat() if isinstance(value, datetime.date) else value
@@ -252,25 +275,9 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     }
                     clause_data = {**initial_values, **new_data}
 
-                    if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
-                        if not os.path.exists('uploads/contract_clause_attachments'):
-                            os.makedirs('uploads/contract_clause_attachments')
-
-                        if 'partyASignature' in request.FILES:
-                            party_a_file_name = request.FILES['partyASignature'].name
-                            party_a_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
-                            with open(party_a_file_path, 'wb+') as destination:
-                                for chunk in request.FILES['partyASignature'].chunks():
-                                    destination.write(chunk)
-                            clause_data['partyASignature'] = party_a_file_path
-
-                        if 'partyBSignature' in request.FILES:
-                            party_b_file_name = request.FILES['partyBSignature'].name
-                            party_b_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
-                            with open(party_b_file_path, 'wb+') as destination:
-                                for chunk in request.FILES['partyBSignature'].chunks():
-                                    destination.write(chunk)
-                            clause_data['partyBSignature'] = party_b_file_path
+                    uploaded_files = self.handle_clause_attachments_uploads(request)
+                    if uploaded_files:
+                        clause_data.update(uploaded_files)
 
                     clause.content = json.dumps(clause_data)
                     clause.updated_by = request.user.id
@@ -292,27 +299,9 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     for key, value in form.cleaned_data.items()
                 }
 
-                if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
-                    if not os.path.exists('uploads/contract_clause_attachments'):
-                        os.makedirs('uploads/contract_clause_attachments')
-
-                    if 'partyASignature' in request.FILES:
-                        party_a_file_name = request.FILES['partyASignature'].name
-                        party_a_file_path = f'uploads/contract_clause_attachments/\
-                            {request.user.id}_ikan_{party_a_file_name}'
-                        with open(party_a_file_path, 'wb+') as destination:
-                            for chunk in request.FILES['partyASignature'].chunks():
-                                destination.write(chunk)
-                        clause_data['partyASignature'] = party_a_file_path
-
-                    if 'partyBSignature' in request.FILES:
-                        party_b_file_name = request.FILES['partyBSignature'].name
-                        party_b_file_path = f'uploads/contract_clause_attachments/\
-                            {request.user.id}_ikan_{party_b_file_name}'
-                        with open(party_b_file_path, 'wb+') as destination:
-                            for chunk in request.FILES['partyBSignature'].chunks():
-                                destination.write(chunk)
-                        clause_data['partyBSignature'] = party_b_file_path
+                uploaded_files = self.handle_clause_attachments_uploads(request)
+                if uploaded_files:
+                    clause_data.update(uploaded_files)
 
                 clause = ContractClause.objects.create(
                     app_ref=generate_uuid(),
