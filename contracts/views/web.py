@@ -176,11 +176,12 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
     def post(self, request, *args, **kwargs):
         """
-        Handles update of contract details and addition of clauses.
+        Handles update of contract details, update of clause details and addition of clauses.
         """
-        contract_id = request.POST.get('contract_id')
-        if contract_id:  # CONTRACT UPDATE
-            contract = self.get_object()
+        contract = self.get_object()
+        prismic_utils = PrismicUtils(request)
+
+        if request.POST.get('contract_id'):  # CONTRACT UPDATE
             form = AddContractForm(request.POST, request.FILES, instance=contract, initial={}, user=request.user)
             if form.is_valid():
                 contract = form.save(commit=False)
@@ -220,10 +221,26 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             else:
                 messages.error(request, 'Error updating contract')
                 return redirect('contracts-web:contract-details', pk=contract.id)
+        elif request.POST.get('edit_clause_id'):  # CLAUSE UPDATE
+            clause_id = request.POST.get('edit_clause_id')
+            if clause_id:
+                clause = ContractClause.objects.get(pk=clause_id)
+                form_questions = get_clause_form_questions(request, clause.kind)
+                Form = prismic_utils.create_form(form_questions)
+                form = Form(request.POST, instance=clause)
+                if form.is_valid():
+                    clause_data = {
+                        key: value.isoformat() if isinstance(value, datetime.date) else value
+                        for key, value in form.cleaned_data.items()
+                    }
+                    clause.content = json.dumps(clause_data)
+                    clause.updated_by = request.user.id
+                    clause.save()
+                    messages.success(request, 'Clause updated successfully')
+                    return redirect('contracts-web:contract-details', pk=contract.id)
+                else:
+                    messages.error(request, 'Error updating clause')
         else:  # CLAUSE ADDITION
-            prismic_utils = PrismicUtils(request)
-            contract = self.get_object()
-
             clause_kind = request.POST.get('clause_kind')
             page_title = request.POST.get('page_title')
             form_questions = get_clause_form_questions(request, clause_kind)
