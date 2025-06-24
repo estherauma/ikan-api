@@ -245,7 +245,9 @@ def format_clause_values(request, clause_type, key, value):
         # return format_local_date(value, selected_language)
         return format_local_date(value, 'en-us')  # Default to 'en-us' for now
     elif key in ['partyASignature', 'partyBSignature']:
-        return f'<img class="image" src="{value}" alt="image">'
+        if value.endswith('.pdf'):
+            return f'<embed src="/{value}" type="application/pdf" width="100%" height="500px"></embed>'
+        return f'<img class="image" src="/{value}" alt="image" style="max-width: 200px; max-height: 150px;"/>'
     elif clause_type == 'contract-clauses-parties-to-this-contract-content' and key == 'vessel':
         vessel = Vessel.objects.filter(app_ref=value).values('name').first()
         return vessel['name'] if vessel else None
