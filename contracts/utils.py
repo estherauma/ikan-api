@@ -75,6 +75,18 @@ def get_clause_form_questions(request, clause_kind):
     return form_questions
 
 
+def get_clause_form(request, clause_kind, initial_data=None):
+    prismic_utils = PrismicUtils(request)
+    form_questions = get_clause_form_questions(request, clause_kind)
+    if not form_questions:
+        return None
+
+    # get clause form
+    Form = prismic_utils.create_form(form_questions)
+    form = Form(initial=initial_data or {})
+    return form
+
+
 def get_clauses_to_be_added(request, contract):
     prismic_utils = PrismicUtils(request)
     clauses = contract.contract_clause.all()
@@ -87,8 +99,7 @@ def get_clauses_to_be_added(request, contract):
     for kind in missing_clause_kinds:
         form_questions = get_clause_form_questions(request, kind)
         # get clause form
-        Form = prismic_utils.create_form(form_questions)
-        form = Form()
+        form = get_clause_form(request, kind)
 
         # TODO: translate name when language switching is implemented
         if kind == 'contract-clauses-parties-requirement-vessel':
