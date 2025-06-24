@@ -138,6 +138,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             # Get clause form (for editing)
             # Different from clauses_to_be_added, because these already exist in the contract
             if item.is_dynamic:
+                item.content['clause_kind'] = item.kind
                 item.form = get_clause_form(self.request, item.kind, item.content)
 
         clauses = sorted(context['clauses'], key=lambda x: x.order)
@@ -231,13 +232,25 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             if clause_id:
                 clause = ContractClause.objects.get(pk=clause_id)
                 form_questions = get_clause_form_questions(request, clause.kind)
+                if clause.kind == 'contract-clauses-attachments' and clause.content:
+                    # If clause is attachments, we need to add the existing signatures to the form
+                    data = json.loads(clause.content)
+                    if 'partyASignature' in data or 'partyBSignature' in data:
+                        for qtn in form_questions:
+                            if qtn['key'] == 'partyASignature' and 'partyASignature' in data:
+                                qtn['is_required'] = False
+                            elif qtn['key'] == 'partyBSignature' and 'partyBSignature' in data:
+                                qtn['is_required'] = False
                 Form = prismic_utils.create_form(form_questions)
-                form = Form(request.POST, instance=clause)
+                form = Form(request.POST, request.FILES)
+                form.cleaned_data = {k: v for k, v in form.cleaned_data.items() if v is not None}
                 if form.is_valid():
-                    clause_data = {
+                    initial_values = json.loads(clause.content) if clause.content else {}
+                    new_data = {
                         key: value.isoformat() if isinstance(value, datetime.date) else value
                         for key, value in form.cleaned_data.items()
                     }
+                    clause_data = {**initial_values, **new_data}
 
                     if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
                         if not os.path.exists('uploads/contract_clause_attachments'):
@@ -245,8 +258,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
                         if 'partyASignature' in request.FILES:
                             party_a_file_name = request.FILES['partyASignature'].name
-                            party_a_file_path = f'uploads/contract_clause_attachments/\
-                                {request.user.id}_ikan_{party_a_file_name}'
+                            party_a_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
                             with open(party_a_file_path, 'wb+') as destination:
                                 for chunk in request.FILES['partyASignature'].chunks():
                                     destination.write(chunk)
@@ -254,8 +266,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
                         if 'partyBSignature' in request.FILES:
                             party_b_file_name = request.FILES['partyBSignature'].name
-                            party_b_file_path = f'uploads/contract_clause_attachments/\
-                                {request.user.id}_ikan_{party_b_file_name}'
+                            party_b_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
                             with open(party_b_file_path, 'wb+') as destination:
                                 for chunk in request.FILES['partyBSignature'].chunks():
                                     destination.write(chunk)
@@ -268,6 +279,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     return redirect('contracts-web:contract-details', pk=contract.id)
                 else:
                     messages.error(request, 'Error updating clause')
+                    return render(request, self.template_name, self.get_context_data())
         else:  # CLAUSE ADDITION
             clause_kind = request.POST.get('clause_kind')
             page_title = request.POST.get('page_title')
