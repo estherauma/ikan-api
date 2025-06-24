@@ -245,39 +245,109 @@
                 <div class="card-body">
                     <div class="accordion" id="clauseAccordion">
                         {% for clause in clauses %}
-                        <div class="accordion-item">
-                            <div class="item-btn d-flex w-100 justify-content-between" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
-                                <div>
-                                {{ clause.name | upper}}
-                                </div>
-                                <i class="mdi mdi-chevron-down fs-3"></i>
-                            </div>
-                            
-                            <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
-                                <div class="accordion-body">
-                                    {% if loggedin_user.is_vessel_owner and clause.is_dynamic %}
-                                        <div class="d-flex justify-content-end edit-clause-btn-wrapper">
-                                            <button
-                                                type="button"
-                                                class="btn btn-info btn-sm ikan-primary-button edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
-                                            >
-                                                <i class="mdi mdi-pencil"></i>
-                                                Edit
-                                            </button>
+                            <!-- Party B details are not displayed on their own but under Party A -->
+                            {% if clause.kind != 'contract-clauses-parties-requirement-fishers' %}
+                                <div class="accordion-item">
+                                    <div class="item-btn d-flex w-100 justify-content-between" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
+                                        <div>
+                                        {{ clause.name | upper}}
                                         </div>
-                                    {% endif %}
-                                    
-                                    {% if clause.html_content %}
-                                        <div class="html-content {% if clause.is_dynamic %}dynamic-html-content{% endif %}">
-                                            {{ clause.html_content|safe }}
+                                        <i class="mdi mdi-chevron-down fs-3"></i>
+                                    </div>
+                                    <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
+                                        <div class="accordion-body">
+                                            {% if loggedin_user.is_vessel_owner and clause.is_dynamic %}
+                                                <div class="d-flex justify-content-end edit-clause-btn-wrapper">
+                                                    {% if clause.kind == 'contract-clauses-parties-requirement-vessel' %}
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-info btn-sm ikan-primary-button edit-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#edit-parties-modal"
+                                                        >
+                                                            <i class="mdi mdi-pencil"></i>
+                                                            Edit
+                                                        </button>
+
+                                                        <!-- Edit Parties Modal -->
+                                                        <div
+                                                            id="edit-parties-modal"
+                                                            class="modal fade ikan-modfal"
+                                                            tabindex="-1"
+                                                            role="dialog"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header d-flex justify-content-between align-items-center">
+                                                                        <div class="col col-10 text-center">
+                                                                            <h4 class="modal-title ikan-dark-blue-100 fs-3">Edit parties</h4>
+                                                                        </div>
+                                                                        <div class="col col-2 d-flex justify-content-center">
+                                                                            <button
+                                                                                type="button"
+                                                                                class="btn-close"
+                                                                                data-bs-dismiss="modal"
+                                                                                aria-label="Close"
+                                                                            ></button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-body d-flex flex-column justify-content-center align-items-center">
+                                                                        <button
+                                                                            type="button"
+                                                                            class="btn btn-info btn-sm ikan-primary-button edit-btn w-80 mt-2"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
+                                                                            style="margin-bottom: 10px; height: 50px; width: 70%; font-size: 1rem;"
+                                                                        >
+                                                                            Edit Party A details
+                                                                        </button>
+                                                                        {% if clause.has_party_b_clause %}
+                                                                            <button
+                                                                                type="button"
+                                                                                class="btn btn-info btn-sm ikan-primary-button edit-btn w-80 mt-2"
+                                                                                data-bs-toggle="modal"
+                                                                                data-bs-target="#edit-clause-modal-{{ party_b_index }}"
+                                                                                style="margin-bottom: 10px; height: 50px; width: 70%; font-size: 1rem;"
+                                                                            >
+                                                                                Edit Party B details
+                                                                            </button>
+                                                                        {% else %}
+                                                                        <p
+                                                                            class="text-center"
+                                                                            style="color: #191970; font-size: 1rem; font-weight: 500; margin: 30px; ">
+                                                                            To edit Party B details, you need to add the Party B clause first.
+                                                                        </p>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-info btn-sm ikan-primary-button edit-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
+                                                        >
+                                                            <i class="mdi mdi-pencil"></i>
+                                                            Edit
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if clause.html_content %}
+                                                <div class="html-content {% if clause.is_dynamic %}dynamic-html-content{% endif %}">
+                                                    {{ clause.html_content|safe }}
+                                                </div>
+                                            {% endif %}
                                         </div>
-                                    {% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            {% endif %}
+                            {% empty %}
                         {% endfor %}
                     </div>
                 </div>
