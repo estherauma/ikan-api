@@ -111,7 +111,6 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             # Get clause order. For ordering clauses properly when displaying
             item.order = item.order if item.order else get_clause_order(item.kind)
 
-            # Get clause text (html content) to be displayed
             item.content = json.loads(item.content)
             if item.kind == 'contract-clauses-parties-requirement-vessel':
                 # TODO: translate
@@ -129,6 +128,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     item.content = {**item.content, 'party_b_clause_id': party_b_clause_id}
                 else:
                     item.has_party_b_clause = False
+
+            # Get clause text (html content) to be displayed
             item.html_content = get_clause_html_content(request=self.request, clause=item)
 
             # Check if clause is dynamic
@@ -152,12 +153,15 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
+
+        # Get contract signature URL
         contract_signature = self.object.contract_document.first() if self.object.contract_document.exists() else None
         if contract_signature:
             self.object.contract_signature_url = contract_signature.url  # for the contract detail view
         initial_data = {
             'contract_signature': contract_signature.url if contract_signature else None,  # for the form
         }
+
         context['new_contract_form'] = AddContractForm(user=user, instance=self.object, initial=initial_data)
         return context
 
