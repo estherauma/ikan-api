@@ -31,6 +31,15 @@ class PrismicUtils:
 
     def create_form(self, form_questions):
         class Form(forms.Form):
+            def __init__(self, *args, **kwargs):
+                super(Form, self).__init__(*args, **kwargs)
+                if self.initial and self.initial.get('clause_kind'):
+                    if self.initial['clause_kind'] == 'contract-clauses-attachments':
+                        if self.initial['partyASignature']:
+                            self.fields['partyASignature'].required = False
+                        if self.initial['partyBSignature']:
+                            self.fields['partyBSignature'].required = False
+
             pass
 
         for question in form_questions:
