@@ -13,38 +13,41 @@
             <div class="card">
                 <div class="card-header bg-light text-dark">
                     <h3 class="card-title text-center">
-                        Payment for {{payment.user.first_name}} {{payment.user.last_name}} from the Period of {{payment.start_date}} to {{payment.end_date}}
+                        {{payment.user.first_name}} {{payment.user.last_name}} 薪資/獎金給付紀錄 ({{payment.start_date | format_date}} - {{payment.end_date | format_date}})
                     </h3>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Payment made on:</h5>
+                                <h5 class="text-muted">Vessel name:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.vessel.name}}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Date of payment:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
                                 <h4 class="">{{payment.payment_date}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+                        
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Total USD amount:</h5>
-                            </div>
-                            <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.total_usd_amount_received}}</h4>
-                            </div>
-                        </div>
-                        <hr class="my-2 mx-0">
-                        <div class="row d-flex align-items-center">
-                            <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Period:</h5>
+                                <h5 class="text-muted">Wage period:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
                                 <h4 class="">{{payment.start_date}} - {{payment.end_date}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
                                 <h5 class="text-muted">Duration:</h5>
@@ -63,6 +66,7 @@
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
                                 <h5 class="text-muted">Category:</h5>
@@ -72,12 +76,23 @@
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
                                 <h5 class="text-muted">Method of payment:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
                                 <h4 class="">{{ methods_map |dict_get:payment.payment_method }}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">Amount (USD):</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.total_usd_amount_received}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
@@ -208,16 +223,6 @@
                             {% endif %}
                             <hr class="my-2 mx-0">
                         {% endif %}
-                        
-                        <div class="row d-flex align-items-center">
-                            <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Vessel:</h5>
-                            </div>
-                            <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.vessel.name}}</h4>
-                            </div>
-                        </div>
-                        <hr class="my-2 mx-0">
                         
                         <div class="row {% if not payment.deductions %}d-flex align-items-center{% endif %}">
                             <div class="col-12 col-sm-4">
