@@ -307,21 +307,32 @@ def get_formset_initial_values(vessel):
             # TODO: get add cash and bank transfer amounts and beneficiary details when
             # implemented (data is captured when creating clause).
 
-        attachments_clause = None
+        attachments_content = None
+        party_b_content = None
         has_attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").exists()
+        has_party_b_clause = worker_contract_clauses.filter(
+            kind="contract-clauses-parties-requirement-fishers").exists()
         if has_attachments_clause:
-            attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").first()
-            attachments_content = json.loads(attachments_clause.content)
+            if has_attachments_clause:
+                attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").first()
+                attachments_content = json.loads(attachments_clause.content)
+            if has_party_b_clause:
+                party_b_clause = worker_contract_clauses.filter(
+                    kind="contract-clauses-parties-requirement-fishers").first()
+                party_b_content = json.loads(party_b_clause.content)
             # is_crew_account = attachments_content.get("isCrewMemberAccount")
 
             worker_initial_data["bank_account_name"] = attachments_content.get("accountName", None)
             worker_initial_data["bank_account_number"] = attachments_content.get("accountNumber", None)
             worker_initial_data["bank_name"] = attachments_content.get("bankName", None)
-            worker_initial_data["cash_beneficiary_name"] = attachments_content.get("beneficiaryName", None)
-            worker_initial_data["cash_beneficiary_contact"] = attachments_content.get("relativePhoneNumber", None)
-            worker_initial_data["bank_transfer_beneficiary_name"] = attachments_content.get("beneficiaryName", None)
-            worker_initial_data["bank_transfer_beneficiary_contact"] = attachments_content.get("relativePhoneNumber",
-                                                                                               None)
+            worker_initial_data["cash_beneficiary_name"] = \
+                party_b_content.get("familyMember", attachments_content.get("beneficiaryName", None))
+            worker_initial_data["cash_beneficiary_contact"] = \
+                party_b_content.get("familyMemberContactInfo", attachments_content.get("relativePhoneNumber", None))
+            worker_initial_data["bank_transfer_beneficiary_name"] = \
+                party_b_content.get("familyMember", attachments_content.get("beneficiaryName", None))
+            worker_initial_data["bank_transfer_beneficiary_contact"] = \
+                party_b_content.get("familyMemberContactInfo", attachments_content.get("relativePhoneNumber", None))
 
         # add worker_initial_data to initial_data
         initial_data.append(worker_initial_data)
