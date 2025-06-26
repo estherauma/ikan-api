@@ -19,11 +19,14 @@ from contracts.utils import (
     get_clause_order,
     get_clauses_to_be_added,
     get_clause_form_questions,
+    get_clause_form,
     get_clause_html_content,
+    dynamic_clauses,
 )
 from prismic.utils import PrismicUtils
 import datetime
 from companies.models import Company
+import re
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -60,6 +63,7 @@ class ContractsView(LoginRequiredMixin, View):
                     os.makedirs('uploads/contracts')
 
                 file_name = request.FILES['contract_signature'].name
+                file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                 file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                 with open(file_path, 'wb+') as destination:
                     for chunk in request.FILES['contract_signature'].chunks():
@@ -106,7 +110,9 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 self.object.indonesian_company_name = indonesian_company.name
 
         for item in context['clauses']:
+            # Get clause order. For ordering clauses properly when displaying
             item.order = item.order if item.order else get_clause_order(item.kind)
+
             item.content = json.loads(item.content)
             if item.kind == 'contract-clauses-parties-requirement-vessel':
                 # TODO: translate
@@ -114,6 +120,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 # Add party B id to party A details
                 party_b_clause = context['clauses'].filter(kind='contract-clauses-parties-requirement-fishers').first()
                 if party_b_clause:
+                    item.has_party_b_clause = True
                     party_b_clause_id = party_b_clause.id
                     if isinstance(item.content, str):
                         try:
@@ -121,25 +128,44 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         except json.JSONDecodeError:
                             item.content = {}
                     item.content = {**item.content, 'party_b_clause_id': party_b_clause_id}
-                    item.content = json.dumps(item.content)
+                else:
+                    item.has_party_b_clause = False
+
+            # Get clause text (html content) to be displayed
             item.html_content = get_clause_html_content(request=self.request, clause=item)
 
-        clauses = sorted(context['clauses'], key=lambda x: x.order)
-        clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
+            # Check if clause is dynamic
+            item.is_dynamic = True if item.kind in dynamic_clauses else False
 
-        # Remove party B clause since it's displayed with party A
-        if any(obj.kind == 'contract-clauses-parties-requirement-fishers' for obj in clauses):
-            clauses = [clause for clause in clauses if clause.kind != 'contract-clauses-parties-requirement-fishers']
+            # Get clause form (for editing)
+            # Different from clauses_to_be_added, because these already exist in the contract
+            if item.is_dynamic:
+                item.content['clause_kind'] = item.kind
+                item.form = get_clause_form(self.request, item.kind, item.content)
+
+        clauses = sorted(context['clauses'], key=lambda x: x.order)
+
+        # get party B index  # should be after sorting
+        party_b_index = next((i for i, obj in enumerate(clauses) if obj.kind ==
+                              'contract-clauses-parties-requirement-fishers'), None)
+        if party_b_index is not None:
+            context['party_b_index'] = party_b_index + 1  # +1 because template is using 1-based indexing
+
+        # Clauses that do not exist yet in the contract
+        clauses_to_be_added = get_clauses_to_be_added(self.request, self.object)
 
         context['clauses'] = clauses
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
+
+        # Get contract signature URL
         contract_signature = self.object.contract_document.first() if self.object.contract_document.exists() else None
         if contract_signature:
             self.object.contract_signature_url = contract_signature.url  # for the contract detail view
         initial_data = {
             'contract_signature': contract_signature.url if contract_signature else None,  # for the form
         }
+
         context['new_contract_form'] = AddContractForm(user=user, instance=self.object, initial=initial_data)
         return context
 
@@ -156,13 +182,39 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
         return users_set
 
+    def handle_clause_attachments_uploads(self, request):
+        obj = {}
+        if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
+            if not os.path.exists('uploads/contract_clause_attachments'):
+                os.makedirs('uploads/contract_clause_attachments')
+
+            if 'partyASignature' in request.FILES:
+                party_a_file_name = request.FILES['partyASignature'].name
+                party_a_file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', party_a_file_name)  # Replace unsafe characters
+                party_a_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
+                with open(party_a_file_path, 'wb+') as destination:
+                    for chunk in request.FILES['partyASignature'].chunks():
+                        destination.write(chunk)
+                obj['partyASignature'] = party_a_file_path
+
+            if 'partyBSignature' in request.FILES:
+                party_b_file_name = request.FILES['partyBSignature'].name
+                party_b_file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', party_b_file_name)  # Replace unsafe characters
+                party_b_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
+                with open(party_b_file_path, 'wb+') as destination:
+                    for chunk in request.FILES['partyBSignature'].chunks():
+                        destination.write(chunk)
+                obj['partyBSignature'] = party_b_file_path
+        return obj
+
     def post(self, request, *args, **kwargs):
         """
-        Handles update of contract details and addition of clauses.
+        Handles update of contract details, update of clause details and addition of clauses.
         """
-        contract_id = request.POST.get('contract_id')
-        if contract_id:  # CONTRACT UPDATE
-            contract = self.get_object()
+        contract = self.get_object()
+        prismic_utils = PrismicUtils(request)
+
+        if request.POST.get('contract_id'):  # CONTRACT UPDATE
             form = AddContractForm(request.POST, request.FILES, instance=contract, initial={}, user=request.user)
             if form.is_valid():
                 contract = form.save(commit=False)
@@ -174,6 +226,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         os.makedirs('uploads/contracts')
 
                     file_name = request.FILES['contract_signature'].name
+                    file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                     file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                     with open(file_path, 'wb+') as destination:
                         for chunk in request.FILES['contract_signature'].chunks():
@@ -202,10 +255,49 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             else:
                 messages.error(request, 'Error updating contract')
                 return redirect('contracts-web:contract-details', pk=contract.id)
-        else:  # CLAUSE ADDITION
-            prismic_utils = PrismicUtils(request)
-            contract = self.get_object()
+        elif request.POST.get('edit_clause_id'):  # CLAUSE UPDATE
+            clause_id = request.POST.get('edit_clause_id')
+            if clause_id:
+                try:
+                    clause = ContractClause.objects.get(pk=clause_id)
+                except ContractClause.DoesNotExist:
+                    messages.error(request, 'The specified clause does not exist.')
+                    return redirect('contracts-web:contract-details', pk=contract.id)
 
+                form_questions = get_clause_form_questions(request, clause.kind)
+                if clause.kind == 'contract-clauses-attachments' and clause.content:
+                    # If clause is attachments, we need to add the existing signatures to the form
+                    data = json.loads(clause.content)
+                    if 'partyASignature' in data or 'partyBSignature' in data:
+                        for qtn in form_questions:
+                            if qtn['key'] == 'partyASignature' and 'partyASignature' in data:
+                                qtn['is_required'] = False
+                            elif qtn['key'] == 'partyBSignature' and 'partyBSignature' in data:
+                                qtn['is_required'] = False
+                Form = prismic_utils.create_form(form_questions)
+                form = Form(request.POST, request.FILES)
+                if form.is_valid():
+                    form.cleaned_data = {k: v for k, v in form.cleaned_data.items() if v is not None}
+                    initial_values = json.loads(clause.content) if clause.content else {}
+                    new_data = {
+                        key: value.isoformat() if isinstance(value, datetime.date) else value
+                        for key, value in form.cleaned_data.items()
+                    }
+                    clause_data = {**initial_values, **new_data}
+
+                    uploaded_files = self.handle_clause_attachments_uploads(request)
+                    if uploaded_files:
+                        clause_data.update(uploaded_files)
+
+                    clause.content = json.dumps(clause_data)
+                    clause.updated_by = request.user.id
+                    clause.save()
+                    messages.success(request, 'Clause updated successfully')
+                    return redirect('contracts-web:contract-details', pk=contract.id)
+                else:
+                    messages.error(request, 'Error updating clause')
+                    return render(request, self.template_name, self.get_context_data())
+        else:  # CLAUSE ADDITION
             clause_kind = request.POST.get('clause_kind')
             page_title = request.POST.get('page_title')
             form_questions = get_clause_form_questions(request, clause_kind)
@@ -216,6 +308,10 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     key: value.isoformat() if isinstance(value, datetime.date) else value
                     for key, value in form.cleaned_data.items()
                 }
+
+                uploaded_files = self.handle_clause_attachments_uploads(request)
+                if uploaded_files:
+                    clause_data.update(uploaded_files)
 
                 clause = ContractClause.objects.create(
                     app_ref=generate_uuid(),

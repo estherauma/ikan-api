@@ -31,6 +31,15 @@ class PrismicUtils:
 
     def create_form(self, form_questions):
         class Form(forms.Form):
+            def __init__(self, *args, **kwargs):
+                super(Form, self).__init__(*args, **kwargs)
+                if self.initial and self.initial.get('clause_kind'):
+                    if self.initial['clause_kind'] == 'contract-clauses-attachments':
+                        if self.initial['partyASignature']:
+                            self.fields['partyASignature'].required = False
+                        if self.initial['partyBSignature']:
+                            self.fields['partyBSignature'].required = False
+
             pass
 
         for question in form_questions:
@@ -64,9 +73,9 @@ class PrismicUtils:
                     label=label,
                     required=required,
                     help_text=help_text,
-                    # TODO: add translation for placeholder when langiage switching is implemented
+                    # TODO: add translation for placeholder when language switching is implemented
                     choices=[('', 'Select option')]+[(option['value'], option['label']) for option in options],
-                    widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control'})
+                    widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'multiple-select' or field_type == 'multi-select':
                 field = forms.MultipleChoiceField(
@@ -75,7 +84,7 @@ class PrismicUtils:
                     help_text=help_text,
                     # TODO: add translation for placeholder when langiage switching is implemented
                     choices=[('', 'Select options')]+[(option['value'], option['label']) for option in options],
-                    widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control'})
+                    widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'tel' or field_type == 'telephone':
                 field = forms.CharField(
@@ -103,14 +112,15 @@ class PrismicUtils:
                     label=label,
                     required=required,
                     help_text=help_text,
-                    widget=forms.CheckboxInput(attrs={'placeholder': placeholder})
+                    widget=forms.CheckboxInput(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
-            elif field_type == 'file':
+            # TODO: separate file, imageBox and pdfDocument field types
+            elif field_type == 'file' or field_type == 'imageBox' or field_type == 'pdfDocument':
                 field = forms.FileField(
                     label=label,
                     required=required,
                     help_text=help_text,
-                    widget=forms.ClearableFileInput(attrs={'placeholder': placeholder})
+                    widget=forms.ClearableFileInput(attrs={'placeholder': placeholder, 'class': 'form-control'})
                 )
             elif field_type == 'date':
                 field = forms.DateField(

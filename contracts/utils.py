@@ -23,6 +23,27 @@ clause_order = {
 }
 
 
+static_clauses = [
+    'contract-clauses-accident-medical-and-life-insurance',
+    'contract-clauses-transportation-severance-food-accomodation',
+    'contract-clause-requirements-that-party-b-must-comply-with',
+    'contract-clauses-means-to-address-breach-of-contract',
+    'contract-clauses-dispute-settlement',
+    'contract-clauses-miscellaneous',
+]
+
+
+dynamic_clauses = [
+    'contract-clauses-parties-requirement-vessel',
+    'contract-clauses-parties-requirement-fishers',
+    'contract-clauses-contract-validity',
+    'contract-clauses-wage-benefits',
+    'contract-clauses-working-hours-rest-and-leave',
+    'contract-clauses-labor-protection-and-benefits',
+    'contract-clauses-attachments',
+]
+
+
 def get_clause_order(clause_kind):
     return clause_order[clause_kind] if clause_kind in clause_order else None
 
@@ -75,6 +96,18 @@ def get_clause_form_questions(request, clause_kind):
     return form_questions
 
 
+def get_clause_form(request, clause_kind, initial_data=None):
+    prismic_utils = PrismicUtils(request)
+    form_questions = get_clause_form_questions(request, clause_kind)
+    if not form_questions:
+        return None
+
+    # get clause form
+    Form = prismic_utils.create_form(form_questions)
+    form = Form(initial=initial_data or {})
+    return form
+
+
 def get_clauses_to_be_added(request, contract):
     prismic_utils = PrismicUtils(request)
     clauses = contract.contract_clause.all()
@@ -87,8 +120,7 @@ def get_clauses_to_be_added(request, contract):
     for kind in missing_clause_kinds:
         form_questions = get_clause_form_questions(request, kind)
         # get clause form
-        Form = prismic_utils.create_form(form_questions)
-        form = Form()
+        form = get_clause_form(request, kind)
 
         # TODO: translate name when language switching is implemented
         if kind == 'contract-clauses-parties-requirement-vessel':
@@ -213,7 +245,9 @@ def format_clause_values(request, clause_type, key, value):
         # return format_local_date(value, selected_language)
         return format_local_date(value, 'en-us')  # Default to 'en-us' for now
     elif key in ['partyASignature', 'partyBSignature']:
-        return f'<img class="image" src="{value}" alt="image">'
+        if value.endswith('.pdf'):
+            return f'<embed src="/{value}" type="application/pdf" width="100%" height="500px"></embed>'
+        return f'<img class="image" src="/{value}" alt="image" style="max-width: 200px; max-height: 150px;"/>'
     elif clause_type == 'contract-clauses-parties-to-this-contract-content' and key == 'vessel':
         vessel = Vessel.objects.filter(app_ref=value).values('name').first()
         return vessel['name'] if vessel else None
