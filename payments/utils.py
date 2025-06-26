@@ -107,7 +107,8 @@ payment_beneficiarires = [
 
 deductions_list = [
     {"key": "", "label": "請選擇項目 Please select item"},
-    {"key": "deductions_allowed_under_employment_contract", "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
+    {"key": "deductions_allowed_under_employment_contract",
+        "label": "契約允許的扣除項目 Deductions allowed under employment contract"},
     {"key": "cigarettes", "label": "香菸 Cigarettes"},
     {"key": "toiletries", "label": "浴室用品 Toiletries"},
     {"key": "food_and_or_drinks", "label": "食物和/或飲料 Food and/or Drinks"},
@@ -319,7 +320,8 @@ def get_formset_initial_values(vessel):
             worker_initial_data["cash_beneficiary_name"] = attachments_content.get("beneficiaryName", None)
             worker_initial_data["cash_beneficiary_contact"] = attachments_content.get("relativePhoneNumber", None)
             worker_initial_data["bank_transfer_beneficiary_name"] = attachments_content.get("beneficiaryName", None)
-            worker_initial_data["bank_transfer_beneficiary_contact"] = attachments_content.get("relativePhoneNumber", None)
+            worker_initial_data["bank_transfer_beneficiary_contact"] = attachments_content.get("relativePhoneNumber",
+                                                                                               None)
 
         # add worker_initial_data to initial_data
         initial_data.append(worker_initial_data)
