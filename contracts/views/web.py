@@ -26,6 +26,7 @@ from contracts.utils import (
 from prismic.utils import PrismicUtils
 import datetime
 from companies.models import Company
+import re
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -62,6 +63,7 @@ class ContractsView(LoginRequiredMixin, View):
                     os.makedirs('uploads/contracts')
 
                 file_name = request.FILES['contract_signature'].name
+                file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                 file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                 with open(file_path, 'wb+') as destination:
                     for chunk in request.FILES['contract_signature'].chunks():
@@ -188,6 +190,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
             if 'partyASignature' in request.FILES:
                 party_a_file_name = request.FILES['partyASignature'].name
+                party_a_file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', party_a_file_name)  # Replace unsafe characters
                 party_a_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
                 with open(party_a_file_path, 'wb+') as destination:
                     for chunk in request.FILES['partyASignature'].chunks():
@@ -196,6 +199,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 
             if 'partyBSignature' in request.FILES:
                 party_b_file_name = request.FILES['partyBSignature'].name
+                party_b_file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', party_b_file_name)  # Replace unsafe characters
                 party_b_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
                 with open(party_b_file_path, 'wb+') as destination:
                     for chunk in request.FILES['partyBSignature'].chunks():
@@ -222,6 +226,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         os.makedirs('uploads/contracts')
 
                     file_name = request.FILES['contract_signature'].name
+                    file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                     file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                     with open(file_path, 'wb+') as destination:
                         for chunk in request.FILES['contract_signature'].chunks():
