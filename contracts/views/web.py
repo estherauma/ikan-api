@@ -253,7 +253,12 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         elif request.POST.get('edit_clause_id'):  # CLAUSE UPDATE
             clause_id = request.POST.get('edit_clause_id')
             if clause_id:
-                clause = ContractClause.objects.get(pk=clause_id)
+                try:
+                    clause = ContractClause.objects.get(pk=clause_id)
+                except ContractClause.DoesNotExist:
+                    messages.error(request, 'The specified clause does not exist.')
+                    return redirect('contracts-web:contract-details', pk=contract.id)
+
                 form_questions = get_clause_form_questions(request, clause.kind)
                 if clause.kind == 'contract-clauses-attachments' and clause.content:
                     # If clause is attachments, we need to add the existing signatures to the form
