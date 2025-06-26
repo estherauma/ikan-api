@@ -35,9 +35,9 @@ class PrismicUtils:
                 super(Form, self).__init__(*args, **kwargs)
                 if self.initial and self.initial.get('clause_kind'):
                     if self.initial['clause_kind'] == 'contract-clauses-attachments':
-                        if self.initial['partyASignature']:
+                        if self.initial.get('partyASignature'):
                             self.fields['partyASignature'].required = False
-                        if self.initial['partyBSignature']:
+                        if self.initial.get('partyBSignature'):
                             self.fields['partyBSignature'].required = False
 
             pass
