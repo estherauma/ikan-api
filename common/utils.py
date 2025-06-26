@@ -96,7 +96,11 @@ def format_local_date(date, current_language='en-us'):
 
     if not isinstance(date, datetime):
         try:
-            date = datetime.fromisoformat(date)
+            if isinstance(date, str):
+                try:
+                    date = datetime.fromisoformat(date)
+                except ValueError:
+                    date = datetime.strptime(date, '%Y-%m-%d')
         except ValueError:
             date = datetime.strptime(date, '%Y-%m-%d')
 
