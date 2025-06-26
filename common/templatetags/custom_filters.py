@@ -1,4 +1,5 @@
 from django import template
+from common.utils import format_local_date
 
 register = template.Library()
 
@@ -35,3 +36,20 @@ def filter_and_get_value(array, args):
             return obj[return_attr]
 
     return None
+
+
+@register.filter
+def format_date(date):
+    """
+    Format a date object to a localized string.
+
+    :param date: datetime object
+    :return: formatted date string
+
+    Usage:
+        {{ date|format_date }}
+    Description:
+        Formats a datetime object to a localized string based on the current language settings.
+    """
+    # TODO: add sesseion language after language switching is implemented ie format_local_date(date, selected_language)
+    return format_local_date(date)
