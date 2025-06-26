@@ -87,19 +87,14 @@
         <!-- Common scripts -->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // query all select elements with class 'ikan-select'
-
                 const selects = document.querySelectorAll('.ikan-select');
-                // const selects = document.querySelectorAll('select');
                 selects.forEach(select => {
                     // USE EMPTY SELECT OPTION AS A PLACEHOLDER
                     function updatePlaceholder() {
                         if (!select.value) {
                             select.classList.add('empty-select');
-                            select.style.color = 'red';
                         } else {
                             select.classList.remove('empty-select');
-                            select.style.color = '';
                         }
                     }
 
