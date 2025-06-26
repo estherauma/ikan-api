@@ -75,7 +75,7 @@ class PrismicUtils:
                     help_text=help_text,
                     # TODO: add translation for placeholder when language switching is implemented
                     choices=[('', 'Select option')]+[(option['value'], option['label']) for option in options],
-                    widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control'})
+                    widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'multiple-select' or field_type == 'multi-select':
                 field = forms.MultipleChoiceField(
@@ -84,7 +84,7 @@ class PrismicUtils:
                     help_text=help_text,
                     # TODO: add translation for placeholder when langiage switching is implemented
                     choices=[('', 'Select options')]+[(option['value'], option['label']) for option in options],
-                    widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control'})
+                    widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'tel' or field_type == 'telephone':
                 field = forms.CharField(

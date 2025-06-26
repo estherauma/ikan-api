@@ -87,7 +87,10 @@
         <!-- Common scripts -->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const selects = document.querySelectorAll('select');
+                // query all select elements with class 'ikan-select'
+
+                const selects = document.querySelectorAll('.ikan-select');
+                // const selects = document.querySelectorAll('select');
                 selects.forEach(select => {
                     // USE EMPTY SELECT OPTION AS A PLACEHOLDER
                     function updatePlaceholder() {
@@ -111,7 +114,7 @@
                     }
 
 
-                    // ADD DROPDOWN ICON TO SELECT
+                    // ADD DROPDOWN ICON TO IKAN SELECT
                     const icon = document.createElement('i');
                     icon.className = 'bi bi-chevron-down';
                     icon.style.position = 'absolute';
