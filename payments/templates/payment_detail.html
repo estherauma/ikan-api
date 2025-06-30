@@ -33,7 +33,7 @@
                                 <h5 class="text-muted">Date of payment:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.payment_date}}</h4>
+                                <h4 class="">{{payment.payment_date | format_date}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
@@ -43,7 +43,7 @@
                                 <h5 class="text-muted">Wage period:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.start_date}} - {{payment.end_date}}</h4>
+                                <h4 class="">{{payment.start_date | format_date}} - {{payment.end_date | format_date}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
