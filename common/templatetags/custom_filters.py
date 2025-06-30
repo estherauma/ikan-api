@@ -51,5 +51,5 @@ def format_date(date):
     Description:
         Formats a datetime object to a localized string based on the current language settings.
     """
-    # TODO: add sesseion language after language switching is implemented ie format_local_date(date, selected_language)
+    # TODO: add session language after language switching is implemented ie format_local_date(date, selected_language)
     return format_local_date(date)
