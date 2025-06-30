@@ -307,12 +307,12 @@ def get_formset_initial_values(vessel):
             # TODO: get add cash and bank transfer amounts and beneficiary details when
             # implemented (data is captured when creating clause).
 
-        attachments_content = None
-        party_b_content = None
+        attachments_content = {}
+        party_b_content = {}
         has_attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").exists()
         has_party_b_clause = worker_contract_clauses.filter(
             kind="contract-clauses-parties-requirement-fishers").exists()
-        if has_attachments_clause:
+        if has_attachments_clause or has_party_b_clause:
             if has_attachments_clause:
                 attachments_clause = worker_contract_clauses.filter(kind="contract-clauses-attachments").first()
                 attachments_content = json.loads(attachments_clause.content)
