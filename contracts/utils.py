@@ -240,7 +240,7 @@ def format_clause_values(request, clause_type, key, value):
     if not value or not key:
         return value
 
-    if 'date' in key.lower():
+    if 'date' in key.lower() and key not in ['updated_at', 'updated_by']:
         # TODO: Implement localization for date formatting when language switching is available
         # return format_local_date(value, selected_language)
         return format_local_date(value, 'en-us')  # Default to 'en-us' for now
