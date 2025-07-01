@@ -140,6 +140,13 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             # Get clause form (for editing)
             # Different from clauses_to_be_added, because these already exist in the contract
             if item.is_dynamic:
+                # Format date value, remove timestamp  # for prepopulating date field
+                for key, value in item.content.items():
+                    if ('date' in key.lower() and key not in ['updated_at', 'updated_by'] and
+                            value and isinstance(value, str)):
+                        value = value.split('T')[0]
+                        item.content[key] = value
+
                 item.content['clause_kind'] = item.kind
                 item.form = get_clause_form(self.request, item.kind, item.content)
 
