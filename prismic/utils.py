@@ -6,8 +6,8 @@ class PrismicUtils:
     def __init__(self, request):
         self.user = request.user
         self.is_superuser = self.user.is_superuser
-        # TODO: use selected language after implementing localization
-        self.language = 'en-us'
+        selected_lang = request.session.get('language', None)
+        self.language = selected_lang if selected_lang else 'en-us'
         self.aggregated_content = None
 
     def get_content(self):
