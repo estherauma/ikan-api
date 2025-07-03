@@ -3,7 +3,7 @@ from accounts.views.web import invite_user, logout_user
 from accounts.views.web import \
     UserListView, RegisterWebView, RegisterSuccess, \
     RequestPasswordReset, ResetPassword, LoginView, \
-    ResendAcessCode, UserDetailView, WorkersListView
+    ResendAcessCode, UserDetailView, WorkersListView, change_language
 
 app_name = 'accounts'
 
@@ -20,4 +20,5 @@ urlpatterns = [
     path("logout", logout_user, name="logout"),
     path("profile/<pk>/", UserDetailView.as_view(), name="profile"),
     path('workers', WorkersListView.as_view(), name='workers'),
+    path('change-language', change_language, name='change-language')
 ]

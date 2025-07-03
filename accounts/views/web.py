@@ -328,3 +328,14 @@ def select_language(request):
             return redirect('/')
 
     return render(request, 'select_language.html')
+
+
+@login_required
+def change_language(request):
+    if request.method == 'POST':
+        lang = request.POST.get('language')
+        if lang:
+            request.session['language'] = lang
+            return redirect('/')
+
+    return render(request, 'change_language.html')
