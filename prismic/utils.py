@@ -181,3 +181,13 @@ class PrismicUtils:
         if option:
             return option.get('label', option_value)
         return option['label'] if option['label'] else option_value
+
+    def get_common_text(self):
+        if not self.content:
+            return None
+        common_text = {}
+        common_content = self.content.get('commonText', None)
+        if common_content and 'data' in common_content:
+            for item in common_content['data']:
+                common_text[item['label']] = item['value']
+        return common_text
