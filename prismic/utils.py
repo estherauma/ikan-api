@@ -8,13 +8,21 @@ class PrismicUtils:
         self.is_superuser = self.user.is_superuser
         selected_lang = request.session.get('language', None)
         self.language = selected_lang if selected_lang else 'en-us'
-        self.aggregated_content = None
+        self.all_aggregated_content = self.get_all_aggregated_content()
+        self.content = self.get_content()  # for selected land
+        self.common_text = self.get_common_text()
+
+    def get_all_aggregated_content(self):
+        all_data = AggregatedContent.objects.all()
+        latest_data = all_data.order_by('-created_at').first()
+        if latest_data and latest_data.content:
+            return latest_data.content
+        return None
 
     def get_content(self):
-        all_data = AggregatedContent.objects.all()
-        recent_data = all_data.order_by('-created_at').first()
-        if recent_data and recent_data.content:
-            return recent_data.content[self.language]
+        agg_content = self.all_aggregated_content
+        if agg_content:
+            return agg_content[self.language]
         return None
 
     def get_content_by_property_name(self, property_name):
