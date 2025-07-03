@@ -241,9 +241,8 @@ def format_clause_values(request, clause_type, key, value):
         return value
 
     if 'date' in key.lower() and key not in ['updated_at', 'updated_by']:
-        # TODO: Implement localization for date formatting when language switching is available
-        # return format_local_date(value, selected_language)
-        return format_local_date(value, 'en-us')  # Default to 'en-us' for now
+        selected_language = request.session.get('language', 'en-us')
+        return format_local_date(value, selected_language)
     elif key in ['partyASignature', 'partyBSignature']:
         if value.endswith('.pdf'):
             return f'<embed src="/{value}" type="application/pdf" width="100%" height="500px"></embed>'
