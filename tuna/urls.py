@@ -22,7 +22,7 @@ from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
 
-from accounts.views.web import get_base
+from accounts.views.web import get_base, select_language
 from tuna.views import UploadFileView
 
 # Swagger documentation setup
@@ -70,4 +70,8 @@ urlpatterns = [
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),
+
+    # Select language url
+    path('select-language/', select_language, name='select_language'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
