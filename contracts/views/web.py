@@ -116,6 +116,11 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             ).first()
             if indonesian_company:
                 self.object.indonesian_company_name = indonesian_company.name
+        if self.object.kind:
+            value = 'Worker' if self.object.kind == 'worker' else 'Company'
+            kind_translation = prismic_utils.get_question_option_translation(
+                'companies-createcontract', 'type', value)
+            self.object.kind_value = kind_translation if kind_translation else self.object.kind
 
         for item in context['clauses']:
             # Get clause order. For ordering clauses properly when displaying
@@ -126,7 +131,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             item.page_title = clause_data['pageTitle'] if clause_data else item.kind.replace('-', ' ')
             if item.kind == 'contract-clauses-parties-requirement-vessel':
                 # Get parties page title
-                parties_data = prismic_utils.get_content_by_property_name('contract-clauses-parties-to-this-contract-content')
+                parties_data = prismic_utils.get_content_by_property_name(
+                    'contract-clauses-parties-to-this-contract-content')
                 item.page_title = parties_data['pageTitle'] if parties_data else item.kind.replace('-', ' ')
 
                 # Add party B id to party A details
