@@ -62,6 +62,8 @@ class PrismicUtils:
             field_type = question["question_type"]
             options = question.get("options", [])
 
+            select_option_text = self.common_text.get('selectOption', 'Select option')
+
             if field_type == 'textBox' or field_type == 'text':
                 field = forms.CharField(
                     label=label,
@@ -82,7 +84,7 @@ class PrismicUtils:
                     required=required,
                     help_text=help_text,
                     # TODO: add translation for placeholder when language switching is implemented
-                    choices=[('', 'Select option')]+[(option['value'], option['label']) for option in options],
+                    choices=[('', select_option_text)]+[(option['value'], option['label']) for option in options],
                     widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'multiple-select' or field_type == 'multi-select':
@@ -91,7 +93,7 @@ class PrismicUtils:
                     required=required,
                     help_text=help_text,
                     # TODO: add translation for placeholder when langiage switching is implemented
-                    choices=[('', 'Select options')]+[(option['value'], option['label']) for option in options],
+                    choices=[('', select_option_text)]+[(option['value'], option['label']) for option in options],
                     widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'tel' or field_type == 'telephone':
