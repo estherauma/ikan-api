@@ -268,3 +268,15 @@ def fill_placeholders(input_string, placeholder_values):
             value = str(value)
         result = result.replace(placeholder, value)
     return result
+
+
+def get_add_contract_form_labels(request):
+    prismic_utils = PrismicUtils(request)
+    labels = prismic_utils.get_field_labels_from_form_questions(None, 'companies-createcontract')
+
+    labels['kind'] = labels.get('type', 'Kind')
+    labels['taiwanese_company'] = labels.get('taiwanese_company_id', 'Taiwanese Company Name')
+    labels['indonesian_company'] = labels.get('indonesian_company_id', 'Indonesian Company Name')
+    labels['contract_signature'] = labels.get('file', 'Contract signature')
+
+    return labels
