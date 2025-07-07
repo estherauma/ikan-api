@@ -44,8 +44,12 @@ class ContractsView(LoginRequiredMixin, View):
         context['contracts'] = contracts
 
         form_labels = get_add_contract_form_labels(self.request)
+        context['contract_form_labels'] = form_labels
         context['new_contract_form'] = AddContractForm(user=user, form_labels=form_labels)
 
+        prismic_utils = PrismicUtils(self.request)
+        common_text = prismic_utils.common_text
+        context['common_text'] = common_text
         return context
 
     def get(self, request):
@@ -98,6 +102,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         self.object = self.get_object()
         user = self.request.user
         context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
         context['clauses'] = self.object.contract_clause.all()
         if self.object.taiwanese_company:
             taiwan_company = Company.objects.filter(
@@ -117,9 +122,13 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             item.order = item.order if item.order else get_clause_order(item.kind)
 
             item.content = json.loads(item.content)
+            clause_data = prismic_utils.get_content_by_property_name(f'{item.kind}-content')
+            item.page_title = clause_data['pageTitle'] if clause_data else item.kind.replace('-', ' ')
             if item.kind == 'contract-clauses-parties-requirement-vessel':
-                # TODO: translate
-                item.name = 'Parties to this Contract'
+                # Get parties page title
+                parties_data = prismic_utils.get_content_by_property_name('contract-clauses-parties-to-this-contract-content')
+                item.page_title = parties_data['pageTitle'] if parties_data else item.kind.replace('-', ' ')
+
                 # Add party B id to party A details
                 party_b_clause = context['clauses'].filter(kind='contract-clauses-parties-requirement-fishers').first()
                 if party_b_clause:
@@ -177,8 +186,14 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         }
 
         form_labels = get_add_contract_form_labels(self.request)
+        context['contract_form_labels'] = form_labels
         context['new_contract_form'] = AddContractForm(
             user=user, instance=self.object, initial=initial_data, form_labels=form_labels)
+
+        common_text = prismic_utils.common_text
+        context['common_text'] = common_text
+        clause_page_text = prismic_utils.get_page_text('contracts-view-clause')
+        context['clause_page_text'] = clause_page_text
         return context
 
     def get_access_users(self):
@@ -404,3 +419,10 @@ class ContractAccessView(CreateView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
+        common_text = prismic_utils.common_text
+        context['common_text'] = common_text
+        return context
