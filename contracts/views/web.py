@@ -61,15 +61,15 @@ class ContractsView(LoginRequiredMixin, View):
             contract.app_ref = generate_uuid()
             contract.save()
 
-            if 'contract_signature' in request.FILES:
+            if 'upload_contract' in request.FILES:
                 if not os.path.exists('uploads/contracts'):
                     os.makedirs('uploads/contracts')
 
-                file_name = request.FILES['contract_signature'].name
+                file_name = request.FILES['upload_contract'].name
                 file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                 file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                 with open(file_path, 'wb+') as destination:
-                    for chunk in request.FILES['contract_signature'].chunks():
+                    for chunk in request.FILES['upload_contract'].chunks():
                         destination.write(chunk)
 
                 contract_document = ContractDocument.objects.create(
@@ -168,12 +168,12 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
 
-        # Get contract signature URL
-        contract_signature = self.object.contract_document.first() if self.object.contract_document.exists() else None
-        if contract_signature:
-            self.object.contract_signature_url = contract_signature.url  # for the contract detail view
+        # Get contract upload URL
+        upload_contract = self.object.contract_document.first() if self.object.contract_document.exists() else None
+        if upload_contract:
+            self.object.upload_contract_url = upload_contract.url  # for the contract detail view
         initial_data = {
-            'contract_signature': contract_signature.url if contract_signature else None,  # for the form
+            'upload_contract': upload_contract.url if upload_contract else None,  # for the form
         }
 
         form_labels = get_add_contract_form_labels(self.request)
@@ -233,15 +233,15 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 contract.updated_by = request.user.id
                 contract.save()
 
-                if 'contract_signature' in request.FILES:
+                if 'upload_contract' in request.FILES:
                     if not os.path.exists('uploads/contracts'):
                         os.makedirs('uploads/contracts')
 
-                    file_name = request.FILES['contract_signature'].name
+                    file_name = request.FILES['upload_contract'].name
                     file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                     file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                     with open(file_path, 'wb+') as destination:
-                        for chunk in request.FILES['contract_signature'].chunks():
+                        for chunk in request.FILES['upload_contract'].chunks():
                             destination.write(chunk)
 
                     if contract.contract_document.exists():

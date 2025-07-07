@@ -34,7 +34,7 @@ class AddContractForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'form-control ikan-select'})
     )
-    contract_signature = forms.FileField(required=True, widget=forms.FileInput(attrs={'class': 'form-control'}))
+    upload_contract = forms.FileField(required=True, widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Contract
@@ -70,7 +70,7 @@ class AddContractForm(forms.ModelForm):
 
             # Make the file field optional when updating
             if self.instance and self.instance.pk and self.instance.contract_document.exists():
-                self.fields['contract_signature'].required = False
+                self.fields['upload_contract'].required = False
 
         if labels:
             for field_name, field in self.fields.items():

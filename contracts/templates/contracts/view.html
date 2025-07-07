@@ -57,16 +57,16 @@
                                                 <label for="{{ field.id_for_label }}" class="form-label">
                                                 {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                                                 </label>
-                                                {% if field.name == 'contract_signature' and field.value %}
-                                                    <div id="contract-signature-preview" class="text-center" style="margin: 10px auto;">
+                                                {% if field.name == 'upload_contract' and field.value %}
+                                                    <div id="contract-upload-preview" class="text-center" style="margin: 10px auto;">
                                                         {% if ".pdf" in field.value  %}
                                                             <embed src="/{{ field.value }}" type="application/pdf" width="75%" height="200px"/>
                                                         {% else %}
-                                                            <img src="/{{ field.value }}" alt="Contract signature image" style="max-width: 75%; height: 200px; object-fit: contain;">
+                                                            <img src="/{{ field.value }}" alt="Contract upload image" style="max-width: 75%; height: 200px; object-fit: contain;">
                                                         {% endif %}
-                                                        <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enableContractSignatureEdit()"></i>
+                                                        <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enableContractUploadEdit()"></i>
                                                     </div>
-                                                    <input id="id_contract_signature" type="file" name="{{ field.name }}" class="form-control" style="display: none; object-fit: contain;">
+                                                    <input id="id_upload_contract" type="file" name="{{ field.name }}" class="form-control" style="display: none; object-fit: contain;">
                                                 {% else %}
                                                     {{ field }}
                                                 {% endif %}
@@ -134,14 +134,14 @@
                             <p class="mt-0 mb-2 detail-value">{{contract.kind}}</p>
                         </div>
                         <div>
-                            <h5 class="mb-1 detail-name">Contract Signature</h5>
+                            <h5 class="mb-1 detail-name">Uploaded contract</h5>
                             <p class="mt-0 mb-2 detail-value">
-                                {% if contract.contract_signature_url %}
+                                {% if contract.upload_contract_url %}
                                     <div class="text-center" style="margin: 10px auto;">
-                                        <img src="/{{ contract.contract_signature_url }}" alt="Contract Signature" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                        <img src="/{{ contract.upload_contract_url }}" alt="Contract upload" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
                                     </div>
                                 {% else %}
-                                    No signature uploaded
+                                    No contract uploaded
                                 {% endif %}
                             </p>
                         </div>
@@ -652,7 +652,7 @@
                 align-items: center;
                 justify-content: center;
             }
-            #contract-signature-preview,
+            #contract-upload-preview,
             #partyASignature-preview,
             #partyBSignature-preview {
                 position: relative;
@@ -665,9 +665,9 @@
 {% block scripts %}
 <script>
 
-  function enableContractSignatureEdit() {
-    document.getElementById('contract-signature-preview').style.display = 'none';
-    document.getElementById('id_contract_signature').style.display = 'block';
+  function enableContractUploadEdit() {
+    document.getElementById('contract-upload-preview').style.display = 'none';
+    document.getElementById('id_upload_contract').style.display = 'block';
   }
 
   function enablePartyASignatureEdit() {

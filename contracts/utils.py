@@ -277,6 +277,6 @@ def get_add_contract_form_labels(request):
     labels['kind'] = labels.get('type', 'Kind')
     labels['taiwanese_company'] = labels.get('taiwanese_company_id', 'Taiwanese Company Name')
     labels['indonesian_company'] = labels.get('indonesian_company_id', 'Indonesian Company Name')
-    labels['contract_signature'] = labels.get('file', 'Contract signature')
+    labels['upload_contract'] = labels.get('file', 'Upload contract')
 
     return labels
