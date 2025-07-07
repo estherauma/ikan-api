@@ -215,3 +215,12 @@ class PrismicUtils:
             for item in common_content['data']:
                 common_text[item['label']] = item['value']
         return common_text
+
+    def get_page_text(self, property_name):
+        page_data = self.get_content_by_property_name(property_name)
+
+        page_text = {}
+        if 'additional_text' in page_data and page_data['additional_text']:
+            for item in page_data['additional_text']:
+                page_text[item['label']] = item['value']
+        return page_text
