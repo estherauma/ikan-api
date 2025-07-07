@@ -34,16 +34,11 @@ class AddContractForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'form-control ikan-select'})
     )
-    indonesian_company = forms.ChoiceField(
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control ikan-select'})
-    )
     contract_signature = forms.FileField(required=True, widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Contract
         fields = ['name', 'start_date', 'end_date', 'description', 'taiwanese_company', 'indonesian_company', 'kind', ]
-
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
@@ -57,6 +52,7 @@ class AddContractForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
+        labels = kwargs.pop("form_labels", {})
         super().__init__(*args, **kwargs)
         if user:
             # TODO: change default select option to gray and not selectable
@@ -75,3 +71,8 @@ class AddContractForm(forms.ModelForm):
             # Make the file field optional when updating
             if self.instance and self.instance.pk and self.instance.contract_document.exists():
                 self.fields['contract_signature'].required = False
+
+        if labels:
+            for field_name, field in self.fields.items():
+                if field_name in labels:
+                    field.label = labels[field_name]

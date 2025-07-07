@@ -22,6 +22,7 @@ from contracts.utils import (
     get_clause_form,
     get_clause_html_content,
     dynamic_clauses,
+    get_add_contract_form_labels,
 )
 from prismic.utils import PrismicUtils
 import datetime
@@ -41,7 +42,9 @@ class ContractsView(LoginRequiredMixin, View):
                 Q(contract_user_access__user=user.id)
             ).distinct()
         context['contracts'] = contracts
-        context['new_contract_form'] = AddContractForm(user=user)
+
+        form_labels = get_add_contract_form_labels(self.request)
+        context['new_contract_form'] = AddContractForm(user=user, form_labels=form_labels)
 
         return context
 
@@ -173,7 +176,9 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             'contract_signature': contract_signature.url if contract_signature else None,  # for the form
         }
 
-        context['new_contract_form'] = AddContractForm(user=user, instance=self.object, initial=initial_data)
+        form_labels = get_add_contract_form_labels(self.request)
+        context['new_contract_form'] = AddContractForm(
+            user=user, instance=self.object, initial=initial_data, form_labels=form_labels)
         return context
 
     def get_access_users(self):
