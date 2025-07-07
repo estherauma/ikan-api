@@ -182,6 +182,30 @@ class PrismicUtils:
             return option.get('label', option_value)
         return option['label'] if option['label'] else option_value
 
+    def get_field_labels_from_form_questions(self, form_questions, property_name=None):
+        """
+        Get field labels from form questions.
+        If no form questions but the property name is provided,
+        use property name to get the form questions and in turn field the labels.
+
+        Usage:
+            get_field_labels_from_form_questions(form_questions)
+            get_field_labels_from_form_questions(None, property_name)
+        Example:
+            get_field_labels_from_form_questions(profile_form_questions)
+            get_field_labels_from_form_questions(None, profile_property_name)
+        """
+        if not form_questions and property_name:
+            form_questions = self.get_form_questions(property_name)
+
+        labels = {}
+        if form_questions:
+            for qtn in form_questions:
+                if qtn['label']:
+                    labels[qtn['key']] = qtn['label']
+
+        return labels
+
     def get_common_text(self):
         if not self.content:
             return None
