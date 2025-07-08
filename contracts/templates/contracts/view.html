@@ -318,7 +318,6 @@
                                                                         <p
                                                                             class="text-center"
                                                                             style="color: #191970; font-size: 1rem; font-weight: 500; margin: 30px; ">
-                                                                            To edit Party B details, you need to add the Party B clause first.
                                                                             {{ clause_page_text | dict_get:'addPartyAfirstToEditPartyB' }}
                                                                         </p>
                                                                         {% endif %}
@@ -334,7 +333,7 @@
                                                             data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
                                                         >
                                                             <i class="mdi mdi-pencil"></i>
-                                                            Edit
+                                                            {{ common_text |dict_get:'edit' }}
                                                         </button>
                                                     {% endif %}
                                                 </div>
@@ -361,7 +360,6 @@
                     <h5 class="card-ttile">{{ common_text | dict_get:'documents'}}</h5>
                 </div>
                 <div class="card-body">
-                    <!-- TODO: add to prismic -->
                    !{{ common_text | dict_get:'notYetImplemented' }}
                 </div>
             </div>
@@ -455,7 +453,7 @@
                     <div class="modal-content">
                         <div class="modal-header row m-0">
                             <div class="col col-10 text-center">
-                                <h4 class="modal-title">{{ clause.name }}</h4>
+                                <h4 class="modal-title">{{ clause.page_title }}</h4>
                             </div>
                             <div class="col col-2 d-flex justify-content-center">
                                 <button
