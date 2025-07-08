@@ -107,12 +107,12 @@
 
                         <div>
                             <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'start_date'}}</h5>
-                            <p class="mt-0 mb-2 detail-value">{{contract.start_date}}</p>
+                            <p class="mt-0 mb-2 detail-value">{{contract.start_date | format_date:selected_language }}</p>
                         </div>
 
                         <div>
                             <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'end_date'}}</h5>
-                            <p class="mt-0 mb-2 detail-value">{{contract.end_date}}</p>
+                            <p class="mt-0 mb-2 detail-value">{{contract.end_date | format_date:selected_language }}</p>
                         </div>
 
                         <div>
