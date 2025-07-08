@@ -15,7 +15,10 @@ def filter_and_get_value(array, args):
     Find object with key_name == key_value, return another property. Similar to array.find() in JS.
 
     :param array: array of objects
-    :param args: comma separated string ("key_name,key_value,return_attr"), first value is the attribute name, second value is the value to match, third value is the attribute to return
+    :param args: comma separated string ("key_name,key_value,return_attr");
+        first value is the attribute name,
+        second value is the value to match,
+        third value is the attribute to return
     :return: value of the return_property
 
     Usage:
@@ -39,7 +42,7 @@ def filter_and_get_value(array, args):
 
 
 @register.filter
-def format_date(date):
+def format_date(date, lang='en-us'):
     """
     Format a date object to a localized string.
 
@@ -51,5 +54,4 @@ def format_date(date):
     Description:
         Formats a datetime object to a localized string based on the current language settings.
     """
-    # TODO: add session language after language switching is implemented ie format_local_date(date, selected_language)
-    return format_local_date(date)
+    return format_local_date(date, lang)
