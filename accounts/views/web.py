@@ -46,7 +46,8 @@ def loggedin_user(request):
 
     return {
             'loggedin_user': loggedin_user,
-            'show_users_menu_item': show_users_menu_item
+            'show_users_menu_item': show_users_menu_item,
+            'selected_language': request.session.get('language', 'en-us')
         }
 
 
