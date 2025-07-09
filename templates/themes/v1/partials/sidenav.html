@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <!-- ========== Menu ========== -->
 <div class="app-menu">  
 
@@ -32,7 +34,7 @@
             <li class="menu-item">
                 <a href="#" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-home"></i></span>
-                    <span class="menu-text"> Dashboard 首頁 </span>
+                    <span class="menu-text">{{ menu_labels | dict_get:'home' }}</span>
                 </a>
             </li>
             <!-- <li class="menu-item">
@@ -48,7 +50,7 @@
                 <li class="menu-item">
                     <a href="{% url 'accounts:workers' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-account-hard-hat"></i></span>
-                        <span class="menu-text"> Workers 外籍漁工（船員）</span>
+                        <span class="menu-text">{{ menu_labels | dict_get:'workers' }}</span>
                     </a>
                 </li>
             {% endif %}
@@ -58,7 +60,7 @@
                 <li class="menu-item">
                     <a href="{% url 'companies-web:companies' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-domain"></i></span>
-                        <span class="menu-text"> Manning Agencies 仲介 </span>
+                        <span class="menu-text">{{ menu_labels | dict_get:'companies' }}</span>
                     </a>
                 </li>
             {% endif %}
@@ -68,7 +70,7 @@
                 <li class="menu-item">
                     <a href="{% url 'vessels-web:vessels' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-sail-boat"></i></span>
-                        <span class="menu-text"> Vessels 船舶</span>
+                        <span class="menu-text">{{ menu_labels | dict_get:'vessels' }}</span>
                     </a>
                 </li>
             {% endif %}
@@ -77,7 +79,7 @@
             <li class="menu-item">
                 <a href="{% url 'contracts-web:contracts' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-file-document-edit"></i></span>
-                    <span class="menu-text"> Contracts 契約 </span>
+                    <span class="menu-text">{{ menu_labels | dict_get:'contracts' }}</span>
                 </a>
             </li>
 
@@ -85,7 +87,7 @@
             <li class="menu-item">
                 <a href="{% url 'payments:payments-list' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
-                    <span class="menu-text"> Payments 薪資</span>
+                    <span class="menu-text">{{ menu_labels | dict_get:'payments' }}</span>
                 </a>
             </li>
             <hr class="m-2 mt-1 mb-1">
@@ -94,19 +96,19 @@
                 <li class="menu-item">
                     <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-account-outline"></i></span>
-                        <span class="menu-text"> My profile 個人資訊 </span>
+                        <span class="menu-text">{{ menu_labels | dict_get:'myProfile' }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="{% url 'accounts:change-language' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-translate"></i></span>
-                        <span class="menu-text"> Change Language </span>
+                        <span class="menu-text">{{ menu_labels | dict_get:'changeLanguage' }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="{% url 'accounts:logout' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-logout"></i></span>
-                        <span class="menu-text"> Logout 登出 </span>
+                        <span class="menu-text">{{ menu_labels | dict_get:'logout' }}</span>
                     </a>
                 </li>
 
@@ -116,34 +118,34 @@
             {% if loggedin_user.is_superuser %}
                 <hr class="m-2 mt-1 mb-1">
                 <!-- <p class="menu-title">For admin use only</p> -->
-                <li class="menu-title">Survey Data</li>
+                <li class="menu-title">{{ common_text | dict_get:'surveyData' }}</li>
                 <li class="menu-item">
                     <a href="{% url 'surveys-web:tfa-video' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                        <span class="menu-text"> TFA Video responses </span>
+                        <span class="menu-text">{{ common_text | dict_get:'TFAVideoResponses' }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="{% url 'surveys-web:surveys' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                        <span class="menu-text"> Survey Responses </span>
+                        <span class="menu-text">{{ common_text | dict_get:'surveyResponses' }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="{% url 'surveys-web:inline-questions' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                        <span class="menu-text"> Inline question Responses </span>
+                        <span class="menu-text">{{ common_text | dict_get:'inlineQuestionResponses' }}</span>
                     </a>
                 </li>
             {% endif %}
             
             {% if loggedin_user.is_superuser %}
                 <hr class="m-2 mt-1 mb-1">
-                <li class="menu-title">Super Admin</li>
+                <li class="menu-title">{{ common_text | dict_get:'superAdmin' }}</li>
                 <li class="menu-item">
                     <a href="{% url 'accounts:users' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-account-group"></i></span>
-                        <span class="menu-text"> Users </span>
+                        <span class="menu-text">{{ common_text | dict_get:'users' }}</span>
                     </a>
                 </li>
             {% endif %}
