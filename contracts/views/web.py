@@ -22,6 +22,7 @@ from contracts.utils import (
     get_clause_form,
     get_clause_html_content,
     dynamic_clauses,
+    get_add_contract_form_labels,
 )
 from prismic.utils import PrismicUtils
 import datetime
@@ -41,8 +42,14 @@ class ContractsView(LoginRequiredMixin, View):
                 Q(contract_user_access__user=user.id)
             ).distinct()
         context['contracts'] = contracts
-        context['new_contract_form'] = AddContractForm(user=user)
 
+        form_labels = get_add_contract_form_labels(self.request)
+        context['contract_form_labels'] = form_labels
+        context['new_contract_form'] = AddContractForm(user=user, form_labels=form_labels)
+
+        prismic_utils = PrismicUtils(self.request)
+        common_text = prismic_utils.common_text
+        context['common_text'] = common_text
         return context
 
     def get(self, request):
@@ -58,15 +65,15 @@ class ContractsView(LoginRequiredMixin, View):
             contract.app_ref = generate_uuid()
             contract.save()
 
-            if 'contract_signature' in request.FILES:
+            if 'upload_contract' in request.FILES:
                 if not os.path.exists('uploads/contracts'):
                     os.makedirs('uploads/contracts')
 
-                file_name = request.FILES['contract_signature'].name
+                file_name = request.FILES['upload_contract'].name
                 file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                 file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                 with open(file_path, 'wb+') as destination:
-                    for chunk in request.FILES['contract_signature'].chunks():
+                    for chunk in request.FILES['upload_contract'].chunks():
                         destination.write(chunk)
 
                 contract_document = ContractDocument.objects.create(
@@ -95,6 +102,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         self.object = self.get_object()
         user = self.request.user
         context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
         context['clauses'] = self.object.contract_clause.all()
         if self.object.taiwanese_company:
             taiwan_company = Company.objects.filter(
@@ -108,15 +116,25 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             ).first()
             if indonesian_company:
                 self.object.indonesian_company_name = indonesian_company.name
+        if self.object.kind:
+            value = 'Worker' if self.object.kind == 'worker' else 'Company'
+            kind_translation = prismic_utils.get_question_option_translation(
+                'companies-createcontract', 'type', value)
+            self.object.kind_value = kind_translation if kind_translation else self.object.kind
 
         for item in context['clauses']:
             # Get clause order. For ordering clauses properly when displaying
             item.order = item.order if item.order else get_clause_order(item.kind)
 
             item.content = json.loads(item.content)
+            clause_data = prismic_utils.get_content_by_property_name(f'{item.kind}-content')
+            item.page_title = clause_data['pageTitle'] if clause_data else item.kind.replace('-', ' ')
             if item.kind == 'contract-clauses-parties-requirement-vessel':
-                # TODO: translate
-                item.name = 'Parties to this Contract'
+                # Get parties page title
+                parties_data = prismic_utils.get_content_by_property_name(
+                    'contract-clauses-parties-to-this-contract-content')
+                item.page_title = parties_data['pageTitle'] if parties_data else item.kind.replace('-', ' ')
+
                 # Add party B id to party A details
                 party_b_clause = context['clauses'].filter(kind='contract-clauses-parties-requirement-fishers').first()
                 if party_b_clause:
@@ -165,15 +183,23 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         context['clauses_to_be_added'] = clauses_to_be_added
         context['access_users'] = self.get_access_users()
 
-        # Get contract signature URL
-        contract_signature = self.object.contract_document.first() if self.object.contract_document.exists() else None
-        if contract_signature:
-            self.object.contract_signature_url = contract_signature.url  # for the contract detail view
+        # Get contract upload URL
+        upload_contract = self.object.contract_document.first() if self.object.contract_document.exists() else None
+        if upload_contract:
+            self.object.upload_contract_url = upload_contract.url  # for the contract detail view
         initial_data = {
-            'contract_signature': contract_signature.url if contract_signature else None,  # for the form
+            'upload_contract': upload_contract.url if upload_contract else None,  # for the form
         }
 
-        context['new_contract_form'] = AddContractForm(user=user, instance=self.object, initial=initial_data)
+        form_labels = get_add_contract_form_labels(self.request)
+        context['contract_form_labels'] = form_labels
+        context['new_contract_form'] = AddContractForm(
+            user=user, instance=self.object, initial=initial_data, form_labels=form_labels)
+
+        common_text = prismic_utils.common_text
+        context['common_text'] = common_text
+        clause_page_text = prismic_utils.get_page_text('contracts-view-clause')
+        context['clause_page_text'] = clause_page_text
         return context
 
     def get_access_users(self):
@@ -228,15 +254,15 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 contract.updated_by = request.user.id
                 contract.save()
 
-                if 'contract_signature' in request.FILES:
+                if 'upload_contract' in request.FILES:
                     if not os.path.exists('uploads/contracts'):
                         os.makedirs('uploads/contracts')
 
-                    file_name = request.FILES['contract_signature'].name
+                    file_name = request.FILES['upload_contract'].name
                     file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
                     file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
                     with open(file_path, 'wb+') as destination:
-                        for chunk in request.FILES['contract_signature'].chunks():
+                        for chunk in request.FILES['upload_contract'].chunks():
                             destination.write(chunk)
 
                     if contract.contract_document.exists():
@@ -399,3 +425,10 @@ class ContractAccessView(CreateView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
+        common_text = prismic_utils.common_text
+        context['common_text'] = common_text
+        return context

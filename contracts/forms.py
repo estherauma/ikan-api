@@ -34,16 +34,14 @@ class AddContractForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'form-control ikan-select'})
     )
-    indonesian_company = forms.ChoiceField(
-        required=False,
+    kind = forms.ChoiceField(
         widget=forms.Select(attrs={'class': 'form-control ikan-select'})
     )
-    contract_signature = forms.FileField(required=True, widget=forms.FileInput(attrs={'class': 'form-control'}))
+    upload_contract = forms.FileField(required=True, widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Contract
         fields = ['name', 'start_date', 'end_date', 'description', 'taiwanese_company', 'indonesian_company', 'kind', ]
-
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
@@ -57,21 +55,31 @@ class AddContractForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
+        labels = kwargs.pop("form_labels", {})
         super().__init__(*args, **kwargs)
         if user:
-            # TODO: change default select option to gray and not selectable
-            taiwan_choices = [('', 'Select Taiwanese Company')]
+            select_option_text = labels.get('select_option', 'Select option')
+            worker_text = labels.get('worker', 'Worker')
+            company_text = labels.get('company', 'Company')
+            taiwan_choices = [('', select_option_text)]
             taiwan_companies = Company.objects.filter(country='Taiwan', created_by=user.id)
             if taiwan_companies.exists():
                 taiwan_choices += [(company.id, company.name) for company in taiwan_companies]
             self.fields['taiwanese_company'].choices = taiwan_choices
 
-            indonesian_choices = [('', 'Select Indonesian Company')]
+            indonesian_choices = [('', select_option_text)]
             indonesian_companies = Company.objects.filter(country='Indonesia', created_by=user.id)
             if indonesian_companies.exists():
                 indonesian_choices += [(company.id, company.name) for company in indonesian_companies]
             self.fields['indonesian_company'].choices = indonesian_choices
 
-            # Make the file field optional when updating
+            self.fields['kind'].choices = [('', select_option_text), ('company', company_text), ('worker', worker_text)]
+
+            # Make the upload_contract field optional when updating and it has a value
             if self.instance and self.instance.pk and self.instance.contract_document.exists():
-                self.fields['contract_signature'].required = False
+                self.fields['upload_contract'].required = False
+
+        if labels:
+            for field_name, field in self.fields.items():
+                if field_name in labels:
+                    field.label = labels[field_name]

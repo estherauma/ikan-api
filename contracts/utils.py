@@ -110,6 +110,7 @@ def get_clause_form(request, clause_kind, initial_data=None):
 
 def get_clauses_to_be_added(request, contract):
     prismic_utils = PrismicUtils(request)
+    common_text = prismic_utils.common_text
     clauses = contract.contract_clause.all()
     clauses_to_be_added = []
 
@@ -124,9 +125,9 @@ def get_clauses_to_be_added(request, contract):
 
         # TODO: translate name when language switching is implemented
         if kind == 'contract-clauses-parties-requirement-vessel':
-            name = 'Parties to this contract - Party A'
+            name = common_text.get('partiesToThisContractPartyA', 'Parties to this contract - Party A---------')
         elif kind == 'contract-clauses-parties-requirement-fishers':
-            name = 'Parties to this contract - Party B'
+            name = common_text.get('partiesToThisContractPartyB', 'Parties to this contract - Party B----------')
         else:
             clause_data = prismic_utils.get_content_by_property_name(f'{kind}-content')
             name = clause_data['pageTitle'] if clause_data else kind.replace('-', ' ')
@@ -268,3 +269,18 @@ def fill_placeholders(input_string, placeholder_values):
             value = str(value)
         result = result.replace(placeholder, value)
     return result
+
+
+def get_add_contract_form_labels(request):
+    prismic_utils = PrismicUtils(request)
+    labels = prismic_utils.get_field_labels_from_form_questions(None, 'companies-createcontract')
+
+    labels['kind'] = labels.get('type', 'Kind')
+    labels['taiwanese_company'] = labels.get('taiwanese_company_id', 'Taiwanese Company Name')
+    labels['indonesian_company'] = labels.get('indonesian_company_id', 'Indonesian Company Name')
+    labels['upload_contract'] = labels.get('file', 'Upload contract')
+    labels['select_option'] = prismic_utils.common_text.get('selectOption', 'Select option')
+    labels['company'] = prismic_utils.common_text.get('company', 'Company')
+    labels['worker'] = prismic_utils.common_text.get('worker', 'Worker')
+
+    return labels

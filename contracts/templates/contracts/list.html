@@ -1,5 +1,6 @@
 {% extends 'themes/v1/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
     <div class="content-wrapper">
@@ -32,7 +33,7 @@
                             class="btn btn-info btn-large waves-effect waves-light ikan-primary-button add-btn"
                         >
                             <i class="mdi mdi-plus"></i>
-                            New contract
+                            {{ common_text | dict_get:'newContract' }}
                         </button>
                         <!-- Add contract modal -->
                         <div
@@ -46,7 +47,7 @@
                                 <div class="modal-content">
                                     <div class="modal-header row m-0">
                                         <div class="col col-10 text-center">
-                                            <h4 class="modal-title">Create contract</h4>
+                                            <h4 class="modal-title">{{ common_text | dict_get:'createContract' }}</h4>
                                         </div>
                                         <div class="col col-2 d-flex justify-content-center">
                                             <button
@@ -86,7 +87,7 @@
                                                     class="btn btn-primary ikan-primary-button"
                                                     type="submit"
                                                 >
-                                                    Save contract
+                                                    {{ common_text | dict_get:'save' }}
                                                 </button>
                                             </div>
                                         </form>
@@ -101,7 +102,7 @@
             {% if not contracts %}
                 <div class="row m-3">
                     <div class="col">
-                        <p>No contracts added.</p>
+                        <p>{{ common_text | dict_get:'noContractsAdded' }}</p>
                     </div>
                 </div>
             {% endif %}

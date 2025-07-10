@@ -8,13 +8,21 @@ class PrismicUtils:
         self.is_superuser = self.user.is_superuser
         selected_lang = request.session.get('language', None)
         self.language = selected_lang if selected_lang else 'en-us'
-        self.aggregated_content = None
+        self.all_aggregated_content = self.get_all_aggregated_content()
+        self.content = self.get_content()  # for selected land
+        self.common_text = self.get_common_text()
+
+    def get_all_aggregated_content(self):
+        all_data = AggregatedContent.objects.all()
+        latest_data = all_data.order_by('-created_at').first()
+        if latest_data and latest_data.content:
+            return latest_data.content
+        return None
 
     def get_content(self):
-        all_data = AggregatedContent.objects.all()
-        recent_data = all_data.order_by('-created_at').first()
-        if recent_data and recent_data.content:
-            return recent_data.content[self.language]
+        agg_content = self.all_aggregated_content
+        if agg_content:
+            return agg_content[self.language]
         return None
 
     def get_content_by_property_name(self, property_name):
@@ -54,6 +62,8 @@ class PrismicUtils:
             field_type = question["question_type"]
             options = question.get("options", [])
 
+            select_option_text = self.common_text.get('selectOption', 'Select option')
+
             if field_type == 'textBox' or field_type == 'text':
                 field = forms.CharField(
                     label=label,
@@ -74,7 +84,7 @@ class PrismicUtils:
                     required=required,
                     help_text=help_text,
                     # TODO: add translation for placeholder when language switching is implemented
-                    choices=[('', 'Select option')]+[(option['value'], option['label']) for option in options],
+                    choices=[('', select_option_text)]+[(option['value'], option['label']) for option in options],
                     widget=forms.Select(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'multiple-select' or field_type == 'multi-select':
@@ -83,7 +93,7 @@ class PrismicUtils:
                     required=required,
                     help_text=help_text,
                     # TODO: add translation for placeholder when langiage switching is implemented
-                    choices=[('', 'Select options')]+[(option['value'], option['label']) for option in options],
+                    choices=[('', select_option_text)]+[(option['value'], option['label']) for option in options],
                     widget=forms.SelectMultiple(attrs={'placeholder': placeholder, 'class': 'form-control ikan-select'})
                 )
             elif field_type == 'tel' or field_type == 'telephone':
@@ -173,3 +183,46 @@ class PrismicUtils:
         if option:
             return option.get('label', option_value)
         return option['label'] if option['label'] else option_value
+
+    def get_field_labels_from_form_questions(self, form_questions, property_name=None):
+        """
+        Get field labels from form questions.
+        If no form questions but the property name is provided,
+        use property name to get the form questions and in turn field the labels.
+
+        Usage:
+            get_field_labels_from_form_questions(form_questions)
+            get_field_labels_from_form_questions(None, property_name)
+        Example:
+            get_field_labels_from_form_questions(profile_form_questions)
+            get_field_labels_from_form_questions(None, profile_property_name)
+        """
+        if not form_questions and property_name:
+            form_questions = self.get_form_questions(property_name)
+
+        labels = {}
+        if form_questions:
+            for qtn in form_questions:
+                if qtn['label']:
+                    labels[qtn['key']] = qtn['label']
+
+        return labels
+
+    def get_common_text(self):
+        if not self.content:
+            return None
+        common_text = {}
+        common_content = self.content.get('commonText', None)
+        if common_content and 'data' in common_content:
+            for item in common_content['data']:
+                common_text[item['label']] = item['value']
+        return common_text
+
+    def get_page_text(self, property_name):
+        page_data = self.get_content_by_property_name(property_name)
+
+        page_text = {}
+        if 'additional_text' in page_data and page_data['additional_text']:
+            for item in page_data['additional_text']:
+                page_text[item['label']] = item['value']
+        return page_text
