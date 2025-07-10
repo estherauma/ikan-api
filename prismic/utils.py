@@ -48,8 +48,6 @@ class PrismicUtils:
                         if self.initial.get('partyBSignature'):
                             self.fields['partyBSignature'].required = False
 
-            pass
-
         for question in form_questions:
             if not question.get('displayquestion', True):
                 continue  # Skip questions that are not to be displayed
@@ -226,3 +224,16 @@ class PrismicUtils:
             for item in page_data['additional_text']:
                 page_text[item['label']] = item['value']
         return page_text
+
+    def get_menu_content(self):
+        pass
+
+    def get_menu_labels(self):
+        menu_labels = {}
+        menu_data = self.get_content_by_property_name('sidemenu')
+        if menu_data and 'data' in menu_data:
+            for item in menu_data['data']:
+                menu_labels[item['key']] = item['label']
+
+            menu_labels['home'] = menu_labels.get('workerDashboard', menu_labels.get('vesselownerDashboard', 'Home'))
+        return menu_labels

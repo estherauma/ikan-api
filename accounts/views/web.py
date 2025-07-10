@@ -16,6 +16,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
+from prismic.utils import PrismicUtils
 
 # models
 from accounts.models import User
@@ -30,6 +31,10 @@ def get_base(request):
 
 
 def loggedin_user(request):
+    """
+    Resultant object is passed to the context processor
+    """
+    prismic_utils = PrismicUtils(request)
     loggedin_user = None
     show_users_menu_item = False
 
@@ -46,7 +51,10 @@ def loggedin_user(request):
 
     return {
             'loggedin_user': loggedin_user,
-            'show_users_menu_item': show_users_menu_item
+            'show_users_menu_item': show_users_menu_item,
+            'selected_language': request.session.get('language', 'en-us'),
+            'common_text': prismic_utils.common_text,
+            'menu_labels': prismic_utils.get_menu_labels(),
         }
 
 
