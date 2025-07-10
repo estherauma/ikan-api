@@ -136,6 +136,17 @@ class PrismicAPI():
         def agg_intro_content(intro_data):
             return [data['primary'] for data in intro_data]
 
+        def agg_welcome_screens_slides(slides):
+            result = []
+            for slide in slides:
+                slide_obj = {
+                    **slide,
+                    'slide_audio': aggregate_media_data(slide.get('slide_audio')),
+                    'slide_content': aggregate_text_data(slide.get('slide_content')),
+                }
+                result.append(slide_obj)
+            return result
+
         for item in data['results']:
             if item['type'] == 'form_questions':
                 aggregation_response = agg_form_questions(item['data']['body'])
@@ -187,6 +198,18 @@ class PrismicAPI():
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'additional_text': agg_page_res
+                }
+                aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'welcome_screens':
+                slides = agg_welcome_screens_slides(item['data']['slides'])
+                page_data = {
+                    'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
+                    'show_slides': item['data']['show_slides'],
+                    'slides': slides,
+                    'analyticsEventName': item['data']['analytics_event_name'],
+                    'last_updated': item['last_publication_date'],
                 }
                 aggregated_data[item['uid']] = page_data
 
