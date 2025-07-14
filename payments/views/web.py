@@ -6,7 +6,6 @@ from payments.models import Payment
 from django.contrib import messages
 from payments.utils import (
     methods_map,
-    categories_map,
     payment_fields,
     payment_fields_map_english,
     payment_fields_map_chinese,
@@ -72,12 +71,21 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         context["methods_map"] = methods_map
-        context["categories_map"] = categories_map
         context["deductions_list"] = deductions_list
 
         # Get payments common text
         prismic_utils = PrismicUtils(self.request)
-        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        context["payments_common_text"] = payments_common_text
+
+        for key, value in context['methods_map'].items():
+            if key == 'both':
+                context['methods_map'][key] = payments_common_text.get('cashAndBankTransfer',
+                                                                       'Both cash and bank transfer')
+            elif key == 'cash':
+                context['methods_map'][key] = payments_common_text.get('cash', 'Cash')
+            elif key == 'bank_transfer':
+                context['methods_map'][key] = payments_common_text.get('bankTransfer', 'Bank transfer')
 
         return context
 
