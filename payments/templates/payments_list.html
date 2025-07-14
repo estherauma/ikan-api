@@ -1,4 +1,5 @@
 {% extends "themes/v1/base.html" %}
+{% load custom_filters %}
 
 {% block content %}
 <div class="container-fluid">
@@ -104,7 +105,7 @@
         {% if not payments %}
             <div class="row m-3">
                 <div class="col">
-                    <p>No payments added.</p>
+                    <p>{{ payments_common_text.noPayments }}</p>
                 </div>
             </div>
         {% endif %}
@@ -118,7 +119,7 @@
                                 <div class="accordion-item">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
-                                        <h4>Payments for {{ vessel_name | upper }} vessel</h4>
+                                        <h4>{{ payments_common_text.paymentsForVessel }} {{ vessel_name | upper }}</h4>
                                     </button>
 
                                     <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
@@ -127,11 +128,11 @@
                                                     <table id="basic-datatable" class="table dt-responsive nowrap w-100">
                                                         <thead>
                                                             <tr>
-                                                                <th>Worker</th>
-                                                                <th>Payment Period</th>
-                                                                <th>Total USD amount received</th>
-                                                                <th>Payment Date</th>
-                                                                <th>Action </th>
+                                                                <th>{{ common_text.worker }}</th>
+                                                                <th>{{ payments_common_text.paymentPeriod }}</th>
+                                                                <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
+                                                                <th>{{ payments_common_text.paymentDate }}</th>
+                                                                <th>{{ common_text.actions }}</th>
                                                             </tr>
                                                         </thead>
                                                     
@@ -139,11 +140,16 @@
                                                             {% for v_payment in vessel_payments %}
                                                             <tr>
                                                                 <td>{{v_payment.user.first_name}} {{v_payment.user.last_name}}</td>
-                                                                <td>{{v_payment.start_date}} - {{v_payment.end_date}}</td>
+                                                                <td>{{v_payment.start_date | format_date:selected_language}} - {{v_payment.end_date | format_date:selected_language}}</td>
                                                                 <td>{{v_payment.total_usd_amount_received}}</td>
-                                                                <td>{{v_payment.payment_date}}</td>
+                                                                <td>{{v_payment.payment_date | format_date:selected_language}}</td>
                                                                 <td>
-                                                                    <a href="{% url 'payments:payment-details' v_payment.id %}" class="btn btn-primary btn-sm mb-1">View Payment</a>
+                                                                    <a 
+                                                                        href="{% url 'payments:payment-details' v_payment.id %}"
+                                                                        class="btn btn-primary btn-sm mb-1"
+                                                                    >
+                                                                        {{ payments_common_text.viewPayment }}
+                                                                    </a>
                                                                 </td>
                                                             </tr>
                                                             {% endfor %}
@@ -166,16 +172,16 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h1 class="text-center mb-4">My Wages</h1>
+                        <h1 class="text-center mb-4">{{ payments_common_text.myWages }}</h1>
 
                         <table id="basic-datatable" class="table dt-responsive nowrap w-100">
                             <thead>
                                 <tr>
-                                    <th>Payment Period</th>
-                                    <th>Total USD amount received</th>
-                                    <th>Payment Date</th>
-                                    <th>Vessel</th>
-                                    <th>Action </th>
+                                    <th>{{ payments_common_text.paymentPeriod }}</th>
+                                    <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
+                                    <th>{{ payments_common_text.paymentDate }}</th>
+                                    <th>{{ common_text.vessel }}</th>
+                                    <th>{{ common_text.actions }}</th>
                                 </tr>
                             </thead>
                         
@@ -183,19 +189,24 @@
                                 {% if not payments %}
                                     <div class="row m-3">
                                         <div class="col">
-                                            <p class="text-center">You do not have any wages added yet.</p>
+                                            <p class="text-center">{{ payments_common_text.noWagesAddedYet }}</p>
                                         </div>
                                     </div>
                                 {% endif %}
                                 
                                 {% for payment in payments %}
                                 <tr>
-                                    <td>{{payment.start_date}} - {{payment.end_date}}</td>
+                                    <td>{{payment.start_date | format_date:selected_language}} - {{payment.end_date | format_date:selected_language}}</td>
                                     <td>{{payment.total_usd_amount_received}}</td>
-                                    <td>{{payment.payment_date}}</td>
+                                    <td>{{payment.payment_date | format_date:selected_language}}</td>
                                     <td>{{payment.vessel.name}}</td>
                                     <td>
-                                        <a href="{% url 'payments:payment-details' payment.id %}" class="btn btn-primary btn-sm mb-1">View Payment</a>
+                                        <a 
+                                            href="{% url 'payments:payment-details' payment.id %}"
+                                            class="btn btn-primary btn-sm mb-1"
+                                        >
+                                            {{ payments_common_text.viewPayment }}
+                                        </a>
                                     </td>
                                 </tr>
                                 {% endfor %}
