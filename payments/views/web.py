@@ -22,6 +22,7 @@ from django.views.generic import DetailView
 from payments.forms import VesselSelectForm, PaymentsFormSet
 from notifications.models import Notification
 import json
+from prismic.utils import PrismicUtils
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -56,6 +57,10 @@ class PaymentListView(LoginRequiredMixin, ListView):
             grouped_payments = dict(sorted(grouped_payments.items()))
             context["grouped_payments"] = grouped_payments
 
+        # Get payments common text
+        prismic_utils = PrismicUtils(self.request)
+        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+
         return context
 
 
@@ -69,6 +74,11 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context["methods_map"] = methods_map
         context["categories_map"] = categories_map
         context["deductions_list"] = deductions_list
+
+        # Get payments common text
+        prismic_utils = PrismicUtils(self.request)
+        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+
         return context
 
 
