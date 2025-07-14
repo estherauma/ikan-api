@@ -74,8 +74,6 @@ bank_transfer_beneficiary_fields = [
     "bank_transfer_beneficiary_contact",
 ]
 
-categories_map = {"wages": "薪資 Wages", "bonus": "獎金 Bonus"}
-
 beneficiaries_map = {
     "self": "船員自己 Crew member himself",
     "family_or_friend": "家人/朋友 Family/friend",
