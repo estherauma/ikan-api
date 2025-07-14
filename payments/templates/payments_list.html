@@ -30,7 +30,7 @@
 						data-bs-target="#select-vessel-modal"
                         class="btn btn-info btn-large waves-effect waves-light"
                     >
-                        Add payments 新增薪資
+                        {{ payments_common_text.addPayments }}
                     </button>
 					<!-- Select vessel modal -->
 					<div
@@ -44,7 +44,7 @@
 							<div class="modal-content">
 								<div class="modal-header row m-0">
 									<div class="col col-10 text-center">
-										<h4 class="modal-title">Select Vessel</h4>
+										<h4 class="modal-title">{{ payments_common_text.selectVesselForm }}</h4>
 									</div>
 									<div class="col col-2 d-flex justify-content-center">
 										<button
@@ -67,13 +67,13 @@
                                         {% if not has_vessel %}
                                             <div class="row m-3">
                                                 <div class="col">
-                                                    <p>No vessels added.</p>
-                                                    <p>Please first add a vessel.</p>
+                                                    <p>{{ payments_common_text.noVesselsAdded }}</p>
+                                                    <p>{{ payments_common_text.pleaseFirstAddVessel }}</p>
                                                 </div>
                                             </div>
                                         {% else %}
                                             <fieldset>
-                                                <legend class="mt-3 fs-5 fw-medium text-dark">Select Vessel</legend>
+                                                <legend class="mt-3 fs-5 fw-medium text-dark">{{ payments_common_text.selectVessel }}</legend>
                                                 {{ vessel_form.vessel }}
                                             </fieldset>
                                             
@@ -88,7 +88,7 @@
                                                     type="submit"
                                                     disabled
                                                 >
-                                                    Next 下一頁
+                                                    {{ common_text.next }}
                                                 </button>
                                             </div>
                                         {% endif %}
