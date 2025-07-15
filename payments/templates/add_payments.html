@@ -1025,6 +1025,10 @@
         const jsonDeductionsList = '{{ json_deductions_list|safe|escapejs }}';
         const deductions = JSON.parse(jsonDeductionsList);
         let currentRow = null;
+        const jsonPaymentsCommonText = '{{ json_payments_common_text|safe|escapejs }}';
+        const paymentsCommonText = JSON.parse(jsonPaymentsCommonText);
+        const jsonCurrencyOptions = '{{ json_currency_options|safe|escapejs }}';
+        const currencyOptions = JSON.parse(jsonCurrencyOptions);
 
         window.openDeductionModal = function openDeductionModal(button) {
             currentRow = button.getAttribute("data-current-row");
@@ -1062,7 +1066,7 @@
                                 type="button"
                                 style="color: white; background: #f04141; border: 1px solid red; border-radius: 50px; padding: 2px 12px;"
                                 onclick="this.parentElement.remove()"
-                            >Remove</button>`;
+                            >${paymentsCommonText.remove || 'Remove'}</button>`;
             document.getElementById("deductions-list").appendChild(div);
 
             // update view button display when item is removed
@@ -1075,16 +1079,8 @@
         }
 
         window.generateCurrencyOptions = function generateCurrencyOptions(selectedValue = "") {
-            const currencies = currencies_map = {
-                // "": "Select currency",
-                "USD": "美元 US dollar",
-                "MUR": "毛里求斯盧比 Mauritian Rupee",
-                "TWD": "新台幣 Taiwan New Dollars",
-                "IDR": "印尼盾/盧比 Indonesian Rupiah",
-                "SBD": "索羅門群島元 Solomon Islands Dollar",
-            };
-            return Object.entries(currencies).map(([key, label]) => {
-                return `<option value="${key}" ${selectedValue === key ? "selected" : ""}>${label}</option>`;
+            return currencyOptions.map((item) => {
+                return `<option value="${item.key}" ${selectedValue === item.key ? "selected" : ""}>${item.label}</option>`;
             }).join("");
         }
 
@@ -1138,15 +1134,15 @@
             }
 
             if (parsedSavedItems.length === 0) {
-                viewDeductionsList.innerHTML = "<p class='no-items'>No items added.</p>";
+                viewDeductionsList.innerHTML = `<p class='no-items'>${paymentsCommonText.noItemsAdded || 'No items added.'}</p>`;
             } else {
                 let table = document.createElement("table");
                 table.classList.add("view-deductions-table");
                 // header
                 table.innerHTML = `
                     <tr class="fs-4 fw-bold">
-                        <th style="width: 40%;">Item</th>
-                        <th style="width: 60%;">Amount</th>
+                        <th style="width: 40%;">${paymentsCommonText.item || 'Item'}</th>
+                        <th style="width: 60%;">${paymentsCommonText.amount || 'Amount'}</th>
                     </tr>
                 `;
                 // rows
