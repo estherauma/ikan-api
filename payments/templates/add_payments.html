@@ -38,7 +38,7 @@
         >
             <table id="paymentsTable" class="table">
                 <thead style="background: #e7eaf1;">
-                    <tr>
+                    <tr style=" border-bottom-width: 1.5px; border-color: #6c757d54;">
                         {% for field in payment_fields %}
                             <th
                                 class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %} {% if field == 'deductions' %}hide-field{% endif %}"
