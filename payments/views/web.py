@@ -7,14 +7,13 @@ from django.contrib import messages
 from payments.utils import (
     methods_map,
     payment_fields,
-    payment_fields_map_english,
-    payment_fields_map_chinese,
     cash_fields,
     bank_transfer_fields,
     deduction_fields,
     get_workers_on_vessel,
     deductions_list,
     get_formset_initial_values,
+    get_payment_field_labels,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -112,6 +111,7 @@ class AddPayment(LoginRequiredMixin, View):
     template_name = "add_payments.html"
 
     def get(self, request):
+        prismic_utils = PrismicUtils(self.request)
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
         workers_on_vessel = get_workers_on_vessel(vessel)
@@ -119,6 +119,7 @@ class AddPayment(LoginRequiredMixin, View):
             queryset=Payment.objects.none(), vessel=vessel, loggedin_user=request.user
         )
         formset_initial_values = get_formset_initial_values(vessel)
+        payments_common_text = prismic_utils.get_page_text("payments-common-text")
         return render(
             request,
             self.template_name,
@@ -126,8 +127,6 @@ class AddPayment(LoginRequiredMixin, View):
                 "vessel": vessel,
                 "formset": formset,
                 "payment_fields": payment_fields,
-                "english_fields": payment_fields_map_english,
-                "chinese_fields": payment_fields_map_chinese,
                 "cash_fields": cash_fields,
                 "bank_transfer_fields": bank_transfer_fields,
                 "workers_on_vessel": workers_on_vessel,
@@ -136,10 +135,15 @@ class AddPayment(LoginRequiredMixin, View):
                 "json_formset_initial_values": json.dumps(
                     formset_initial_values,
                 ),
+                "payments_common_text": payments_common_text,
+                "field_labels": get_payment_field_labels(
+                    payments_common_text,
+                ),
             },
         )
 
     def post(self, request):
+        prismic_utils = PrismicUtils(self.request)
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
         workers_on_vessel = get_workers_on_vessel(vessel)
@@ -167,6 +171,7 @@ class AddPayment(LoginRequiredMixin, View):
             return redirect("payments:payments-list")
         else:
             formset_initial_values = get_formset_initial_values(vessel)
+            payments_common_text = prismic_utils.get_page_text("payments-common-text")
             return render(
                 request,
                 self.template_name,
@@ -174,8 +179,6 @@ class AddPayment(LoginRequiredMixin, View):
                     "vessel": vessel,
                     "formset": formset,
                     "payment_fields": payment_fields,
-                    "english_fields": payment_fields_map_english,
-                    "chinese_fields": payment_fields_map_chinese,
                     "cash_fields": cash_fields,
                     "bank_transfer_fields": bank_transfer_fields,
                     "workers_on_vessel": workers_on_vessel,
@@ -183,6 +186,10 @@ class AddPayment(LoginRequiredMixin, View):
                     "json_deductions_list": json.dumps(deductions_list),
                     "json_formset_initial_values": json.dumps(
                         formset_initial_values,
+                    ),
+                    "payments_common_text": payments_common_text,
+                    "field_labels": get_payment_field_labels(
+                        payments_common_text,
                     ),
                 },
             )
