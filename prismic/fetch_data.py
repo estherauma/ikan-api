@@ -239,6 +239,21 @@ class PrismicAPI():
                 }
                 aggregated_data[item['uid']] = page_data
 
+            if item['type'] == 'app_tutorials':
+                item_body = item['data']['body'][0] if 'body' in item['data'] and item['data']['body'] else None
+                tutorials = agg_tutorials_slice(item_body)
+                page_data = {
+                    'page_name': item['uid'],
+                    'welcome_title': item['data']['welcome_title'],
+                    'welcome_text': aggregate_text_data(item['data']['welcome_text']),
+                    'welcome_audio': aggregate_media_data(item['data']['welcome_audio']),
+                    'welcome_video': aggregate_media_data(item['data']['welcome_video']),
+                    'tutorials': tutorials,
+                    'analyticsEventName': item['data']['analytics_event_name'],
+                    'last_updated': item['last_publication_date'],
+                }
+                aggregated_data[item['uid']] = page_data
+
         return aggregated_data
 
 
