@@ -147,6 +147,28 @@ class PrismicAPI():
                 result.append(slide_obj)
             return result
 
+        def agg_tutorials_slice(data):
+            if not data:
+                return None
+            result = {
+                'intro_title': data['primary'].get('intro_title'),
+                'intro_text': aggregate_text_data(data['primary'].get('intro_text')),
+                'intro_audio': aggregate_media_data(data['primary'].get('intro_audio')),
+                'analytics_event_name': data['primary'].get('analytics_event_name'),
+                'items': []
+            }
+            for item in data['items']:
+                item_obj = {
+                    'item_icon': item.get('item_icon'),
+                    'item_title': item.get('item_title'),
+                    'item_text': aggregate_text_data(item.get('item_text')),
+                    'item_audio': aggregate_media_data(item.get('item_audio')),
+                    'item_video': aggregate_media_data(item.get('item_video')),
+                    'item_analytics_event_name': item.get('item_analytics_event_name'),
+                }
+                result['items'].append(item_obj)
+            return result
+
         for item in data['results']:
             if item['type'] == 'form_questions':
                 aggregation_response = agg_form_questions(item['data']['body'])
