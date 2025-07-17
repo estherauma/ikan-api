@@ -158,6 +158,9 @@ class PrismicAPI():
                 'items': []
             }
             for item in data['items']:
+                # split string by comma and remove any leading or trailing spaces
+                roles = item.get('roles') if item.get('roles') else None
+                roles_list = re.split(r',\s*|\s*,\s*', roles) if roles else []
                 item_obj = {
                     'item_icon': item.get('item_icon'),
                     'item_title': item.get('item_title'),
@@ -165,6 +168,7 @@ class PrismicAPI():
                     'item_audio': aggregate_media_data(item.get('item_audio')),
                     'item_video': aggregate_media_data(item.get('item_video')),
                     'item_analytics_event_name': item.get('item_analytics_event_name'),
+                    'roles': roles_list,
                 }
                 result['items'].append(item_obj)
             return result
