@@ -3,12 +3,12 @@ from vessels.models import Vessel
 from payments.models import Payment
 from django.forms import modelformset_factory, BaseModelFormSet
 from payments.utils import (
-    payment_categories,
-    payment_methods,
-    payment_currencies,
     payment_fields,
     get_workers_on_vessel,
-    payment_beneficiarires,
+    generate_payment_currency_options,
+    generate_payment_beneficiary_options,
+    generate_payment_category_options,
+    generate_payment_method_options,
 )
 from django.core.exceptions import ValidationError
 
@@ -80,9 +80,10 @@ class AddPaymentsForm(forms.ModelForm):
         # to control their order in the row when displaying
         fields = payment_fields
 
-    def __init__(self, *args, vessel=None, loggedin_user=None, **kwargs):
+    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, **kwargs):
         super().__init__(*args, **kwargs)
         self.vessel = vessel
+        self.payments_common_text = payments_common_text
         empty_select_choice = [("", "")]
 
         for field in self.fields:
@@ -92,6 +93,10 @@ class AddPaymentsForm(forms.ModelForm):
                 max-width: 160px;padding: 0 10px; font-size: 1rem;"
         self.fields["user"].widget.attrs["style"] += "max-width: 220px;"
 
+        payment_categories = generate_payment_category_options(payments_common_text)
+        payment_methods = generate_payment_method_options(payments_common_text)
+        payment_currencies = generate_payment_currency_options(payments_common_text)
+        payment_beneficiarires = generate_payment_beneficiary_options(payments_common_text)
         self.fields["payment_category"].choices = empty_select_choice + [
             (item["key"], item["label"]) for item in payment_categories
         ]
@@ -324,14 +329,16 @@ class AddPaymentsForm(forms.ModelForm):
 
 
 class BasePaymentFormSet(BaseModelFormSet):
-    def __init__(self, *args, vessel=None, loggedin_user=None, **kwargs):
+    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, **kwargs):
         self.vessel = vessel
+        self.payments_common_text = payments_common_text
         self.loggedin_user = loggedin_user
         super().__init__(*args, **kwargs)
 
     def _construct_form(self, i, **kwargs):
         kwargs["vessel"] = self.vessel
         kwargs["loggedin_user"] = self.loggedin_user
+        kwargs["payments_common_text"] = self.payments_common_text
         return super()._construct_form(i, **kwargs)
 
     def clean(self):
