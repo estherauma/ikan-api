@@ -147,6 +147,32 @@ class PrismicAPI():
                 result.append(slide_obj)
             return result
 
+        def agg_tutorials_slice(data):
+            if not data:
+                return None
+            result = {
+                'intro_title': data['primary'].get('intro_title'),
+                'intro_text': aggregate_text_data(data['primary'].get('intro_text')),
+                'intro_audio': aggregate_media_data(data['primary'].get('intro_audio')),
+                'analytics_event_name': data['primary'].get('analytics_event_name'),
+                'items': []
+            }
+            for item in data['items']:
+                # split string by comma and remove any leading or trailing spaces
+                roles = item.get('roles') if item.get('roles') else None
+                roles_list = re.split(r',\s*|\s*,\s*', roles) if roles else []
+                item_obj = {
+                    'item_icon': item.get('item_icon'),
+                    'item_title': item.get('item_title'),
+                    'item_text': aggregate_text_data(item.get('item_text')),
+                    'item_audio': aggregate_media_data(item.get('item_audio')),
+                    'item_video': aggregate_media_data(item.get('item_video')),
+                    'item_analytics_event_name': item.get('item_analytics_event_name'),
+                    'roles': roles_list,
+                }
+                result['items'].append(item_obj)
+            return result
+
         for item in data['results']:
             if item['type'] == 'form_questions':
                 aggregation_response = agg_form_questions(item['data']['body'])
@@ -208,6 +234,21 @@ class PrismicAPI():
                     'page_title': item['data']['page_title'],
                     'show_slides': item['data']['show_slides'],
                     'slides': slides,
+                    'analyticsEventName': item['data']['analytics_event_name'],
+                    'last_updated': item['last_publication_date'],
+                }
+                aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'app_tutorials':
+                item_body = item['data']['body'][0] if 'body' in item['data'] and item['data']['body'] else None
+                tutorials = agg_tutorials_slice(item_body)
+                page_data = {
+                    'page_name': item['uid'],
+                    'welcome_title': item['data']['welcome_title'],
+                    'welcome_text': aggregate_text_data(item['data']['welcome_text']),
+                    'welcome_audio': aggregate_media_data(item['data']['welcome_audio']),
+                    'welcome_video': aggregate_media_data(item['data']['welcome_video']),
+                    'tutorials': tutorials,
                     'analyticsEventName': item['data']['analytics_event_name'],
                     'last_updated': item['last_publication_date'],
                 }
