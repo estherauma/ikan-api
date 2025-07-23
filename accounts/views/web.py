@@ -17,11 +17,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
-
-# models
 from accounts.models import User
-
-# forms
 from accounts.forms import LoginForm
 
 
@@ -59,12 +55,21 @@ def loggedin_user(request):
 
 
 class LoginView(View):
+    def get_context_data(self, **kwargs):
+        context = kwargs
+        context['form'] = LoginForm()
+
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
+        return context
+
     def get(self, request):
-        form = LoginForm()
-        context = {'form': form}
+        context = self.get_context_data()
         return render(request, template_name='login.html', context=context)
 
     def post(self, request):
+        context = self.get_context_data()
         form = LoginForm(data=request.POST)
         if form.is_valid():
             email = form.cleaned_data.get("email")
@@ -76,10 +81,10 @@ class LoginView(View):
             else:
                 messages.error(request, "Can not log in with provided credentials!")
                 # go back to login page
-                return render(request, template_name='login.html')
+                return render(request, template_name='login.html', context=context)
         else:
             messages.error(request, "Error validating form!")
-            return render(request, template_name='login.html')
+            return render(request, template_name='login.html', context=context)
 
 
 def request_password_reset(request):
