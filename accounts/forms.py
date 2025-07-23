@@ -67,6 +67,13 @@ class RequestPasswordResetForm(forms.Form):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
+        if auth_common_text:
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+
 
 class PasswordResetForm(forms.Form):
     email = forms.EmailField(

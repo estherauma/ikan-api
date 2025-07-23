@@ -88,11 +88,21 @@ class LoginView(View):
 
 
 def request_password_reset(request):
-    return render(request, template_name='password-reset/request-password-reset.html')
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    context = {
+        'auth_common_text': auth_common_text,
+    }
+    return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
 
 def reset_password(request):
-    return render(request, template_name='password-reset/reset-password.html')
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    context = {
+        'auth_common_text': auth_common_text,
+    }
+    return render(request, template_name='password-reset/reset-password.html', context=context)
 
 
 class UserListView(LoginRequiredMixin, ListView):
@@ -267,14 +277,26 @@ class RegisterWebView(View):
 
 
 class RequestPasswordReset(View):
+    def get_context_data(self, **kwargs):
+        context = kwargs
+
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
+        context['form'] = RequestPasswordResetForm(auth_common_text=auth_common_text)
+        return context
+
     def get(self, request):
-        form = RequestPasswordResetForm()
-        return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+        context = self.get_context_data()
+        return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
     def post(self, request):
-        form = RequestPasswordResetForm(data=request.POST)
+        context = self.get_context_data()
+        auth_common_text = context.get('auth_common_text', {})
+        form = RequestPasswordResetForm(data=request.POST, auth_common_text=auth_common_text)
+        context['form'] = form
         if not form.is_valid():
-            return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+            return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
         user = User.objects.get(email=form.cleaned_data.get('email'))
         if user:
@@ -285,18 +307,19 @@ class RequestPasswordReset(View):
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
-                subject='Reset your IKAN password',
+                subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
                 body={
                     'first_name': user.first_name,
                     'password_rest_token': password_rest_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
             )
-            messages.success(request, 'Please check your email for the password reset code.')
+            messages.success(request, auth_common_text.get(
+                'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
             return redirect('reset-password')
         else:
-            messages.error(request, 'Invalid email address.')
-            return render(request, template_name='password-reset/request-password-reset.html', context={'form': form})
+            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
+            return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
 
 class ResetPassword(View):
@@ -325,11 +348,6 @@ class ResetPassword(View):
 def logout_user(request):
     logout(request)
     return redirect("/account/login")
-
-
-class SelectLanguage(LoginRequiredMixin, View):
-    def get(self, request):
-        pass
 
 
 @login_required
