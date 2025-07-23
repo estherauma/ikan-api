@@ -211,14 +211,13 @@ class ResendAcessCode(View):
             return redirect('/account/users')
 
 
-class Reg(View):
-    def get(request):
-        return render(request, template_name='register.html')
-
-
 class RegisterSuccess(View):
-    def get(request):
-        return render(request, template_name="register-success.html")
+    def get(self, request):
+        prismic_utils = PrismicUtils(request)
+        context = {
+            'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
+            }
+        return render(request, template_name="register-success.html", context=context)
 
 
 class RegisterWebView(View):
@@ -242,7 +241,7 @@ class RegisterWebView(View):
         context['form'] = form
 
         if not form.is_valid():
-            return render(request, 'register.html', {'form': form})
+            return render(request, 'register.html', context)
 
         user = User.objects.create_user(
             email=form.cleaned_data.get('email'),
