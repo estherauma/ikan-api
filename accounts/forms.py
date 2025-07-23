@@ -127,6 +127,19 @@ class PasswordResetForm(forms.Form):
             raise forms.ValidationError('Passwords do not match.')
         return password2
 
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
+        if auth_common_text:
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+            self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourNewPassword',
+                                                                                        'Enter your new password')
+            self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
+                                                                                        'Confirm your password')
+            self.fields['reset_password_token'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterResetToken', 'Enter your password reset token')
+
 
 class InviteUser(forms.Form):
     email = forms.EmailField(

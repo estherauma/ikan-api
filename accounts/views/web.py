@@ -323,12 +323,24 @@ class RequestPasswordReset(View):
 
 
 class ResetPassword(View):
+    def get_context_data(self, **kwargs):
+        context = kwargs
+
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
+        context['form'] = PasswordResetForm(auth_common_text=auth_common_text)
+        return context
+
     def get(self, request):
-        form = PasswordResetForm()
-        return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+        context = self.get_context_data()
+        return render(request, template_name='password-reset/reset-password.html', context=context)
 
     def post(self, request):
-        form = PasswordResetForm(data=request.POST)
+        context = self.get_context_data()
+        auth_common_text = context.get('auth_common_text', {})
+        form = PasswordResetForm(data=request.POST, )
+        context['form'] = form
         if not form.is_valid():
             return render(request, template_name='password-reset/reset-password.html', context={'form': form})
 
@@ -337,10 +349,11 @@ class ResetPassword(View):
             user.set_password(form.cleaned_data.get('password1'))
             user.reset_password_token = None
             user.save()
-            messages.success(request, 'Password reset successfully. Please login with your new password.')
+            messages.success(request, auth_common_text.get(
+                'passwordResetSuccessMessage', 'Password reset successfully. Please login with your new password.'))
             return redirect('login')
         else:
-            messages.error(request, 'Invalid email address.')
+            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
             return render(request, template_name='password-reset/reset-password.html', context={'form': form})
 
 
