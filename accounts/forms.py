@@ -133,14 +133,15 @@ class PasswordResetForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if not User.objects.filter(email=email).exists():
-            raise forms.ValidationError('User does not exist.')
+            raise forms.ValidationError(self.auth_common_text.get('userDoesNotExist', 'User does not exist.'))
         return email
 
     def clean_reset_password_token(self):
         email = self.cleaned_data.get('email')
         reset_password_token = self.cleaned_data.get('reset_password_token')
         if not User.objects.filter(email=email, reset_password_token=reset_password_token).exists():
-            raise forms.ValidationError('Invalid reset password token.')
+            raise forms.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
+                                                                  'Invalid reset password token.'))
         return reset_password_token
 
     def clean_password2(self):
@@ -148,11 +149,12 @@ class PasswordResetForm(forms.Form):
         password2 = self.cleaned_data.get('password2')
 
         if password1 != password2:
-            raise forms.ValidationError('Passwords do not match.')
+            raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
         return password2
 
     def __init__(self, *args, **kwargs):
         auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
         super().__init__(*args, **kwargs)
         if auth_common_text:
             self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
