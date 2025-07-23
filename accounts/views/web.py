@@ -351,4 +351,9 @@ def change_language(request):
             request.session['language'] = lang
             return redirect('/')
 
-    return render(request, 'change_language.html')
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    context = {
+        'auth_common_text': auth_common_text,
+    }
+    return render(request, 'change_language.html', context)
