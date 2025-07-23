@@ -87,24 +87,6 @@ class LoginView(View):
             return render(request, template_name='login.html', context=context)
 
 
-def request_password_reset(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
-    context = {
-        'auth_common_text': auth_common_text,
-    }
-    return render(request, template_name='password-reset/request-password-reset.html', context=context)
-
-
-def reset_password(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
-    context = {
-        'auth_common_text': auth_common_text,
-    }
-    return render(request, template_name='password-reset/reset-password.html', context=context)
-
-
 class UserListView(LoginRequiredMixin, ListView):
     model = User
     context_object_name = 'users'
@@ -240,12 +222,24 @@ class RegisterSuccess(View):
 
 
 class RegisterWebView(View):
+    def get_context_data(self, **kwargs):
+        context = kwargs
+
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
+        context['form'] = RegistrationForm(auth_common_text=auth_common_text)
+        return context
+
     def get(self, request):
-        form = RegistrationForm()
-        return render(request, 'register.html', {'form': form})
+        context = self.get_context_data()
+        return render(request, 'register.html', context)
 
     def post(self, request):
-        form = RegistrationForm(data=request.POST)
+        context = self.get_context_data()
+        auth_common_text = context.get('auth_common_text', {})
+        form = RegistrationForm(data=request.POST, auth_common_text=auth_common_text)
+        context['form'] = form
 
         if not form.is_valid():
             return render(request, 'register.html', {'form': form})
@@ -264,7 +258,7 @@ class RegisterWebView(View):
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
-            subject='Verify your email to start using IKAN',
+            subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
             body={
                 'first_name': user.first_name,
                 'verification_link': verification_link,
