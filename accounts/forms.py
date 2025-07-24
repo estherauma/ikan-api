@@ -170,7 +170,7 @@ class PasswordResetForm(forms.Form):
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
                                                                                         'Confirm your password')
             self.fields['reset_password_token'].widget.attrs['placeholder'] = auth_common_text.get(
-                'enterResetToken', 'Enter your password reset token')
+                'enterYourPasswordResetToken', 'Enter your password reset token')
             self.fields['email'].label = auth_common_text.get('email', 'Email')
             self.fields['password1'].label = auth_common_text.get('newPassword', 'New Password')
             self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
@@ -211,7 +211,8 @@ class InviteUser(forms.Form):
         self.auth_common_text = auth_common_text
         super(InviteUser, self).__init__(*args, **kwargs)
         group_choices = [(group.name, group.name) for group in Group.objects.all()]
-        group_choices.insert(0, ('', 'Select a role'))
+        select_role_text = f'-- {auth_common_text.get("selectARole", "Select a role")} --'
+        group_choices.insert(0, ('', select_role_text))
 
         self.fields['role'] = forms.ChoiceField(
             choices=group_choices,
@@ -229,7 +230,6 @@ class InviteUser(forms.Form):
                 'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
-            self.fields['role'].widget.attrs['placeholder'] = auth_common_text.get('selectARole', 'Select a role')
             self.fields['email'].label = auth_common_text.get('email', 'Email')
             self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
             self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
