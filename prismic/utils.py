@@ -31,6 +31,12 @@ class PrismicUtils:
             return content[property_name]
         return None
 
+    def get_page_title(self, property_name):
+        page_data = self.get_content_by_property_name(property_name)
+        if page_data and 'page_title' in page_data:
+            return page_data['page_title']
+        return None
+
     def get_form_questions(self, property_name):
         page_data = self.get_content_by_property_name(property_name)
         if page_data and 'form_questions' in page_data:
