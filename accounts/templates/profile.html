@@ -2,23 +2,23 @@
 {% load static %}
 
 {% block content %}
-  <div class="container-fluid">
+  <div class="container-fluid mt-4">
     <div class="row d-flex justify-content-center">
         <div class="col-md-6">
             <div class="card">
                 <div class="pt-3 pb-3">
                     {% if loggedin_user.id == user.id %}
                         <div class="text-center mb-4">
-                            <h1>My profile</h1>
+                            <h1>{{ common_text.myProfile }}</h1>
                         </div>
                     {% else %}
                         <div class="text-center mb-4">
                             {% if user.first_name and user.last_name %}
-                                <h1>{{ user.first_name }} {{ user.last_name }}'s profile</h1>
+                                <h1>{{ auth_common_text.profileDetailsFor }} {{ user.first_name }} {{ user.last_name }}</h1>
                             {% elif user.first_name %}
-                                <h1>{{ user.first_name }}'s profile</h1>
+                                <h1>{{ auth_common_text.profileDetailsFor }} {{ user.first_name }}</h1>
                             {% else %}
-                                <h1>{{ user.email }}'s profile</h1>
+                                <h1>{{ auth_common_text.profileDetailsFor }} {{ user.email }}</h1>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -30,7 +30,7 @@
                     <hr class="mr-0 ml-0 mb-0 mt-3">
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Email</h5>
+                            <h5 class="m-0">{{ form_labels.email }}</h5>
                         </div>
                         <div class="col-sm-6 text-secondary">
                             <p class="m-0 mt-1">{{ user.email }}</p>
@@ -40,7 +40,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">First Name</h5>
+                            <h5 class="m-0">{{ form_labels.firstName }}</h5>
                         </div>
                         <div class="col-sm-6  text-secondary">
                             <p class="m-0 mt-1">{{ user.first_name }}</p>
@@ -50,7 +50,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Last Name</h5>
+                            <h5 class="m-0">{{ form_labels.lastName }}</h5>
                         </div>
                         <div class="col-sm-6  text-secondary">
                             <p class="m-0 mt-1">{{ user.last_name }}</p>
@@ -60,7 +60,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Telephone Number</h5>
+                            <h5 class="m-0">{{ form_labels.telephone }}</h5>
                         </div>
                         <div class="col-sm-6 text-secondary">
                             <p class="m-0 mt-1">{{ user.telephone }}</p>
@@ -70,7 +70,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Mobile Number</h5>
+                            <h5 class="m-0">{{ form_labels.mobile }}</h5>
                         </div>
                         <div class="col-sm-6 text-secondary">
                             <p class="m-0 mt-1">{{ user.mobile }}</p>
@@ -80,7 +80,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Position</h5>
+                            <h5 class="m-0">{{ form_labels.position }}</h5>
                         </div>
                         <div class="col-sm-6 text-secondary">
                             <p class="m-0 mt-1">{{ user.position }}</p>
@@ -90,7 +90,7 @@
 
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Address</h5>
+                            <h5 class="m-0">{{ form_labels.address }}</h5>
                         </div>
                         <div class="col-sm-6 text-secondary">
                             <p class="m-0 mt-1">{{ user.address_line_1 }}</p>
@@ -102,7 +102,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">City</h5>
+                            <h5 class="m-0">{{ form_labels.city }}</h5>
                         </div>
                         <div class="col-sm-6">
                             <p class="m-0 mt-1">{{ user.city }}</p>
@@ -112,7 +112,7 @@
 
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Country</h5>
+                            <h5 class="m-0">{{ form_labels.country }}</h5>
                         </div>
                         <div class="col-sm-6">
                             <p class="m-0 mt-1">{{ user.country }}</p>
@@ -122,7 +122,7 @@
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
-                            <h5 class="m-0">Postal Code</h5>
+                            <h5 class="m-0">{{ form_labels.postalCode }}</h5>
                         </div>
                         <div class="col-sm-6">
                             <p class="m-0 mt-1">{{ user.postal_code }}</p>
@@ -133,7 +133,7 @@
                         {% if user.registration_number %}
                             <div class="row m-2">
                                 <div class="col-sm-6">
-                                    <h5 class="m-0">Registration Number</h5>
+                                    <h5 class="m-0">{{ form_labels.registrationNumber }}</h5>
                                 </div>
                                 <div class="col-sm-6">
                                     <p class="m-0 mt-1">{{ user.registration_number }}</p>
@@ -147,7 +147,7 @@
                         {% if user.passport_number %}
                             <div class="row m-2">
                                 <div class="col-sm-6">
-                                    <h5 class="m-0">Passport Number</h5>
+                                    <h5 class="m-0">{{ form_labels.passportNumber }}</h5>
                                 </div>
                                 <div class="col-sm-6">
                                     {{ user.passport_number }}

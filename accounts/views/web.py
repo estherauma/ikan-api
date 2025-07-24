@@ -108,6 +108,21 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     model = User
     template_name = 'profile.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
+        prof_form_labels = prismic_utils.get_field_labels_from_form_questions(None, 'vo-agent-buyer-profile-form')
+        reg_form_labels = prismic_utils.get_field_labels_from_form_questions(None, 'registration-details-form')
+        form_labels = {
+            **prof_form_labels,
+            **reg_form_labels,
+        }
+        context['form_labels'] = form_labels
+        return context
+
 
 class WorkersListView(LoginRequiredMixin, ListView):
     model = User
