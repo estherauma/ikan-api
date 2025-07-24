@@ -187,7 +187,7 @@
                             {{ loggedin_user.last_name }}
                         {% endif %}
                         {% if not loggedin_user.first_name and not loggedin_user.last_name %}
-                            {{ common_text | dict_get:'myAccount' }}
+                            {{ common_text.myAccount }}
                         {% endif %}
                         <i class="mdi mdi-chevron-down"></i>
                     </span>
@@ -196,7 +196,7 @@
                     <!-- item-->
                     <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="dropdown-item notify-item">
                         <i class="fe-user"></i>
-                        <span>{{ common_text | dict_get:'myProfile' }}</span>
+                        <span>{{ common_text.myProfile }}</span>
                     </a>
 
                     <!-- item-->
@@ -210,7 +210,7 @@
                     <!-- item-->
                     <a href="{% url 'accounts:logout' %}" class="dropdown-item notify-item">
                         <i class="fe-log-out"></i>
-                        <span>{{ common_text | dict_get:'logout' }}</span>
+                        <span>{{ common_text.logout }}</span>
                     </a>
 
                 </div>
