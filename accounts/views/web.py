@@ -101,6 +101,10 @@ class UserListView(LoginRequiredMixin, ListView):
         super_user = self.request.user.is_superuser
         users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
         context['users'] = users
+
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
         return context
 
 

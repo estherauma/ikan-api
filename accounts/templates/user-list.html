@@ -19,7 +19,7 @@
             <div class="col">
                 <div class="button-list">
                     <button type="button" class="btn btn-info btn-large waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
-                        Invite User
+                        {{ auth_common_text.inviteUser }}
                     </button>
                 </div>
             </div>
@@ -33,13 +33,13 @@
                     <table id="basic-datatable" class="table dt-responsive nowrap w-100">
                         <thead>
                             <tr>
-                                <th>Email</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Token</th>
-                                <th>Is Active?</th>
-                                <th>Is Staff</th>
-                                <th>Action </th>
+                                <th>{{ auth_common_text.email }}</th>
+                                <th>{{ auth_common_text.firstName }}</th>
+                                <th>{{ auth_common_text.lastName }}</th>
+                                <th>{{ auth_common_text.token }}</th>
+                                <th>{{ auth_common_text.isActive }}?</th>
+                                <th>{{ auth_common_text.isStaff }}?</th>
+                                <th>{{ common_text.actions }}</th>
                             </tr>
                         </thead>
                     
@@ -54,9 +54,9 @@
                                 <td>{{user.is_staff}}</td>
                                 <td>
                                     <!-- View Profile Button -->
-                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">View Profile</a>
+                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">{{ auth_common_text.viewProfile }}</a>
                                     <!-- Delete Button -->
-                                    <button class="btn btn-danger btn-sm mb-1">Delete</button>
+                                    <button class="btn btn-danger btn-sm mb-1">{{ common_text.delete }}</button>
                                     <!-- Resend Code button -->
                                     {% if user.access_code %}
                                     <button
@@ -67,7 +67,7 @@
                                         data-user-id="{{ user.pk }}"
                                         data-url="{% url 'accounts-api:user-detail' pk=user.id %}"
                                         >
-                                        Resend Code
+                                        {{ auth_common_text.resendCode }}
                                     </button>
 
                                     <!-- Resend user token modal -->
@@ -75,7 +75,7 @@
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h4 class="modal-title" id="myLargeModalLabel">Resend Acess Code</h4>
+                                                    <h4 class="modal-title" id="myLargeModalLabel">{{ auth_common_text.resendAccessCode }}</h4>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
 
@@ -83,11 +83,11 @@
                                                     <form method="POST" action="{% url 'accounts:resend-access-code' %}">
                                                         {% csrf_token %}
                                                         <div class="mb-3 text-center">
-                                                            Resend code to user <span class="fw-bold">{{ user.email }}</span>
+                                                            {{ auth_common_text.resendCodeToUser }} <span class="fw-bold">{{ user.email }}</span>
                                                             <input id="email" type="hidden" name="email" value="{{ user.email }}">
                                                         </div>
                                                         <div class="mb-3 text-center">
-                                                            <button class="btn btn-info" type="submit">Resend Code</button>
+                                                            <button class="btn btn-info" type="submit">{{ auth_common_text.resendCode }}</button>
                                                         </div>
                                                     </form>
 
@@ -112,7 +112,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myLargeModalLabel">Invite User</h4>
+                    <h4 class="modal-titfle text-center" id="myLargeModalLabel">{{ auth_common_text.inviteUserForm }}</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                 </div>
 
@@ -122,7 +122,7 @@
                         {{invite_user_form}}
 
                         <div class="mb-3 text-center">
-                            <button class="btn btn-primary" type="submit">Invite User</button>
+                            <button class="btn btn-primary" type="submit">{{ auth_common_text.inviteUser}}</button>
                         </div>
                     </form>
 
