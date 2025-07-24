@@ -17,8 +17,8 @@
     <div class="row action-buttons mb-1">
         <div class="row">
             <div class="col">
-                <div class="button-list">
-                    <button type="button" class="btn btn-info btn-large waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
+                <div class="button-list d-flex justify-content-end">
+                    <button type="button" class="btn btn-large waves-effect waves-light ikan-primary-button" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
                         {{ auth_common_text.inviteUser }}
                     </button>
                 </div>
@@ -30,6 +30,9 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
+                    <div class="title">
+                        <h1 class="text-center mb-3 ikan-primary-color">{{ auth_common_text.allUsers }}</h1>
+                    </div>
                     <table id="basic-datatable" class="table dt-responsive nowrap w-100">
                         <thead>
                             <tr>
@@ -112,7 +115,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-titfle text-center" id="myLargeModalLabel">{{ auth_common_text.inviteUserForm }}</h4>
+                    <h4 class="modal-title ikan-primary-color" id="myLargeModalLabel">{{ auth_common_text.inviteUserForm }}</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                 </div>
 
@@ -122,7 +125,7 @@
                         {{invite_user_form}}
 
                         <div class="mb-3 text-center">
-                            <button class="btn btn-primary" type="submit">{{ auth_common_text.inviteUser}}</button>
+                            <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.inviteUser}}</button>
                         </div>
                     </form>
 

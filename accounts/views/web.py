@@ -95,7 +95,6 @@ class UserListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
-        context['page_title'] = 'User List'
         context['resend_token_form'] = ResendTokenForm()
 
         super_user = self.request.user.is_superuser
@@ -135,7 +134,6 @@ class WorkersListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['page_title'] = 'Worker List'
         context['invite_user_form'] = InviteUser()
         context['resend_token_form'] = ResendTokenForm()
 
@@ -144,6 +142,9 @@ class WorkersListView(LoginRequiredMixin, ListView):
         workers = users.filter(groups__name='worker', created_by=self.request.user.id)
 
         context['workers'] = workers
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
         return context
 
 
