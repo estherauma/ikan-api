@@ -14,7 +14,7 @@
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        <button type="submit">{{ common_text | dict_get:'submit' }}</button>
+                        <button type="submit">{{ common_text.submit }}</button>
                     </form>
                 </div>
             </div>

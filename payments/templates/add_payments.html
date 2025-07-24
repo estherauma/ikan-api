@@ -44,7 +44,7 @@
                                 class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %} {% if field == 'deductions' %}hide-field{% endif %}"
                                 style="font-size: 1rem; padding: 10px 10px 2px 10px;"
                             >
-                                {{ field_labels |dict_get:field }}
+                                {{ field_labels | dict_get:field }}
                             </th>
                         {% endfor %}
                         <th

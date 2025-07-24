@@ -9,7 +9,7 @@
             <!-- Contract details -->
             <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark d-flex w-100 justify-content-between align-items-center">
-                    <h5 class="">{{ common_text | dict_get:'contractDetails'}}</h5>
+                    <h5 class="">{{ common_text.contractDetails}}</h5>
                     {% if loggedin_user.is_vessel_owner %}
                         <button
                             type="button"
@@ -18,7 +18,7 @@
                             class="btn btn-info btn-large waves-effect waves-light ikan-primary-button edit-btn"
                         >
                             <i class="mdi mdi-pencil"></i>
-                            {{ common_text |dict_get:'edit' }}
+                            {{ common_text.edit }}
                         </button>
                         <!-- Edit contract modal -->
                         <div
@@ -32,7 +32,7 @@
                                 <div class="modal-content">
                                     <div class="modal-header row m-0">
                                         <div class="col col-10 text-center">
-                                            <h4 class="modal-title">{{ clause_page_text | dict_get:'editContract'}}</h4>
+                                            <h4 class="modal-title">{{ clause_page_text.editContract }}</h4>
                                         </div>
                                         <div class="col col-2 d-flex justify-content-center">
                                             <button
@@ -85,7 +85,7 @@
                                                     class="btn btn-primary ikan-primary-button"
                                                     type="submit"
                                                 >
-                                                    {{ common_text | dict_get:'saveChanges' }}
+                                                    {{ common_text.saveChanges }}
                                                 </button>
                                             </div>
 
@@ -101,41 +101,41 @@
                 <div class="card-body">
                     <div class="list-group">
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'name'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.name }}</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.name}}</p>
                         </div>
 
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'start_date'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.start_date }}</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.start_date | format_date:selected_language }}</p>
                         </div>
 
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'end_date'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.end_date }}</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.end_date | format_date:selected_language }}</p>
                         </div>
 
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'description'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.description }}</h5>
                             <p class="mt-0 mb-2 detail-value">{%if contract.description %} contract.description  {%else%} None {%endif%}</p>
                         </div>
 
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'taiwanese_company'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.taiwanese_company }}</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.taiwanese_company_name | default:None}}</p>
                         </div>
 
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'indonesian_company'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.indonesian_company }}</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.indonesian_company_name | default:None}}</p>
                         </div>
 
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'kind'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.kind }}</h5>
                             <p class="mt-0 mb-2 detail-value">{{contract.kind_value}}</p>
                         </div>
                         <div>
-                            <h5 class="mb-1 detail-name">{{ contract_form_labels | dict_get:'upload_contract'}}</h5>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.upload_contract }}</h5>
                             <p class="mt-0 mb-2 detail-value">
                                 {% if contract.upload_contract_url %}
                                     <div class="text-center" style="margin: 10px auto;">
@@ -154,9 +154,9 @@
             <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark d-flex align-items-center">
                     <!-- TODO: add to prismic -->
-                    <h5 class="card-title">{{ common_text | dict_get:'access' }}</h5>
+                    <h5 class="card-title">{{ common_text.access }}</h5>
                     <!-- TODO: add to prismic -->
-                    <a href="access" class="btn btn-primary ms-auto ikan-primary-button">{{ common_text | dict_get:'addAccess' }}</a>
+                    <a href="access" class="btn btn-primary ms-auto ikan-primary-button">{{ common_text.addAccess }}</a>
                 </div>
                 <div class="card-body table">
                     <div class="table-responsive">
@@ -168,7 +168,7 @@
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="1">{{ common_text | dict_get:'noUsersAvailable' }}</td>
+                                        <td colspan="1">{{ common_text.noUsersAvailable }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -183,7 +183,7 @@
             <!-- Contract clauses -->
             <div class="card section-wrapper">
                 <div class="card-header  bg-light text-dark d-flex w-100 justify-content-between align-items-center">
-                    <h5 class="fw-bold fs-3">{{ common_text | dict_get:'clauses'}}</h5>
+                    <h5 class="fw-bold fs-3">{{ common_text.clauses }}</h5>
 
                     {% if clauses_to_be_added %}
                         <button
@@ -193,7 +193,7 @@
                             data-bs-target="#select-clause-modal"
                         >
                             <i class="mdi mdi-plus"></i>
-                            {{ clause_page_text | dict_get:'addNewClause'}}
+                            {{ clause_page_text.addNewClause }}
                         </button>
                     {% endif %}
                     <div
@@ -207,7 +207,7 @@
                             <div class="modal-content">
                                 <div class="modal-header row m-0">
                                     <div class="col col-10 text-center">
-                                        <h4 class="modal-title">{{ clause_page_text | dict_get:'selectClauseToAdd'}}</h4>
+                                        <h4 class="modal-title">{{ clause_page_text.selectClauseToAdd }}</h4>
                                     </div>
                                     <div class="col col-2 d-flex justify-content-center">
                                         <button
@@ -268,7 +268,7 @@
                                                             data-bs-target="#edit-parties-modal"
                                                         >
                                                             <i class="mdi mdi-pencil"></i>
-                                                            {{ common_text | dict_get:'edit'}}
+                                                            {{ common_text.edit }}
                                                         </button>
 
                                                         <!-- Edit Parties Modal -->
@@ -297,7 +297,7 @@
                                                                             data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
                                                                             style="margin-bottom: 10px; height: 50px; width: 70%; font-size: 1rem;"
                                                                         >
-                                                                            {{ common_text | dict_get:'editPartyADetails' }}
+                                                                            {{ common_text.editPartyADetails }}
                                                                         </button>
                                                                         {% if clause.has_party_b_clause %}
                                                                             <button
@@ -307,13 +307,13 @@
                                                                                 data-bs-target="#edit-clause-modal-{{ party_b_index }}"
                                                                                 style="margin-bottom: 10px; height: 50px; width: 70%; font-size: 1rem;"
                                                                             >
-                                                                                {{ common_text | dict_get:'editPartyBDetails' }}
+                                                                                {{ common_text.editPartyBDetails }}
                                                                             </button>
                                                                         {% else %}
                                                                         <p
                                                                             class="text-center"
                                                                             style="color: #191970; font-size: 1rem; font-weight: 500; margin: 30px; ">
-                                                                            {{ clause_page_text | dict_get:'addPartyAfirstToEditPartyB' }}
+                                                                            {{ clause_page_text.addPartyAfirstToEditPartyB }}
                                                                         </p>
                                                                         {% endif %}
                                                                     </div>
@@ -328,7 +328,7 @@
                                                             data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
                                                         >
                                                             <i class="mdi mdi-pencil"></i>
-                                                            {{ common_text |dict_get:'edit' }}
+                                                            {{ common_text.edit }}
                                                         </button>
                                                     {% endif %}
                                                 </div>
@@ -352,10 +352,10 @@
             <!-- Contract Documents -->
             <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
-                    <h5 class="card-ttile">{{ common_text | dict_get:'documents'}}</h5>
+                    <h5 class="card-ttile">{{ common_text.documents}}</h5>
                 </div>
                 <div class="card-body">
-                   !{{ common_text | dict_get:'notYetImplemented' }}
+                   !{{ common_text.notYetImplemented }}
                 </div>
             </div>
         </div>
@@ -417,7 +417,7 @@
                                         class="btn btn-primary clause-submit-btn ikan-primary-button"
                                         type="submit"
                                     >
-                                        {{ common_text | dict_get:'save' }}
+                                        {{ common_text.save }}
                                     </button>
                                 </div>
                                 
@@ -506,7 +506,7 @@
                                         class="btn btn-primary clause-submit-btn ikan-primary-button"
                                         type="submit"
                                     >
-                                        {{ common_text | dict_get:'saveChanges' }}
+                                        {{ common_text.saveChanges }}
                                     </button>
                                 </div>
                                 
