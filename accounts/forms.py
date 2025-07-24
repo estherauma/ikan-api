@@ -71,15 +71,20 @@ class RegistrationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         if auth_common_text:
             self.fields['first_name'].widget.attrs['placeholder'] = auth_common_text.get(
-                'enterYourFirstName', 'Enter your first name (Optional)')
+                'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
-                'enterYourLastName', 'Enter your last name (Optional)')
+                'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
                                                                                     'Enter your email')
             self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
                                                                                         'Enter your password')
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
                                                                                         'Confirm your password')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
+            self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
+            self.fields['password1'].label = auth_common_text.get('password', 'Password')
+            self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
 
 
 class RequestPasswordResetForm(forms.Form):
@@ -97,6 +102,7 @@ class RequestPasswordResetForm(forms.Form):
         if auth_common_text:
             self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
                                                                                     'Enter your email')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
 
 
 class PasswordResetForm(forms.Form):
@@ -165,6 +171,11 @@ class PasswordResetForm(forms.Form):
                                                                                         'Confirm your password')
             self.fields['reset_password_token'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterResetToken', 'Enter your password reset token')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['password1'].label = auth_common_text.get('newPassword', 'New Password')
+            self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
+            self.fields['reset_password_token'].label = auth_common_text.get('resetPasswordToken',
+                                                                             'Reset Password Token')
 
 
 class InviteUser(forms.Form):
@@ -196,6 +207,8 @@ class InviteUser(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
         super(InviteUser, self).__init__(*args, **kwargs)
         group_choices = [(group.name, group.name) for group in Group.objects.all()]
         group_choices.insert(0, ('', 'Select a role'))
@@ -208,6 +221,19 @@ class InviteUser(forms.Form):
             }),
             required=True
         )
+
+        if auth_common_text:
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+            self.fields['first_name'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
+            self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
+            self.fields['role'].widget.attrs['placeholder'] = auth_common_text.get('selectARole', 'Select a role')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
+            self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
+            self.fields['role'].label = auth_common_text.get('role', 'Role')
 
 
 class ResendTokenForm(forms.Form):
