@@ -2,6 +2,7 @@ from django.db import models
 from common.models import AuditableModel
 import json
 from accounts.models import User
+from common.utils import generate_uuid
 
 
 class Survey(AuditableModel):
@@ -52,3 +53,12 @@ class InlineQuestion(AuditableModel):
 
     def __str__(self):
         return self.question_text
+
+
+class LearningHubProgress(AuditableModel):
+    app_ref = models.CharField(max_length=40, default=generate_uuid, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress_data = models.JSONField(default=list)
+
+    def __str__(self):
+        return f'Learning hub progress data for {self.user.first_name} {self.user.last_name}.'
