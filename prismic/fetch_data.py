@@ -863,6 +863,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 if item['primary'].get('text_area') else None,
                 'contentAudio': aggregate_media_data(item['primary']['content_audio']) if item['primary'].get(
                     'content_audio') else None,
+                'identifier': item['primary'].get('identifier', None),
             }
         elif item['slice_type'] == 'highlighted_link':
             return {
