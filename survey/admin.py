@@ -1,5 +1,5 @@
 from django.contrib import admin
-from survey.models import Survey, InlineQuestion
+from survey.models import Survey, InlineQuestion, LearningHubProgress
 
 
 class SurveyAdmin(admin.ModelAdmin):
@@ -73,3 +73,4 @@ class InlineQuestionAdmin(admin.ModelAdmin):
 
 admin.site.register(Survey, SurveyAdmin)
 admin.site.register(InlineQuestion, InlineQuestionAdmin)
+admin.site.register(LearningHubProgress)
