@@ -158,7 +158,7 @@ class LearningHubProgressApiView(APIView):
     def get_user(self, request):
         if request.data.get('user') is not None:
             try:
-                user = User.objects.get(pk=request.data['user'])
+                user = User.objects.get(id=request.data['user'])
                 return user
             except User.DoesNotExist:
                 return None
