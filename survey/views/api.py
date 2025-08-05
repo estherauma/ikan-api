@@ -191,6 +191,8 @@ class LearningHubProgressApiView(APIView):
 
         progress_data = request.data.get('progress_data')
         app_ref = request.data.get('app_ref', generate_uuid())
+        created_by = request.data.get('created_by', request.user.id)
+        updated_by = request.data.get('updated_by', request.user.id)
         if not isinstance(progress_data, list):
             return Response({'error': 'Invalid format'}, status=400)
 
@@ -198,19 +200,19 @@ class LearningHubProgressApiView(APIView):
         serializer = LearningHubProgressSerializer(data=serializer_data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
-            lb_progress_exists = LearningHubProgress.objects.filter(user=request.user).exists()
+            lb_progress_exists = LearningHubProgress.objects.filter(user=user).exists()
             if lb_progress_exists:
                 lb_progress = LearningHubProgress.objects.get(user=user)
                 lb_progress.progress_data = progress_data
-                lb_progress.updated_by = request.user.id
+                lb_progress.updated_by = updated_by
                 lb_progress.save()
             else:
                 lb_progress = LearningHubProgress.objects.create(
                     app_ref=app_ref,
                     user=user,
                     progress_data=progress_data,
-                    created_by=request.user.id,
-                    updated_by=request.user.id,
+                    created_by=created_by,
+                    updated_by=updated_by,
                 )
                 lb_progress.save()
             return Response({
