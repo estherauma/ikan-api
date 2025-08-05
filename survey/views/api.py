@@ -156,9 +156,10 @@ class LearningHubProgressApiView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_user(self, request):
-        if request.data.get('user') is not None:
+        user_id = request.data.get('user')
+        if user_id is not None:
             try:
-                user = User.objects.get(id=request.data['user'])
+                user = User.objects.get(pk=user_id)
                 return user
             except User.DoesNotExist:
                 return None
@@ -167,15 +168,12 @@ class LearningHubProgressApiView(APIView):
 
     def get(self, request):
         user = self.get_user(request) or request.user
-
-        try:
-            data = LearningHubProgress.objects.get(user=user)
-        except LearningHubProgress.DoesNotExist:
-            data = None
+        lb_data = LearningHubProgress.objects.filter(user=user)
+        serializer = LearningHubProgressSerializer(lb_data, many=True)
 
         return Response({
             'status': 'OK',
-            'data': data,
+            'data': serializer.data,
         }, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -193,10 +191,12 @@ class LearningHubProgressApiView(APIView):
         app_ref = request.data.get('app_ref', generate_uuid())
         created_by = request.data.get('created_by', request.user.id)
         updated_by = request.data.get('updated_by', request.user.id)
+        created_at = request.data.get('created_at', None)
+        updated_at = request.data.get('updated_at', None)
         if not isinstance(progress_data, list):
             return Response({'error': 'Invalid format'}, status=400)
 
-        serializer_data = {**request.data, 'user': user}
+        serializer_data = {**request.data}
         serializer = LearningHubProgressSerializer(data=serializer_data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -205,6 +205,7 @@ class LearningHubProgressApiView(APIView):
                 lb_progress = LearningHubProgress.objects.get(user=user)
                 lb_progress.progress_data = progress_data
                 lb_progress.updated_by = updated_by
+                lb_progress.updated_at = updated_at
                 lb_progress.save()
             else:
                 lb_progress = LearningHubProgress.objects.create(
@@ -213,6 +214,8 @@ class LearningHubProgressApiView(APIView):
                     progress_data=progress_data,
                     created_by=created_by,
                     updated_by=updated_by,
+                    created_at=created_at,
+                    updated_at=updated_at,
                 )
                 lb_progress.save()
             return Response({
