@@ -155,7 +155,7 @@ class InlineQuestionApiDetailView(RetrieveUpdateDestroyAPIView):
 class LearningHubProgressApiView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_user(request):
+    def get_user(self, request):
         if request.data.get('user') is not None:
             try:
                 user = User.objects.get(pk=request.data['user'])
