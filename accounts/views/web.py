@@ -36,7 +36,9 @@ def loggedin_user(request):
 
     if request.user.is_authenticated:
         loggedin_user = request.user
-        loggedin_user.is_vessel_owner = loggedin_user.is_worker = False
+        loggedin_user.is_vessel_owner = False
+        loggedin_user.is_worker = False
+        loggedin_user.is_public = False
 
         roles = loggedin_user.groups.all().values_list('name', flat=True)
         if 'vessel_owner' in roles:
@@ -44,6 +46,8 @@ def loggedin_user(request):
             loggedin_user.is_vessel_owner = True
         elif 'worker' in roles:
             loggedin_user.is_worker = True
+        elif 'public' in roles:
+            loggedin_user.is_public = True
 
     return {
             'loggedin_user': loggedin_user,
