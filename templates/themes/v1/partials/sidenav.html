@@ -75,22 +75,24 @@
                 </li>
             {% endif %}
 
-            <!-- Contracts -->
-            <li class="menu-item">
-                <a href="{% url 'contracts-web:contracts' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-file-document-edit"></i></span>
-                    <span class="menu-text">{{ menu_labels.contracts }}</span>
-                </a>
-            </li>
+            {% if not loggedin_user.is_public %}
+                <!-- Contracts -->
+                <li class="menu-item">
+                    <a href="{% url 'contracts-web:contracts' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-file-document-edit"></i></span>
+                        <span class="menu-text">{{ menu_labels.contracts }}</span>
+                    </a>
+                </li>
 
-            <!-- Payments -->
-            <li class="menu-item">
-                <a href="{% url 'payments:payments-list' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
-                    <span class="menu-text">{{ menu_labels.payments }}</span>
-                </a>
-            </li>
-            <hr class="m-2 mt-1 mb-1">
+                <!-- Payments -->
+                <li class="menu-item">
+                    <a href="{% url 'payments:payments-list' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
+                        <span class="menu-text">{{ menu_labels.payments }}</span>
+                    </a>
+                </li>
+                <hr class="m-2 mt-1 mb-1">
+            {% endif %}
 
             <!-- Profile -->
                 <li class="menu-item">
