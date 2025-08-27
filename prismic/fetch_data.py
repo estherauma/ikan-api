@@ -398,6 +398,12 @@ def aggregate_content(data):
                 else 'Title',
                 'pageTitleAudio': aggregate_media_data(item['data'].get('title_audio'))
                 if item['data'].get('title_audio') else None,
+                'pageDescription': aggregate_text_data(item['data'].get('page_description')) if item['data'].get(
+                    'page_description') else None,
+                'pageAudio': aggregate_media_data(item['data'].get('page_audio')) if item['data'].get(
+                    'page_audio') else None,
+                'pageVideo': aggregate_media_data(item['data'].get('page_video')) if item['data'].get(
+                    'page_video') else None,
                 'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
                 if item['data'].get('page_icon') else None,
                 'pageContent': [],
