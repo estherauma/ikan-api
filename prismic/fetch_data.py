@@ -98,7 +98,7 @@ class PrismicAPI():
                         })
                 elif question['slice_type'] == 'additional_text':
                     for entry in question['items']:
-                        slice_data = aggregate_text_data(entry['value'])
+                        slice_data = aggregate_text_data(entry['value']) if entry['value'] else []
                         for x in slice_data:
                             for content_type, value in x.items():
                                 additional_text.append({
@@ -113,7 +113,7 @@ class PrismicAPI():
             for data in page_data:
                 if data['slice_type'] == 'additional_text':
                     for entry in data['items']:
-                        slice_data = aggregate_text_data(entry['value'])
+                        slice_data = aggregate_text_data(entry['value']) if entry['value'] else []
                         for x in slice_data:
                             for content_type, value in x.items():
                                 additional_text.append({
@@ -141,8 +141,9 @@ class PrismicAPI():
             for slide in slides:
                 slide_obj = {
                     **slide,
-                    'slide_audio': aggregate_media_data(slide.get('slide_audio')),
-                    'slide_content': aggregate_text_data(slide.get('slide_content')),
+                    'slide_audio': aggregate_media_data(slide.get('slide_audio')) if slide.get('slide_audio') else None,
+                    'slide_content': aggregate_text_data(slide.get('slide_content'))
+                    if slide.get('slide_content') else None,
                 }
                 result.append(slide_obj)
             return result
@@ -152,8 +153,10 @@ class PrismicAPI():
                 return None
             result = {
                 'intro_title': data['primary'].get('intro_title'),
-                'intro_text': aggregate_text_data(data['primary'].get('intro_text')),
-                'intro_audio': aggregate_media_data(data['primary'].get('intro_audio')),
+                'intro_text': aggregate_text_data(data['primary'].get('intro_text'))
+                if data['primary'].get('intro_text') else None,
+                'intro_audio': aggregate_media_data(data['primary'].get('intro_audio'))
+                if data['primary'].get('intro_audio') else None,
                 'analytics_event_name': data['primary'].get('analytics_event_name'),
                 'items': []
             }
@@ -164,9 +167,9 @@ class PrismicAPI():
                 item_obj = {
                     'item_icon': item.get('item_icon'),
                     'item_title': item.get('item_title'),
-                    'item_text': aggregate_text_data(item.get('item_text')),
-                    'item_audio': aggregate_media_data(item.get('item_audio')),
-                    'item_video': aggregate_media_data(item.get('item_video')),
+                    'item_text': aggregate_text_data(item.get('item_text')) if item.get('item_text') else None,
+                    'item_audio': aggregate_media_data(item.get('item_audio')) if item.get('item_audio') else None,
+                    'item_video': aggregate_media_data(item.get('item_video')) if item.get('item_video') else None,
                     'item_analytics_event_name': item.get('item_analytics_event_name'),
                     'roles': roles_list,
                 }
@@ -245,9 +248,12 @@ class PrismicAPI():
                 page_data = {
                     'page_name': item['uid'],
                     'welcome_title': item['data']['welcome_title'],
-                    'welcome_text': aggregate_text_data(item['data']['welcome_text']),
-                    'welcome_audio': aggregate_media_data(item['data']['welcome_audio']),
-                    'welcome_video': aggregate_media_data(item['data']['welcome_video']),
+                    'welcome_text': aggregate_text_data(item['data']['welcome_text'])
+                    if item['data']['welcome_text'] else None,
+                    'welcome_audio': aggregate_media_data(item['data']['welcome_audio'])
+                    if item['data']['welcome_audio'] else None,
+                    'welcome_video': aggregate_media_data(item['data']['welcome_video'])
+                    if item['data']['welcome_video'] else None,
                     'tutorials': tutorials,
                     'analyticsEventName': item['data']['analytics_event_name'],
                     'last_updated': item['last_publication_date'],
