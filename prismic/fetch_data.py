@@ -108,7 +108,7 @@ class PrismicAPI():
                                 })
             return question_data, additional_text
 
-        def agg_page(page_data):
+        def agg_page_text(page_data):
             additional_text = []
             for data in page_data:
                 if data['slice_type'] == 'additional_text':
@@ -221,7 +221,7 @@ class PrismicAPI():
                 aggregated_data = {**aggregated_data, **content}
 
             if item['type'] == 'page':
-                agg_page_res = agg_page(item['data']['body'])
+                agg_page_res = agg_page_text(item['data']['body'])
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
@@ -243,8 +243,15 @@ class PrismicAPI():
                 aggregated_data[item['uid']] = page_data
 
             if item['type'] == 'app_tutorials':
-                item_body = item['data']['body'][0] if 'body' in item['data'] and item['data']['body'] else None
-                tutorials = agg_tutorials_slice(item_body)
+                item_body = item['data']['body'] if 'body' in item['data'] and item['data']['body'] else None
+                tutorials = None
+                additional_text = None
+                if item_body:
+                    for i in item_body:
+                        if i['slice_type'] == 'tutorials':
+                            tutorials = agg_tutorials_slice(i)
+                        if i['slice_type'] == 'additional_text':
+                            additional_text = agg_page_text([i])
                 page_data = {
                     'page_name': item['uid'],
                     'welcome_title': item['data']['welcome_title'],
@@ -254,6 +261,7 @@ class PrismicAPI():
                     if item['data']['welcome_audio'] else None,
                     'welcome_video': aggregate_media_data(item['data']['welcome_video'])
                     if item['data']['welcome_video'] else None,
+                    'additional_text': additional_text,
                     'tutorials': tutorials,
                     'analyticsEventName': item['data']['analytics_event_name'],
                     'last_updated': item['last_publication_date'],
