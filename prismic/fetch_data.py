@@ -410,6 +410,7 @@ def aggregate_content(data):
                 'language': item['lang'],
                 'pageTitle': item['data'].get('page_title')[0].get('text') if item['data'].get('page_title')
                 else 'Title',
+                'disclaimerText': item['data'].get('disclaimer_text') if item['data'].get('disclaimer_text') else None,
                 'pageTitleAudio': aggregate_media_data(item['data'].get('title_audio'))
                 if item['data'].get('title_audio') else None,
                 'pageDescription': aggregate_text_data(item['data'].get('page_description')) if item['data'].get(
@@ -422,6 +423,7 @@ def aggregate_content(data):
                 if item['data'].get('page_icon') else None,
                 'pageContent': [],
                 'analyticsEventName': item['data'].get('analytics_event_name')
+                if item['data'].get('analytics_event_name') else None,
             }
 
             # Add userRole to message page_data
