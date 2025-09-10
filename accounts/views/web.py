@@ -58,6 +58,7 @@ class LoginView(View):
 
     def post(self, request):
         form = LoginForm(data=request.POST)
+        context = {'form': form}
         if form.is_valid():
             email_or_phone = form.cleaned_data.get("email_or_phone")
             password = form.cleaned_data.get("password")
@@ -74,10 +75,10 @@ class LoginView(View):
                     messages.error(request, "Can not log in with provided credentials!")
 
                 # go back to login page
-                return render(request, template_name='login.html')
+                return render(request, template_name='login.html', context=context)
         else:
             messages.error(request, "Error validating form!")
-            return render(request, template_name='login.html')
+            return render(request, template_name='login.html', context=context)
 
 
 def request_password_reset(request):
