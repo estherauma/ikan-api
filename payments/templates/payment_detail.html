@@ -7,77 +7,92 @@
 <div class="container-fluid">
     <div class="row d-flex justify-content-center">
         <div class="col-12 m-3 d-flex justify-content-end">
-            <button class="print-btn" onclick="printSection('print-section')">Print</button>
+            <button class="print-btn" onclick="printSection('print-section')">{{ common_text.print }}</button>
         </div>
         <div id="print-section" class="col-12 col-sm-10 col-md-8">
             <div class="card">
                 <div class="card-header bg-light text-dark">
                     <h3 class="card-title text-center">
-                        Payment for {{payment.user.first_name}} {{payment.user.last_name}} from the Period of {{payment.start_date}} to {{payment.end_date}}
+                        {{payment.user.first_name}} {{payment.user.last_name}} {{payments_common_text.paymentDetails}} ({{payment.start_date | format_date:selected_language}} - {{payment.end_date | format_date:selected_language}})
                     </h3>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Payment made on:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.vesselName }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.payment_date}}</h4>
+                                <h4 class="">{{payment.vessel.name}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Total USD amount:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.dateOfPayment }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.total_usd_amount_received}}</h4>
+                                <h4 class="">{{payment.payment_date | format_date:selected_language}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+                        
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Period:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.paymentPeriod }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.start_date}} - {{payment.end_date}}</h4>
+                                <h4 class="">{{payment.start_date | format_date:selected_language}} - {{payment.end_date | format_date:selected_language}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Duration:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.duration }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
                                 <!-- <h4 class="">{{payment.duration |default:0}} months</h4> -->
                                 <h4>
                                     {% if payment.duration < 1 %}
-                                        Less than a month
+                                        {{ payments_common_text.lessThanOneMonth }}
                                     {% elif payment.duration == 1 %}
-                                        1 month
+                                        1 {{ payments_common_text.month }}
                                     {% elif payment.duration > 1 %}
-                                        {{payment.duration}} months
+                                        {{payment.duration}} {{ payments_common_text.months }}
                                     {% endif %}
                                 </h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Category:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.category }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
-                                <h4 class="">{{ categories_map |dict_get:payment.payment_category}}</h4>
+                                <h4 class="">{{ payments_common_text |dict_get:payment.payment_category}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
+
                         <div class="row d-flex align-items-center">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Method of payment:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.methodOfPayment }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8">
                                 <h4 class="">{{ methods_map |dict_get:payment.payment_method }}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ payments_common_text.amount }} ({{payments_common_text.USD}}):</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{payment.total_usd_amount_received}}</h4>
                             </div>
                         </div>
                         <hr class="my-2 mx-0">
@@ -86,7 +101,7 @@
                         {% if payment.payment_method != 'bank_transfer' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Cash amount:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.cashAmount }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.cash_currency}} {{payment.cash_amount |default:0.00}}</h4>
@@ -96,10 +111,10 @@
                             {% if payment.cash_currency and payment.cash_currency != 'USD' %}
                                 <div class="row d-flex align-items-center">
                                     <div class="col-12 col-sm-4">
-                                        <h5 class="text-muted">Cash exchange rate:</h5>
+                                        <h5 class="text-muted">{{ payments_common_text.cashExchangeRate }}:</h5>
                                     </div>
                                     <div class="col-12 col-sm-8">
-                                        <h4 class="">1 USD = {{payment.cash_currency}} {{payment.cash_exchange_rate}}</h4>
+                                        <h4 class="">1 {{payments_common_text.USD}} = {{payment.cash_currency}} {{payment.cash_exchange_rate}}</h4>
                                     </div>
                                 </div>
                             {% endif %}
@@ -107,7 +122,7 @@
                             {% if payment.cash_beneficiary_relationship and payment.cash_beneficiary_relationship != 'self' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary name:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryName }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.cash_beneficiary_name}}</h4>
@@ -115,7 +130,7 @@
                             </div>
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary contact:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryContact }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.cash_beneficiary_contact}}</h4>
@@ -123,7 +138,7 @@
                             </div>
                             <!-- <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary contact platform:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryContactPlatform }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.cash_beneficiary_contact_platform}}</h4>
@@ -137,7 +152,7 @@
                         {% if payment.payment_method != 'cash' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Bank transfer amount:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.bankTransferAmount }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_transfer_currency}} {{payment.bank_transfer_amount | default:0.00}}</h4>
@@ -147,17 +162,17 @@
                             {% if payment.bank_transfer_currency and payment.bank_transfer_currency != 'USD' %}
                                 <div class="row d-flex align-items-center">
                                     <div class="col-12 col-sm-4">
-                                        <h5 class="text-muted">Bank transfer exchange rate:</h5>
+                                        <h5 class="text-muted">{{ payments_common_text.bankTransferExchangeRate }}:</h5>
                                     </div>
                                     <div class="col-12 col-sm-8">
-                                        <h4 class="">1 USD = {{payment.bank_transfer_currency}} {{payment.bank_transfer_exchange_rate}}</h4>
+                                        <h4 class="">1 {{payments_common_text.USD}} = {{payment.bank_transfer_currency}} {{payment.bank_transfer_exchange_rate}}</h4>
                                     </div>
                                 </div>
                             {% endif %}
                             
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Bank account name:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.bankAccountName }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_account_name}}</h4>
@@ -165,7 +180,7 @@
                             </div>
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Bank account number:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.bankAccountNumber }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_account_number}}</h4>
@@ -173,7 +188,7 @@
                             </div>
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Bank name:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.bankName }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_name}}</h4>
@@ -183,7 +198,7 @@
                             {% if payment.bank_transfer_beneficiary_relationship and payment.bank_transfer_beneficiary_relationship != 'self' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary name:</h5>
+                                    <h5 class="text-muted">{{payments_common_text.beneficiaryName}}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_transfer_beneficiary_name}}</h4>
@@ -191,7 +206,7 @@
                             </div>
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <h5 class="text-muted">Beneficiary contact:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryContact }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <h4 class="">{{payment.bank_transfer_beneficiary_contact}}</h4>
@@ -209,36 +224,24 @@
                             <hr class="my-2 mx-0">
                         {% endif %}
                         
-                        <div class="row d-flex align-items-center">
-                            <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Vessel:</h5>
-                            </div>
-                            <div class="col-12 col-sm-8">
-                                <h4 class="">{{payment.vessel.name}}</h4>
-                            </div>
-                        </div>
-                        <hr class="my-2 mx-0">
-                        
                         <div class="row {% if not payment.deductions %}d-flex align-items-center{% endif %}">
                             <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">Deductions:</h5>
+                                <h5 class="text-muted">{{ payments_common_text.deductions }}:</h5>
                             </div>
                             <div class="col-12 col-sm-8 deductions">
                                 {% if payment.deductions %}
                                     <div class="row d-flex align-items-center title-row">
                                         <div class="col-5">
-                                            <h4>Item</h4>
+                                            <h4>{{ payments_common_text.item }}</h4>
                                         </div>
                                         <div class="col-7">
-                                            <h4>Amount</h4>
+                                            <h4>{{ payments_common_text.amount }}</h4>
                                         </div>
                                     </div>
                                     {% for deduction in payment.deductions %}
                                         <div class="row d-flex align-items-center items-row">
                                             <div class="col-5">
-                                                {% with lookup="key, "|add:deduction.name|add:" ,label" %}
-                                                    <p>{{ deductions_list|filter_and_get_value:lookup }}</p>
-                                                {% endwith %}
+                                                {{ payments_common_text |dict_get:deduction.name |default:deduction.name }}
                                             </div>
                                             <div class="col-7">
                                                 <p>{{deduction.currency}} {{deduction.amount}}</p>
@@ -246,7 +249,7 @@
                                         </div>
                                     {% endfor %}
                                 {% else %}
-                                    <h4 class="">None</h4>
+                                    <h4 class="">{{ payments_common_text.noDeductions }}</h4>
                                 {% endif %}
                             </div>
                         </div>

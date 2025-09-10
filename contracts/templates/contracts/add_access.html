@@ -1,5 +1,6 @@
 {% extends 'themes/v1/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
 <div class="container-fluid">
@@ -13,7 +14,7 @@
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        <button type="submit">Submit</button>
+                        <button type="submit">{{ common_text.submit }}</button>
                     </form>
                 </div>
             </div>

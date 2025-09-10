@@ -6,7 +6,8 @@ from decouple import config
 
 class Command(BaseCommand):
     help = 'Seeds roles and users'
-    users = ['taien+technology', 'cici+technology', 'farah+technology', 'budi+technology', 'tony+technology']
+    users = ['taien+technology', 'cici+technology', 'farah+technology',
+             'budi+technology', 'tony+technology', 'public+technology']
 
     def handle(self, *args, **kwargs):
         try:
@@ -20,21 +21,26 @@ class Command(BaseCommand):
         return f'{role}@fiftyeight.io'
 
     def seed_users_and_roles(self):
-        groups = Group.objects.bulk_create([
-            Group(name='vessel_owner'),
-            Group(name='taiwanese_agent'),
-            Group(name='indonesian_agent'),
-            Group(name='worker'),
-            Group(name='buyer'),
-        ])
+        role_names = ['vessel_owner', 'taiwanese_agent',
+                      'indonesian_agent', 'worker', 'buyer', 'public']
+        roles = []
 
-        for i, group in enumerate(groups):
-            role = Group.objects.get(name=group.name)
-            user = User.objects.create_user(
-                password=config('SEED_USERS_PASSWORD'),
-                email=self.construct_email(self.users[i]),
-                first_name='test',
-                last_name='user'
+        for role_name in role_names:
+            role, _ = Group.objects.get_or_create(name=role_name)
+            roles.append(role)
+
+        for i, role in enumerate(roles):
+            email = self.construct_email(self.users[i])
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'password': config('SEED_USERS_PASSWORD'),
+                    'first_name': 'test',
+                    'last_name': 'user'
+                }
             )
+            if created:
+                user.set_password(config('SEED_USERS_PASSWORD'))
+                user.save()
             user.groups.add(role)
         print('Seeding user roles successful')

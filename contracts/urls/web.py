@@ -1,5 +1,10 @@
 from django.urls import path
-from contracts.views.web import *
+from contracts.views.web import (
+    ContractsView,
+    ContractsDetailView,
+    ContractsDataView,
+    ContractAccessView,
+)
 
 app_name = 'contracts-web'
 urlpatterns = [

@@ -1,6 +1,7 @@
 from django.urls import path
 from survey.views.api import SurveyApiDetailView, SurveyApiListView, \
-    InlineQuestionApiListView, InlineQuestionApiDetailView
+    InlineQuestionApiListView, InlineQuestionApiDetailView, \
+    LearningHubProgressApiView
 
 app_name = 'survey'
 
@@ -9,4 +10,5 @@ urlpatterns = [
     path('surveys/<str:id>', SurveyApiDetailView.as_view(), name='survey-detail'),
     path('inline-questions', InlineQuestionApiListView.as_view(), name='inline-question-list'),
     path('inline-questions/<str:id>', InlineQuestionApiDetailView.as_view(), name='inline-question-detail'),
+    path('learninghub-progress/', LearningHubProgressApiView.as_view(), name='learninghub-progres'),
 ]

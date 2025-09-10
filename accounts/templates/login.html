@@ -1,4 +1,7 @@
 {% extends "themes/v1/auth-base.html" %}
+{% load static %}
+
+{% load custom_filters %}
 
 {% block content %}
 <div class="account-pages mt-5 mb-5">
@@ -32,19 +35,19 @@
                                     </span>
                                 </a>
                             </div>
-                            <p class="text-muted mb-4 mt-3">Enter your email address (or phone number) and password to your account.</p>
+                            <h4 class="mb-3 mt-3">{{ auth_common_text.enterEmailAndPasswordToYourAccount }}</h4>
                         </div>
 
                         <form action="/account/login" method="POST">
                             {% csrf_token %}
                             {{ form.as_p }}
                             <!-- <div class="mb-3">
-                                <label for="emailaddress" class="form-label">Email address</label>
+                                <label for="emailaddress" class="form-label">{{ auth_common_text.emailAddress }}</label>
                                 <input class="form-control" type="email" id="email" name="email" required="" placeholder="Enter your email">
                             </div>
 
                             <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
+                                <label for="password" class="form-label">{{ auth_common_text.password }}</label>
                                 <div class="input-group input-group-merge">
                                     <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password">
                                     <div class="input-group-text" data-password="false">
@@ -53,7 +56,7 @@
                                 </div>
                             </div> -->
                             <div class="text-center d-grid">
-                                <button class="btn btn-primary" type="submit"> Log In </button>
+                                <button class="btn btn-primary" type="submit">{{ auth_common_text.login }}</button>
                             </div>
 
                         </form>
@@ -63,8 +66,8 @@
 
                 <div class="row mt-3">
                     <div class="col-12 text-center">
-                        <p> <a href="/account/request-password-reset" class="text-white-50 ms-1">Forgot your password?</a></p>
-                        <p class="text-white-50">Don't have an account? <a href="/account/register" class="text-white ms-1"><b>Sign Up</b></a></p>
+                        <p class="text-white-50">{{ auth_common_text.forgotYourPassword }} <a href="/account/request-password-reset" class="text-white ms-1"><b>{{ auth_common_text.resetPassword }}</b></a></p>
+                        <p class="text-white-50">{{ auth_common_text.dontHaveAnAccount }} <a href="/account/register" class="text-white ms-1"><b>{{ auth_common_text.signUp }}</b></a></p>
                     </div> <!-- end col -->
                 </div>
                 <!-- end row -->
@@ -80,6 +83,9 @@
     .form-control {
         margin-bottom: 20px;
         min-height: 45px;
+    }
+    a {
+        text-decoration: underline;
     }
 </style>
 {% endblock %}

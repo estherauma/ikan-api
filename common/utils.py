@@ -6,6 +6,7 @@ from common.email import TunaEmailHelper, EmailTemplate
 from rest_framework.response import Response
 from rest_framework import status
 import uuid
+from datetime import datetime, date
 
 
 def write_json_to_file(file_name, data, mode='w'):
@@ -79,25 +80,32 @@ def get_user_from_get_request(request):
         return request.user.id
 
 
-def get_clause_order(clause_kind):
-    clause_order = {
-      'contract-clauses-parties-requirement-vessel': 0,
-      'contract-clauses-parties-requirement-fishers': 0.1,
-      'contract-clauses-contract-validity': 1,
-      'contract-clauses-wage-benefits': 2,
-      'contract-clauses-accident-medical-and-life-insurance': 3,
-      'contract-clauses-transportation-severance-food-accomodation': 4,
-      'contract-clauses-working-hours-rest-and-leave': 5,
-      'contract-clauses-labor-protection-and-benefits': 6,
-      'contract-clause-requirements-that-party-b-must-comply-with': 7,
-      'contract-clauses-means-to-address-breach-of-contract': 8,
-      'contract-clauses-dispute-settlement': 9,
-      'contract-clauses-miscellaneous': 10,
-      'contract-clauses-attachments': 11,
-    }
-    return clause_order[clause_kind] if clause_kind in clause_order else None
-
-
 def generate_uuid():
     random_uuid = str(uuid.uuid4())
     return random_uuid
+
+
+def format_local_date(value, current_language='en-us'):
+    if not value:
+        return value
+
+    format_str = '%d %b %Y'
+
+    if current_language == 'qm-zh':
+        format_str = '%Y年%m月%d日'
+
+    if isinstance(value, (datetime, date)):
+        dt = value
+    elif isinstance(value, str):
+        value = value.strip()
+        try:
+            dt = datetime.fromisoformat(value)
+        except ValueError:
+            try:
+                dt = datetime.strptime(value, '%Y-%m-%d')
+            except ValueError:
+                return value
+    else:
+        return value
+
+    return dt.strftime(format_str)

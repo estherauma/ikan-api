@@ -6,15 +6,15 @@
 {% block content %}
 <div class="form-container">
     {% if not vessel %}
-        <p class="m-4 text-center">You do not have any vessels. Please first add a vessel.</p>
+        <p class="m-4 text-center">{{ payments_common_text.noVesselsFirstAddVessel }}</p>
     {% endif %}
 
 
     {% if vessel %}
-    <h2 class="mb-4 mt-4 text-center" style="color: #191970;">Add Payments for {{vessel.name | upper }} vessel</h2>
+    <h2 class="mb-4 mt-4 text-center" style="color: #191970;">{{ payments_common_text.addPaymentsForTheVessel }} {{vessel.name | upper }}</h2>
 
     {% if not workers_on_vessel %}
-    <h4 class="m-4 text-center">This vessel does not have workers attached to it. Please add worker contracts for this vessel.</h4>
+    <h4 class="m-4 text-center">{{ payments_common_text.vesselHasNoWorkersAddContractsForVessel }}</h4>
     {% else %}
 
     <form method="post">
@@ -30,8 +30,7 @@
         {% endif %}
         
         <div class="text-danger mx-2">
-           <p class="my-1 fs-5 fw-bold">* indicates mandatory field</p>
-           <p class="my-1 fs-5 fw-bold">* 表示必填之欄</p> 
+           <p class="my-1 fs-5 fw-bold">* {{ payments_common_text.indicatesMandatoryField }}</p>
         </div>
         <div
             class="table-wrapper"
@@ -39,36 +38,20 @@
         >
             <table id="paymentsTable" class="table">
                 <thead style="background: #e7eaf1;">
-                    <tr>
+                    <tr style=" border-bottom-width: 1.5px; border-color: #6c757d54;">
                         {% for field in payment_fields %}
                             <th
                                 class="{% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %} {% if field == 'deductions' %}hide-field{% endif %}"
                                 style="font-size: 1rem; padding: 10px 10px 2px 10px;"
                             >
-                                {{ english_fields |dict_get:field }}
+                                {{ field_labels | dict_get:field }}
                             </th>
                         {% endfor %}
                         <th
                             class="deduction-field"
                             style="font-size: 1rem; padding: 10px 10px 2px 10px; min-width: 300px;"
                         >
-                            {{ english_fields.deductions }}
-                        </th>
-                    </tr>
-                    <tr>
-                        {% for field in payment_fields %}
-                            <th
-                                class="fs-4 fw-bold text-dark {% if field in cash_fields %}cash-field{% endif %} {% if field in bank_transfer_fields %}bank-transfer-field{% endif %} {% if field in deduction_fields %}deduction-field{% endif %} {% if field == 'deductions' %}hide-field{% endif %}"
-                                style="font-size: 1rem; padding: 10px 10px 2px 10px;"
-                            >
-                                {{ chinese_fields |dict_get:field }}
-                            </th>
-                        {% endfor %}
-                        <th
-                            class="fs-4 fw-bold text-dark deduction-field"
-                            style="font-size: 1rem; padding: 10px 10px 2px 10px; min-width: 300px;"
-                        >
-                            {{ chinese_fields.deductions }}
+                            {{ payments_common_text.deductions }}
                         </th>
                     </tr>
                 </thead>
@@ -117,7 +100,7 @@
                                     data-current-row="{{ forloop.counter0 }}"
                                     onclick="openDeductionModal(this)"
                                 >
-                                    Add Deductions
+                                    {{ payments_common_text.addDeductions }}
                                 </button>
                                 <!-- view deductions -->
                                 <!-- TODO: differientiate buttons, ids -->
@@ -132,7 +115,7 @@
                                     style="display: none;"
                                     onclick="viewDeductions(this)"
                                 >
-                                    View Deductions
+                                    {{ payments_common_text.viewDeductions }}
                                 </button>
 
                             </td>
@@ -184,7 +167,7 @@
                                     data-current-row="__prefix__"
                                     onclick="openDeductionModal(this)"
                                 >
-                                    Add Deductions
+                                    {{ payments_common_text.addDeductions }}
                                 </button>
                                 <!-- view deductions -->
                                 <!-- TODO: differientiate buttons, ids -->
@@ -199,7 +182,7 @@
                                     style="display: none;"
                                     onclick="viewDeductions(this)"
                                 >
-                                    View Deductions
+                                    {{ payments_common_text.viewDeductions }}
                                 </button>
         
                             </td>
@@ -215,7 +198,7 @@
                     class="border rounded-pill text-white"
                     style="min-width: 200px; max-width: 300px; font-size: 1.1rem; padding: 5px 10px; background: #535368;"
                 >
-                    Add row
+                    {{ payments_common_text.addRow }}
                 </button>
             </div>
         </div>
@@ -227,7 +210,7 @@
                 class="border rounded-pill text-white"
                 style="min-width: 300px; max-width: 500px; font-size: 1.1rem; padding: 10px 20px; background: #3565FF;"
             >
-                Submit 呈交
+                {{ common_text.submit }}
             </button>
         </div>
     </form>
@@ -239,7 +222,7 @@
         <div class="modal-dialog" style="max-width: 80%;">
             <div class="modal-content">
                 <div class="modal-header d-flex justify-content-center">
-                    <h3 class="modal-title" id="AddDeductionsModalLabel">Add deductions</h3>
+                    <h3 class="modal-title" id="AddDeductionsModalLabel">{{ payments_common_text.addDeductionsForm }}</h3>
                     <button
                         id="close-add-deduction-modal-btn"
                         type="button"
@@ -253,8 +236,8 @@
                 <div class="modal-body">
                     <div id="deductions-list"></div>
                     <div class="btns-wrapper">
-                        <button type="button" class="add-item-btn" onclick="addItem()">Add Item</button>
-                        <button type="button" onclick="saveDeductions()">Save</button>
+                        <button type="button" class="add-item-btn" onclick="addItem()">{{ payments_common_text.addItem }}</button>
+                        <button type="button" onclick="saveDeductions()">{{ common_text.save }}</button>
                     </div>
                 </div>
             </div>
@@ -266,7 +249,7 @@
         <div class="modal-dialog" style="max-width: 80%;">
             <div class="modal-content">
                 <div class="modal-header d-flex justify-content-center">
-                    <h3 class="modal-title" id="viewDeductionsModalLabel">View added deductions</h3>
+                    <h3 class="modal-title" id="viewDeductionsModalLabel">{{ payments_common_text.viewAddedDeductions }}</h3>
                     <button
                         id="close-view-deductions-modal-btn"
                         type="button"
@@ -280,7 +263,7 @@
                     <ul id="viewDeductionsList"></ul>
                 </div>
                 <div class="modal-footer d-flex justify-content-center" style="border-top: unset;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary ikan-primary-button" data-bs-dismiss="modal">{{common_text.close}}</button>
                 </div>
             </div>
         </div>
@@ -1042,6 +1025,10 @@
         const jsonDeductionsList = '{{ json_deductions_list|safe|escapejs }}';
         const deductions = JSON.parse(jsonDeductionsList);
         let currentRow = null;
+        const jsonPaymentsCommonText = '{{ json_payments_common_text|safe|escapejs }}';
+        const paymentsCommonText = JSON.parse(jsonPaymentsCommonText);
+        const jsonCurrencyOptions = '{{ json_currency_options|safe|escapejs }}';
+        const currencyOptions = JSON.parse(jsonCurrencyOptions);
 
         window.openDeductionModal = function openDeductionModal(button) {
             currentRow = button.getAttribute("data-current-row");
@@ -1079,7 +1066,7 @@
                                 type="button"
                                 style="color: white; background: #f04141; border: 1px solid red; border-radius: 50px; padding: 2px 12px;"
                                 onclick="this.parentElement.remove()"
-                            >Remove</button>`;
+                            >${paymentsCommonText.remove || 'Remove'}</button>`;
             document.getElementById("deductions-list").appendChild(div);
 
             // update view button display when item is removed
@@ -1092,16 +1079,8 @@
         }
 
         window.generateCurrencyOptions = function generateCurrencyOptions(selectedValue = "") {
-            const currencies = currencies_map = {
-                // "": "Select currency",
-                "USD": "美元 US dollar",
-                "MUR": "毛里求斯盧比 Mauritian Rupee",
-                "TWD": "新台幣 Taiwan New Dollars",
-                "IDR": "印尼盾/盧比 Indonesian Rupiah",
-                "SBD": "索羅門群島元 Solomon Islands Dollar",
-            };
-            return Object.entries(currencies).map(([key, label]) => {
-                return `<option value="${key}" ${selectedValue === key ? "selected" : ""}>${label}</option>`;
+            return currencyOptions.map((item) => {
+                return `<option value="${item.key}" ${selectedValue === item.key ? "selected" : ""}>${item.label}</option>`;
             }).join("");
         }
 
@@ -1155,15 +1134,15 @@
             }
 
             if (parsedSavedItems.length === 0) {
-                viewDeductionsList.innerHTML = "<p class='no-items'>No items added.</p>";
+                viewDeductionsList.innerHTML = `<p class='no-items'>${paymentsCommonText.noItemsAdded || 'No items added.'}</p>`;
             } else {
                 let table = document.createElement("table");
                 table.classList.add("view-deductions-table");
                 // header
                 table.innerHTML = `
                     <tr class="fs-4 fw-bold">
-                        <th style="width: 40%;">Item</th>
-                        <th style="width: 60%;">Amount</th>
+                        <th style="width: 40%;">${paymentsCommonText.item || 'Item'}</th>
+                        <th style="width: 60%;">${paymentsCommonText.amount || 'Amount'}</th>
                     </tr>
                 `;
                 // rows

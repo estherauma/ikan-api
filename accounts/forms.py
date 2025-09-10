@@ -54,8 +54,37 @@ class RegistrationForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Email already exists.')
+            raise forms.ValidationError(self.auth_common_text.get('emailAlreadyExists', 'Email already exists.'))
         return email
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+
+        if password1 != password2:
+            raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
+        return password2
+
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
+        super().__init__(*args, **kwargs)
+        if auth_common_text:
+            self.fields['first_name'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
+            self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+            self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
+                                                                                        'Enter your password')
+            self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
+                                                                                        'Confirm your password')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
+            self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
+            self.fields['password1'].label = auth_common_text.get('password', 'Password')
+            self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
 
 
 class RequestPasswordResetForm(forms.Form):
@@ -66,6 +95,14 @@ class RequestPasswordResetForm(forms.Form):
             'placeholder': 'Enter your email'
         })
     )
+
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
+        if auth_common_text:
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
 
 
 class PasswordResetForm(forms.Form):
@@ -102,14 +139,15 @@ class PasswordResetForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if not User.objects.filter(email=email).exists():
-            raise forms.ValidationError('User does not exist.')
+            raise forms.ValidationError(self.auth_common_text.get('userDoesNotExist', 'User does not exist.'))
         return email
 
     def clean_reset_password_token(self):
         email = self.cleaned_data.get('email')
         reset_password_token = self.cleaned_data.get('reset_password_token')
         if not User.objects.filter(email=email, reset_password_token=reset_password_token).exists():
-            raise forms.ValidationError('Invalid reset password token.')
+            raise forms.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
+                                                                  'Invalid reset password token.'))
         return reset_password_token
 
     def clean_password2(self):
@@ -117,8 +155,27 @@ class PasswordResetForm(forms.Form):
         password2 = self.cleaned_data.get('password2')
 
         if password1 != password2:
-            raise forms.ValidationError('Passwords do not match.')
+            raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
         return password2
+
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
+        super().__init__(*args, **kwargs)
+        if auth_common_text:
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+            self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourNewPassword',
+                                                                                        'Enter your new password')
+            self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
+                                                                                        'Confirm your password')
+            self.fields['reset_password_token'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourPasswordResetToken', 'Enter your password reset token')
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['password1'].label = auth_common_text.get('newPassword', 'New Password')
+            self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
+            self.fields['reset_password_token'].label = auth_common_text.get('resetPasswordToken',
+                                                                             'Reset Password Token')
 
 
 class InviteUser(forms.Form):
@@ -150,9 +207,12 @@ class InviteUser(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
         super(InviteUser, self).__init__(*args, **kwargs)
         group_choices = [(group.name, group.name) for group in Group.objects.all()]
-        group_choices.insert(0, ('', 'Select a role'))
+        select_role_text = f'-- {auth_common_text.get("selectARole", "Select a role")} --'
+        group_choices.insert(0, ('', select_role_text))
 
         self.fields['role'] = forms.ChoiceField(
             choices=group_choices,
@@ -162,6 +222,18 @@ class InviteUser(forms.Form):
             }),
             required=True
         )
+
+        if auth_common_text:
+            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
+                                                                                    'Enter your email')
+            self.fields['first_name'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
+            self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
+                'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
+            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
+            self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
+            self.fields['role'].label = auth_common_text.get('role', 'Role')
 
 
 class ResendTokenForm(forms.Form):

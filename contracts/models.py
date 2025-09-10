@@ -27,6 +27,9 @@ class ContractDocument(AuditableModel):
     url = models.CharField(max_length=255, null=False, blank=False)
     status = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self):
+        return self.contract.name + '___' + self.name
+
 
 class ContractClause(AuditableModel):
     app_ref = models.CharField(max_length=255, null=False, blank=False, unique=True, default=uuid.uuid4, editable=True)
@@ -45,7 +48,7 @@ class UserContractAccess(AuditableModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='user_contract_access')
     contract = models.ForeignKey(
-        Contract, 
+        Contract,
         on_delete=models.CASCADE,
         related_name='contract_user_access')
-    is_active = models.BooleanField(default=True)    
+    is_active = models.BooleanField(default=True)

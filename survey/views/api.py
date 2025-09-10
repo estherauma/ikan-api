@@ -3,8 +3,11 @@ from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from survey.models import Survey, InlineQuestion
-from survey.serializers import SurveySerializer, InLineQuestionSerializer
+from survey.models import Survey, InlineQuestion, LearningHubProgress
+from survey.serializers import SurveySerializer, InLineQuestionSerializer, LearningHubProgressSerializer
+from accounts.models import User
+from common.utils import generate_uuid
+from rest_framework.views import APIView
 
 
 class SurveyApiListView(ListCreateAPIView):
@@ -147,3 +150,75 @@ class InlineQuestionApiDetailView(RetrieveUpdateDestroyAPIView):
             'status': 'OK',
             'message': 'Inline question deleted successfully'
         }, status.HTTP_200_OK)
+
+
+class LearningHubProgressApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_user(self, request):
+        user_id = request.data.get('user')
+        if user_id is not None:
+            try:
+                user = User.objects.get(pk=user_id)
+                return user
+            except User.DoesNotExist:
+                return None
+        else:
+            return None
+
+    def get(self, request):
+        user = self.get_user(request) or request.user
+        lb_data = LearningHubProgress.objects.filter(user=user)
+        serializer = LearningHubProgressSerializer(lb_data, many=True)
+
+        return Response({
+            'status': 'OK',
+            'data': serializer.data,
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        user = self.get_user(request)
+        if user is None:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+
+        progress_data = request.data.get('progress_data')
+        app_ref = request.data.get('app_ref', generate_uuid())
+        created_by = request.data.get('created_by', request.user.id)
+        updated_by = request.data.get('updated_by', request.user.id)
+        created_at = request.data.get('created_at', None)
+        updated_at = request.data.get('updated_at', None)
+        if not isinstance(progress_data, list):
+            return Response({'error': 'Invalid format'}, status=400)
+
+        serializer_data = {**request.data}
+        serializer = LearningHubProgressSerializer(data=serializer_data)
+        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            lb_progress_exists = LearningHubProgress.objects.filter(user=user).exists()
+            if lb_progress_exists:
+                lb_progress = LearningHubProgress.objects.get(user=user)
+                lb_progress.progress_data = progress_data
+                lb_progress.updated_by = updated_by
+                lb_progress.updated_at = updated_at
+                lb_progress.save()
+            else:
+                lb_progress = LearningHubProgress.objects.create(
+                    app_ref=app_ref,
+                    user=user,
+                    progress_data=progress_data,
+                    created_by=created_by,
+                    updated_by=updated_by,
+                    created_at=created_at,
+                    updated_at=updated_at,
+                )
+                lb_progress.save()
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)

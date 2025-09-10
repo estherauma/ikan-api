@@ -23,7 +23,7 @@
                                     </span>
                                 </a>
                             </div>
-                            <p class="text-muted mb-4 mt-3">Create your account.</p>
+                            <h4 class="mb-3 mt-3">{{ auth_common_text.createYourAccount }}</h4>
                         </div>
 
                         <form role="form" method="post" action="#">
@@ -45,22 +45,22 @@
                           <!-- TODO: add profile image field -->
 
                           <div class="mb-3">
-                              <label for="first_name" class="form-label">First Name</label>
+                              <label for="first_name" class="form-label">{{ auth_common_text.firstName }}</label>
                               {{ form.first_name }}
                           </div>
 
                           <div class="mb-3">
-                              <label for="last_name" class="form-label">Last Name</label>
+                              <label for="last_name" class="form-label">{{ auth_common_text.lastName }}</label>
                               {{ form.last_name }}
                           </div>
 
                           <div class="mb-3">
-                              <label for="email" class="form-label">Email address</label>
+                              <label for="email" class="form-label">{{ auth_common_text.emailAddress }}</label>
                               {{ form.email }}
                           </div>
 
                             <div class="mb-3">
-                                <label for="password1" class="form-label">Password</label>
+                                <label for="password1" class="form-label">{{ auth_common_text.password }}</label>
                                 <div class="input-group input-group-merge">
                                     {{ form.password1 }}
                                     <div class="input-group-text" data-password="false">
@@ -70,7 +70,7 @@
                             </div>
 
                             <div class="mb-3">
-                              <label for="password2" class="form-label">Confirm Password</label>
+                              <label for="password2" class="form-label">{{ auth_common_text.confirmPassword }}</label>
                               <div class="input-group input-group-merge">
                                   {{ form.password2 }}
                                   <div class="input-group-text" data-password="false">
@@ -80,7 +80,7 @@
                             </div>
 
                             <div class="text-center d-grid">
-                                <button class="btn btn-primary" type="submit"> Register </button>
+                                <button class="btn btn-primary" type="submit">{{ auth_common_text.register }}</button>
                             </div>
 
                         </form>
@@ -90,7 +90,7 @@
 
                 <div class="row mt-3">
                     <div class="col-12 text-center">
-                        <p class="text-white-50">Already have an account? <a href="/account/login" class="text-white ms-1"><b>Log In</b></a></p>
+                        <p class="text-white-50">{{ auth_common_text.alreadyHaveAnAccount }} <a href="/account/login" class="text-white ms-1"><b>{{ auth_common_text.login }}</b></a></p>
                     </div> <!-- end col -->
                 </div>
                 <!-- end row -->
@@ -101,4 +101,10 @@
     </div>
     <!-- end container -->
 </div>
+
+<style>
+    a {
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}

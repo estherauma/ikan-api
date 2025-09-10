@@ -27,6 +27,7 @@
 
 		<!-- Icons css -->
 		<link href="/static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+
     </head>
 
     <body class="{% block body_class %}{% endblock %}">
@@ -81,6 +82,144 @@
         <script src="/static/themes/v1/assets/js/app.min.js"></script>
 
         {% block scripts %} {% endblock %}
+        
+        <!-- Common scripts -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const selects = document.querySelectorAll('.ikan-select');
+                selects.forEach(select => {
+                    // USE EMPTY SELECT OPTION AS A PLACEHOLDER
+                    function updatePlaceholder() {
+                        if (!select.value) {
+                            select.classList.add('empty-select');
+                        } else {
+                            select.classList.remove('empty-select');
+                        }
+                    }
 
+                    // Initial check
+                    updatePlaceholder();
+                    // Update on change
+                    select.addEventListener('change', updatePlaceholder);
+
+                    // Disable first option if it has no value, as it's used as a placeholder
+                    if (select.options.length > 0 && !select.options[0].value) {
+                        select.options[0].disabled = true;
+                    }
+
+
+                    // ADD DROPDOWN ICON TO IKAN SELECT
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-chevron-down';
+                    icon.setAttribute('aria-hidden', 'true');
+                    icon.style.position = 'absolute';
+                    icon.style.right = '10px';
+                    icon.style.top = '75%';
+                    icon.style.transform = 'translateY(-50%)';
+                    icon.style.pointerEvents = 'none'; // Prevents the icon from blocking clicks on the select element
+                    icon.style.fontWeight = 'bold';
+                    icon.style.opacity = '0.5';
+                    select.style.position = 'relative';
+                    select.parentNode.style.position = 'relative';
+                    select.parentNode.appendChild(icon);
+                });
+            });
+        </script>
+
+        <!-- Common styles -->
+        <style>
+            .ikan-primary-color {
+                color: #3565ff;
+            }
+            .ikan-dark-blue-100 {
+                color: #191970 !important;
+            }
+            .ikan-dark-blue-90 {
+                color: #263CB1 !important;
+            }
+            .ikan-blue-100 {
+                color: #3565FF !important;
+            }
+            .ikan-blue-90 {
+                color: #5799FF !important;
+            }
+            .ikan-light-blue-100 {
+                color: #80D8FE !important;
+            }
+            .ikan-light-blue-90 {
+                color: #C0EFFF !important;
+            }
+            .ikan-gray-100 {
+                color: #EAEDF6 !important;
+            }
+            .ikan-light-gray {
+                color: #D3DAEE !important;
+            }
+            .ikan-deep-gray {
+                color: #A0ABCC !important;
+            }
+            .ikan-skyblue-100 {
+                color: #EAEDF6 !important;
+            }
+            .ikan-green-100 {
+                color: #74F080 !important;
+            }
+            .ikan-red-100 {
+                color: #F0525C !important;
+            }
+            .ikan-yellow-100 {
+                color: #F4992D !important;
+            }
+            .ikan-primary-color-bg-100 {
+                background-color: #3565ff !important;
+            }
+            .ikan-primary-button {
+                background-color: #3565ff;
+                color: white;
+                border-radius: 20px;
+                padding: 7px 20px;
+                font-size: 1rem;
+                border: none;
+                &:hover {
+                    background-color: #191970;
+                }
+            }
+            .ikan-form {
+                .form-label {
+                    font-size: 1rem;
+                }
+                .form-control {
+                    background: #eaedf6;
+                    color: #191970;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 1rem;
+                    min-height: 45px;
+                    box-shadow: none;
+                    &:focus {
+                        box-shadow: none;
+                        border-color: #3565ff;
+                    }
+                }
+                select option[disabled],
+                select:invalid,
+                .empty-select {
+                    color: gray !important;
+                    font-style: italic;
+                }
+            }
+            .ikan-modal {
+                .modal-content {
+                    border-radius: 20px;
+                    border: 0.1px solid #191970;
+                    background: white;
+
+                    .modal-title {
+                        font-size: 1.3rem;
+                        color: #3565ff;
+                    }
+                }
+            }
+        </style>
     </body>
 </html>

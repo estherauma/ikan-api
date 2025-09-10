@@ -1,59 +1,162 @@
 {% extends 'themes/v1/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="contract-wrapper">
     <div class="row">
         <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-light text-dark">
-                    <h5 class="card-title">{{contract.name}}</h5>
+            <!-- Contract details -->
+            <div class="card section-wrapper">
+                <div class="card-header bg-light text-dark d-flex w-100 justify-content-between align-items-center">
+                    <h5 class="">{{ common_text.contractDetails}}</h5>
+                    {% if loggedin_user.is_vessel_owner %}
+                        <button
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#edit-contract-modal"
+                            class="btn btn-info btn-large waves-effect waves-light ikan-primary-button edit-btn"
+                        >
+                            <i class="mdi mdi-pencil"></i>
+                            {{ common_text.edit }}
+                        </button>
+                        <!-- Edit contract modal -->
+                        <div
+                            id="edit-contract-modal"
+                            class="modal fade"
+                            tabindex="-1"
+                            role="dialog"
+                            aria-hidden="true"
+                        >
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header row m-0">
+                                        <div class="col col-10 text-center">
+                                            <h4 class="modal-title">{{ clause_page_text.editContract }}</h4>
+                                        </div>
+                                        <div class="col col-2 d-flex justify-content-center">
+                                            <button
+                                                type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close"
+                                            ></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <form
+                                            action="{% url 'contracts-web:contract-details' contract.id %}"
+                                            method="POST"
+                                            enctype="multipart/form-data"
+                                            class="ikan-form"
+                                        >
+                                            {% csrf_token %}
+                                            
+                                            {% for field in new_contract_form %}
+                                            <div class="mb-3">
+                                                <label for="{{ field.id_for_label }}" class="form-label">
+                                                {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                </label>
+                                                {% if field.name == 'upload_contract' and field.value %}
+                                                    <div id="contract-upload-preview" class="text-center" style="margin: 10px auto;">
+                                                        {% if ".pdf" in field.value  %}
+                                                            <embed src="/{{ field.value }}" type="application/pdf" width="75%" height="200px"/>
+                                                        {% else %}
+                                                            <img src="/{{ field.value }}" alt="Contract upload image" style="max-width: 75%; height: 200px; object-fit: contain;">
+                                                        {% endif %}
+                                                        <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enableContractUploadEdit()"></i>
+                                                    </div>
+                                                    <input id="id_upload_contract" type="file" name="{{ field.name }}" class="form-control" style="display: none; object-fit: contain;">
+                                                {% else %}
+                                                    {{ field }}
+                                                {% endif %}
+                                                
+                                                {{ field.errors }}
+                                            </div>
+                                            {% endfor %}
+
+                                            {% if new_contract_form.errors %}
+                                                <div class="alert alert-danger">{{ new_contract_form.errors }}</div>
+                                            {% endif %}
+                                            <div class="mb-3 mt-3 text-center">
+                                                <button
+                                                    id="contract-submit-btn"
+                                                    class="btn btn-primary ikan-primary-button"
+                                                    type="submit"
+                                                >
+                                                    {{ common_text.saveChanges }}
+                                                </button>
+                                            </div>
+
+                                            <!-- Hidden input to identify the clause kind form -->
+                                            <input type="hidden" name="contract_id" value="{{ contract.id }}">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="list-group">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">App Ref</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.name }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.name}}</p>
                         </div>
-                        <p class="mb-1">{{contract.app_ref}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Start Date</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.start_date }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.start_date | format_date:selected_language }}</p>
                         </div>
-                        <p class="mb-1">{{contract.start_date}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">End Date</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.end_date }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.end_date | format_date:selected_language }}</p>
                         </div>
-                        <p class="mb-1">{{contract.end_date}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Description</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.description }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{%if contract.description %} contract.description  {%else%} None {%endif%}</p>
                         </div>
-                        <p class="mb-1">{{contract.description}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Taiwanese Company</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.taiwanese_company }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.taiwanese_company_name | default:None}}</p>
                         </div>
-                        <p class="mb-1">{{contract.City}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Indonesian Company</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.indonesian_company }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.indonesian_company_name | default:None}}</p>
                         </div>
-                        <p class="mb-1">{{contract.indonesian_company}}</p>
 
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">Kind</h5>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.kind }}</h5>
+                            <p class="mt-0 mb-2 detail-value">{{contract.kind_value}}</p>
                         </div>
-                        <p class="mb-1">{{contract.kind}}</p>
+                        <div>
+                            <h5 class="mb-1 detail-name">{{ contract_form_labels.upload_contract }}</h5>
+                            <p class="mt-0 mb-2 detail-value">
+                                {% if contract.upload_contract_url %}
+                                    <div class="text-center" style="margin: 10px auto;">
+                                        <img src="/{{ contract.upload_contract_url }}" alt="Contract upload" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                    </div>
+                                {% else %}
+                                    No contract uploaded
+                                {% endif %}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Contract access -->
-            <div class="card">
+            <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark d-flex align-items-center">
-                    <h5 class="card-title">Access</h5>
-                    <a href="access" class="btn btn-primary ms-auto">Add Access</a>
+                    <!-- TODO: add to prismic -->
+                    <h5 class="card-title">{{ common_text.access }}</h5>
+                    <!-- TODO: add to prismic -->
+                    <a href="access" class="btn btn-primary ms-auto ikan-primary-button">{{ common_text.addAccess }}</a>
                 </div>
                 <div class="card-body table">
                     <div class="table-responsive">
@@ -61,11 +164,11 @@
                             <tbody>
                                 {% for user in access_users %}
                                     <tr>
-                                        <td>{{ user }}</td>
+                                        <td class="ikan-dark-blue-100">{{ user }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="1">No users available</td>
+                                        <td colspan="1">{{ common_text.noUsersAvailable }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -74,57 +177,503 @@
                 </div>
                 
             </div>
-            
         </div>
 
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-light text-dark">
-                    <h5 class="card-ttile">Clauses</h5>
+            <!-- Contract clauses -->
+            <div class="card section-wrapper">
+                <div class="card-header  bg-light text-dark d-flex w-100 justify-content-between align-items-center">
+                    <h5 class="fw-bold fs-3">{{ common_text.clauses }}</h5>
+
+                    {% if clauses_to_be_added %}
+                        <button
+                            type="button"
+                            class="btn btn-primary ikan-primary-button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#select-clause-modal"
+                        >
+                            <i class="mdi mdi-plus"></i>
+                            {{ clause_page_text.addNewClause }}
+                        </button>
+                    {% endif %}
+                    <div
+                        id="select-clause-modal"
+                        class="modal fade ikan-modal"
+                        tabindex="-1"
+                        role="dialog"
+                        aria-hidden="true"
+                    >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header row m-0">
+                                    <div class="col col-10 text-center">
+                                        <h4 class="modal-title">{{ clause_page_text.selectClauseToAdd }}</h4>
+                                    </div>
+                                    <div class="col col-2 d-flex justify-content-center">
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close"
+                                        ></button>
+                                    </div>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="list-group">
+                                        {% for clause in clauses_to_be_added %}
+                                            <div
+                                                class="select-clause-item w-100 d-flex align-items-center"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#add-clause-modal-{{ forloop.counter }}"
+                                            >
+                                                <i class="mdi mdi-plus"></i>
+                                                <div>
+                                                {{ clause.name | upper }}
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                        <div class="w-100 d-flex align-items-center">
+                                            <p>All clauses have been added to this contract.</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="accordion" id="clauseAccordion">
                         {% for clause in clauses %}
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
-                                    {{clause.name}}
-                                </button>
-                            </h2>
-                            
-                            <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
-                                <div class="accordion-body">
-                                   {% if clause.content %}
-                                        {% for key, value in clause.content.items %}
-                                            {% if value %}
-                                                <div class="d-flex w-100 justify-content-between">
-                                                <h5 class="mb-1">{{key}}</h5>
+                            <!-- Party B details are not displayed on their own but under Party A -->
+                            {% if clause.kind != 'contract-clauses-parties-requirement-fishers' %}
+                                <div class="accordion-item">
+                                    <div class="item-btn d-flex w-100 justify-content-between" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
+                                        <div>
+                                        {{ clause.page_title | upper}}
+                                        </div>
+                                        <i class="mdi mdi-chevron-down fs-3"></i>
+                                    </div>
+                                    <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
+                                        <div class="accordion-body">
+                                            {% if loggedin_user.is_vessel_owner and clause.is_dynamic %}
+                                                <div class="d-flex justify-content-end edit-clause-btn-wrapper">
+                                                    {% if clause.kind == 'contract-clauses-parties-requirement-vessel' %}
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-info btn-sm ikan-primary-button edit-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#edit-parties-modal"
+                                                        >
+                                                            <i class="mdi mdi-pencil"></i>
+                                                            {{ common_text.edit }}
+                                                        </button>
+
+                                                        <!-- Edit Parties Modal -->
+                                                        <div
+                                                            id="edit-parties-modal"
+                                                            class="modal fade"
+                                                            tabindex="-1"
+                                                            role="dialog"
+                                                            aria-hidden="true"
+                                                        >
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content">
+                                                                    <div class=" d-flex justify-content-end">
+                                                                        <button
+                                                                            type="button"
+                                                                            class="mt-3 mx-3 btn-close"
+                                                                            data-bs-dismiss="modal"
+                                                                            aria-label="Close"
+                                                                        ></button>
+                                                                    </div>
+                                                                    <div class="modal-body d-flex flex-column justify-content-center align-items-center">
+                                                                        <button
+                                                                            type="button"
+                                                                            class="btn btn-info btn-sm ikan-primary-button edit-btn w-80 mt-2"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
+                                                                            style="margin-bottom: 10px; height: 50px; width: 70%; font-size: 1rem;"
+                                                                        >
+                                                                            {{ common_text.editPartyADetails }}
+                                                                        </button>
+                                                                        {% if clause.has_party_b_clause %}
+                                                                            <button
+                                                                                type="button"
+                                                                                class="btn btn-info btn-sm ikan-primary-button edit-btn w-80 mt-2"
+                                                                                data-bs-toggle="modal"
+                                                                                data-bs-target="#edit-clause-modal-{{ party_b_index }}"
+                                                                                style="margin-bottom: 10px; height: 50px; width: 70%; font-size: 1rem;"
+                                                                            >
+                                                                                {{ common_text.editPartyBDetails }}
+                                                                            </button>
+                                                                        {% else %}
+                                                                        <p
+                                                                            class="text-center"
+                                                                            style="color: #191970; font-size: 1rem; font-weight: 500; margin: 30px; ">
+                                                                            {{ clause_page_text.addPartyAfirstToEditPartyB }}
+                                                                        </p>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-info btn-sm ikan-primary-button edit-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#edit-clause-modal-{{ forloop.counter }}"
+                                                        >
+                                                            <i class="mdi mdi-pencil"></i>
+                                                            {{ common_text.edit }}
+                                                        </button>
+                                                    {% endif %}
                                                 </div>
-                                                <p class="mb-1">{{value }}</p>
                                             {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
+                                            
+                                            {% if clause.html_content %}
+                                                <div class="html-content {% if clause.is_dynamic %}dynamic-html-content{% endif %}">
+                                                    {{ clause.html_content|safe }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            {% endif %}
+                            {% empty %}
                         {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <div class="card">
+            <!-- Contract Documents -->
+            <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
-                    <h5 class="card-ttile">Documents</h5>
+                    <h5 class="card-ttile">{{ common_text.documents}}</h5>
                 </div>
                 <div class="card-body">
-                   !Not yet implemented
+                   !{{ common_text.notYetImplemented }}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Create clause modals -->
+    <!-- We are not using these modals for editing because when a clause has already been created, it's create modal (generated from clauses_to_be_added) wouldn't exist -->
+    {% if clauses_to_be_added %}
+        {% for clause in clauses_to_be_added %}
+            <div
+                id="add-clause-modal-{{ forloop.counter }}"
+                class="modal fade"
+                tabindex="-1"
+                role="dialog"
+                aria-hidden="true"
+            >
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header row m-0">
+                            <div class="col col-10 text-center">
+                                <h4 class="modal-title">{{ clause.name }}</h4>
+                            </div>
+                            <div class="col col-2 d-flex justify-content-center">
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                        </div>
+
+                        <div class="modal-body">
+                            <form
+                                action="{% url 'contracts-web:contract-details' contract.id %}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="ikan-form"
+                            >
+                                {% csrf_token %}
+                                
+                                {% for field in clause.form %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label">
+                                            {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        {{ field }}
+                                        {{ field.errors }}
+                                    </div>
+                                {% endfor %}
+
+                                {% if clause.form.errors %}
+                                    <div class="alert alert-danger">{{ clause.form.errors }}</div>
+                                {% endif %}
+                                
+                                <div class="mb-3 mt-3 text-center">
+                                    <button
+                                        id="clause-submit-btn"
+                                        class="btn btn-primary clause-submit-btn ikan-primary-button"
+                                        type="submit"
+                                    >
+                                        {{ common_text.save }}
+                                    </button>
+                                </div>
+                                
+                                <!-- Hidden input to identify the clause kind form -->
+                                <input type="hidden" name="clause_kind" value="{{ clause.kind }}">
+                                <input type="hidden" name="page_title" value="{{ clause.name }}"> 
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Edit clause modals -->
+    <!-- We are not using the create clause modals because if the clause is already added/created, the create modal for it doesn't exist -->
+    <!-- They are clauses already added to the contract -->
+    {% for clause in clauses %}
+        {% if loggedin_user.is_vessel_owner and clause.is_dynamic %}
+            <div
+                id="edit-clause-modal-{{ forloop.counter }}"
+                class="modal fade"
+                tabindex="-1"
+                role="dialog"
+                aria-hidden="true"
+            >
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header row m-0">
+                            <div class="col col-10 text-center">
+                                <h4 class="modal-title">{{ clause.page_title }}</h4>
+                            </div>
+                            <div class="col col-2 d-flex justify-content-center">
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                        </div>
+
+                        <div class="modal-body">
+                            <form
+                                action="{% url 'contracts-web:contract-details' contract.id %}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="ikan-form"
+                            >
+                                {% csrf_token %}
+                                
+                                {% for field in clause.form %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label">
+                                            {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        {% if field.value and field.name == 'partyASignature' or field.name == 'partyBSignature' %}
+                                            <div id="{{field.name}}-preview" class="text-center" style="margin: 10px auto;">
+                                                {% if ".pdf" in field.value  %}
+                                                    <embed src="/{{ field.value }}" type="application/pdf" width="75%" height="200px"/>
+                                                {% else %}
+                                                    <img src="/{{ field.value }}" alt="Party signature image" style="max-width: 75%; height: 200px; object-fit: contain;">
+                                                {% endif %}
+                                                {% if field.name == 'partyASignature' %}
+                                                    <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enablePartyASignatureEdit()"></i>
+                                                {% else %}
+                                                    <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enablePartyBSignatureEdit()"></i>
+                                                {% endif %}
+                                            </div>
+                                            <input id="id_{{field.name}}" type="file" name="{{ field.name }}" class="form-control" style="display: none; object-fit: contain;">
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
+
+                                        {{ field.errors }}
+                                    </div>
+                                {% endfor %}
+
+                                {% if clause.form.errors %}
+                                    <div class="alert alert-danger">{{ clause.form.errors }}</div>
+                                {% endif %}
+                                
+                                <div class="mb-3 mt-3 text-center">
+                                    <button
+                                        id="clause-submit-btn"
+                                        class="btn btn-primary clause-submit-btn ikan-primary-button"
+                                        type="submit"
+                                    >
+                                        {{ common_text.saveChanges }}
+                                    </button>
+                                </div>
+                                
+                                <!-- Hidden input to identify the clause kind form -->
+                                <input type="hidden" name="clause_kind" value="{{ clause.kind }}">
+                                <input type="hidden" name="page_title" value="{{ clause.name }}">
+                                <input type="hidden" name="edit_clause_id" value="{{ clause.id }}">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}    
+    {% endfor %}
 </div>
+
+<style>
+    .content {
+        background: #eaedf6;
+        .contract-wrapper {
+            padding: 20px 0;
+            .section-wrapper {
+                background: #d3daee;
+                .card-header {
+                    background: #d3daee;
+                    h5 {
+                        color: #3565ff;
+                        font-weight: bold;
+                        font-size: 1.3rem;
+                    }
+                }
+                .card-body {
+                    .detail-name {
+                        color: black;
+                        font-weight:400;
+                        font-size: 1rem;
+                    }
+                    .detail-value {
+                        color: #191970;
+                        font-size: 1rem;
+                        font-weight: 500;
+                    }
+                    .accordion {
+                        border-radius: 20px;
+                        .accordion-item {
+                            border: 1px solid #191970;
+                            border-bottom: unset;
+                            .item-btn {
+                                border: none;
+                                min-height: 90px;
+                                border-radius: 5px;
+                                background: white;
+                                color: #191970;
+                                font-size: 1rem;
+                                align-items: center;
+                                padding: 0 20px;
+                                i {
+                                    margin-left: 20px;
+                                }
+                            }
+                        }
+                        .accordion-item:last-child {
+                            border-bottom: 1px solid #191970;
+                        }
+                        .accordion-collapse {
+                            border-top: 1px solid rgb(248, 243, 243);
+                            .accordion-body {
+                                padding-bottom: 30px;
+                                .edit-clause-btn-wrapper {
+                                    padding: 20px;
+                                    background: #eaedf6;
+                                    border-radius: 10px 10px 0 0;
+                                    .edit-btn {
+                                        padding: 5px 15px;
+                                        font-size: 0.9rem;
+                                    }
+                                }
+                                .html-content {
+                                    padding: 0 20px 40px 20px;
+                                    background: #eaedf6;
+                                    border-radius: 10px;
+                                    color: #191970;
+                                    font-size: 1rem;
+                                    line-height: 1.5;
+                                }
+                                .dynamic-html-content {
+                                    border-radius:  0 0 10px 10px;
+                                }
+                            }
+                        }
+                    }
+                }
+                #select-clause-modal {
+                    .modal-title {
+                        color: #191970;
+                        font-weight: bold;
+                        font-size: 1.3rem;
+                    }
+                    .list-group {
+                        margin: 10px 25px;
+                        .select-clause-item {
+                            background: #d3daee;
+                            margin-bottom: 20px;
+                            border-radius: 10px;
+                            padding: 10px;
+                            color: #191970;
+                            min-height: 60px;
+                            &:hover {
+                                background: #3565ff;
+                                color: white;
+                                i {
+                                    color: white;
+                                }
+                            }
+                            i {
+                                color: #3565ff;
+                                margin-right: 20px;
+                                font-size: 1.2rem;
+                            }
+                        }
+                    }
+                }
+                .edit-btn {
+                    padding: 2px 10px;
+                }
+            }
+            .del-icon {
+                position: absolute;
+                top: 40%;
+                right: 10px;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: red;
+                border-radius: 50%;
+                background: #eaedf6;
+                height: 35px;
+                width: 35px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            #contract-upload-preview,
+            #partyASignature-preview,
+            #partyBSignature-preview {
+                position: relative;
+            }
+        }
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
+<script>
+
+  function enableContractUploadEdit() {
+    document.getElementById('contract-upload-preview').style.display = 'none';
+    document.getElementById('id_upload_contract').style.display = 'block';
+  }
+
+  function enablePartyASignatureEdit() {
+    document.getElementById('partyASignature-preview').style.display = 'none';
+    document.getElementById('id_partyASignature').style.display = 'block';
+  }
+
+  function enablePartyBSignatureEdit() {
+    document.getElementById('partyBSignature-preview').style.display = 'none';
+    document.getElementById('id_partyBSignature').style.display = 'block';
+  }
+</script>
 {% endblock %}

@@ -98,7 +98,7 @@ class PrismicAPI():
                         })
                 elif question['slice_type'] == 'additional_text':
                     for entry in question['items']:
-                        slice_data = aggregate_text_data(entry['value'])
+                        slice_data = aggregate_text_data(entry['value']) if entry['value'] else []
                         for x in slice_data:
                             for content_type, value in x.items():
                                 additional_text.append({
@@ -108,12 +108,12 @@ class PrismicAPI():
                                 })
             return question_data, additional_text
 
-        def agg_page(page_data):
+        def agg_page_text(page_data):
             additional_text = []
             for data in page_data:
                 if data['slice_type'] == 'additional_text':
                     for entry in data['items']:
-                        slice_data = aggregate_text_data(entry['value'])
+                        slice_data = aggregate_text_data(entry['value']) if entry['value'] else []
                         for x in slice_data:
                             for content_type, value in x.items():
                                 additional_text.append({
@@ -135,6 +135,46 @@ class PrismicAPI():
 
         def agg_intro_content(intro_data):
             return [data['primary'] for data in intro_data]
+
+        def agg_welcome_screens_slides(slides):
+            result = []
+            for slide in slides:
+                slide_obj = {
+                    **slide,
+                    'slide_audio': aggregate_media_data(slide.get('slide_audio')) if slide.get('slide_audio') else None,
+                    'slide_content': aggregate_text_data(slide.get('slide_content'))
+                    if slide.get('slide_content') else None,
+                }
+                result.append(slide_obj)
+            return result
+
+        def agg_tutorials_slice(data):
+            if not data:
+                return None
+            result = {
+                'intro_title': data['primary'].get('intro_title'),
+                'intro_text': aggregate_text_data(data['primary'].get('intro_text'))
+                if data['primary'].get('intro_text') else None,
+                'intro_audio': aggregate_media_data(data['primary'].get('intro_audio'))
+                if data['primary'].get('intro_audio') else None,
+                'analytics_event_name': data['primary'].get('analytics_event_name'),
+                'items': []
+            }
+            for item in data['items']:
+                # split string by comma and remove any leading or trailing spaces
+                roles = item.get('roles') if item.get('roles') else None
+                roles_list = re.split(r',\s*|\s*,\s*', roles) if roles else []
+                item_obj = {
+                    'item_icon': item.get('item_icon'),
+                    'item_title': item.get('item_title'),
+                    'item_text': aggregate_text_data(item.get('item_text')) if item.get('item_text') else None,
+                    'item_audio': aggregate_media_data(item.get('item_audio')) if item.get('item_audio') else None,
+                    'item_video': aggregate_media_data(item.get('item_video')) if item.get('item_video') else None,
+                    'item_analytics_event_name': item.get('item_analytics_event_name'),
+                    'roles': roles_list,
+                }
+                result['items'].append(item_obj)
+            return result
 
         for item in data['results']:
             if item['type'] == 'form_questions':
@@ -181,12 +221,50 @@ class PrismicAPI():
                 aggregated_data = {**aggregated_data, **content}
 
             if item['type'] == 'page':
-                agg_page_res = agg_page(item['data']['body'])
+                agg_page_res = agg_page_text(item['data']['body'])
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
                     'additional_text': agg_page_res
+                }
+                aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'welcome_screens':
+                slides = agg_welcome_screens_slides(item['data']['slides'])
+                page_data = {
+                    'page_name': item['uid'],
+                    'page_title': item['data']['page_title'],
+                    'show_slides': item['data']['show_slides'],
+                    'slides': slides,
+                    'analyticsEventName': item['data']['analytics_event_name'],
+                    'last_updated': item['last_publication_date'],
+                }
+                aggregated_data[item['uid']] = page_data
+
+            if item['type'] == 'app_tutorials':
+                item_body = item['data']['body'] if 'body' in item['data'] and item['data']['body'] else None
+                tutorials = None
+                additional_text = None
+                if item_body:
+                    for i in item_body:
+                        if i['slice_type'] == 'tutorials':
+                            tutorials = agg_tutorials_slice(i)
+                        if i['slice_type'] == 'additional_text':
+                            additional_text = agg_page_text([i])
+                page_data = {
+                    'page_name': item['uid'],
+                    'welcome_title': item['data']['welcome_title'],
+                    'welcome_text': aggregate_text_data(item['data']['welcome_text'])
+                    if item['data']['welcome_text'] else None,
+                    'welcome_audio': aggregate_media_data(item['data']['welcome_audio'])
+                    if item['data']['welcome_audio'] else None,
+                    'welcome_video': aggregate_media_data(item['data']['welcome_video'])
+                    if item['data']['welcome_video'] else None,
+                    'additional_text': additional_text,
+                    'tutorials': tutorials,
+                    'analyticsEventName': item['data']['analytics_event_name'],
+                    'last_updated': item['last_publication_date'],
                 }
                 aggregated_data[item['uid']] = page_data
 
@@ -332,12 +410,20 @@ def aggregate_content(data):
                 'language': item['lang'],
                 'pageTitle': item['data'].get('page_title')[0].get('text') if item['data'].get('page_title')
                 else 'Title',
+                'disclaimerText': item['data'].get('disclaimer_text') if item['data'].get('disclaimer_text') else None,
                 'pageTitleAudio': aggregate_media_data(item['data'].get('title_audio'))
                 if item['data'].get('title_audio') else None,
+                'pageDescription': aggregate_text_data(item['data'].get('page_description')) if item['data'].get(
+                    'page_description') else None,
+                'pageAudio': aggregate_media_data(item['data'].get('page_audio')) if item['data'].get(
+                    'page_audio') else None,
+                'pageVideo': aggregate_media_data(item['data'].get('page_video')) if item['data'].get(
+                    'page_video') else None,
                 'pageIcon': aggregate_media_data(item['data'].get('page_icon'))
                 if item['data'].get('page_icon') else None,
                 'pageContent': [],
                 'analyticsEventName': item['data'].get('analytics_event_name')
+                if item['data'].get('analytics_event_name') else None,
             }
 
             # Add userRole to message page_data
@@ -799,6 +885,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 if item['primary'].get('text_area') else None,
                 'contentAudio': aggregate_media_data(item['primary']['content_audio']) if item['primary'].get(
                     'content_audio') else None,
+                'identifier': item['primary'].get('identifier', None),
             }
         elif item['slice_type'] == 'highlighted_link':
             return {

@@ -56,7 +56,9 @@ class Payment(AuditableModel):
         if self.start_date and self.end_date:
             years = self.end_date.year - self.start_date.year
             months = self.end_date.month - self.start_date.month
-            total_months = (years * 12) + months
+            total_months = (years * 12) + months + 1
+            if total_months < 0:
+                total_months = 0
             return total_months
         return None
 
