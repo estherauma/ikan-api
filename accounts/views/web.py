@@ -75,22 +75,15 @@ class LoginView(View):
     def post(self, request):
         context = self.get_context_data()
         form = LoginForm(data=request.POST)
-        context = {'form': form}
         if form.is_valid():
-            email_or_phone = form.cleaned_data.get("email_or_phone")
+            email = form.cleaned_data.get("email")
             password = form.cleaned_data.get("password")
-
-            user = authenticate(request, email_or_phone=email_or_phone, password=password)
+            user = authenticate(request, username=email, password=password)
             if user is not None:
                 login(request, user)
                 return redirect("/")
             else:
-                unverified_number_err = getattr(request, 'unverified_number_err', None)
-                if unverified_number_err:
-                    messages.error(request,  unverified_number_err)
-                else:
-                    messages.error(request, "Can not log in with provided credentials!")
-
+                messages.error(request, "Can not log in with provided credentials!")
                 # go back to login page
                 return render(request, template_name='login.html', context=context)
         else:
