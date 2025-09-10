@@ -896,7 +896,7 @@ class VerifyOTP(APIView):
                 # TODO: Create notification
                 # Notification.objects.create(
                 #     user=user,
-                #     title='Verification sucess',
+                #     title='Verification success',
                 #     message=message,
                 #     status='unread'
                 # )

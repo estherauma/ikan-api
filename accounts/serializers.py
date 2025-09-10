@@ -121,12 +121,10 @@ class OTPGenerateSerializer(serializers.Serializer):
     def validate_phone_number(self, value):
         if not value.startswith('+'):
             raise serializers.ValidationError(
-                "Phone number must start with a '+' sign \
-                    and include the country code.")
+                "Phone number must start with a '+' sign and include the country code.")
         if not value[1:].isdigit():
             raise serializers.ValidationError(
-                "Phone number must contain only \
-                    digits after the country code."
+                "Phone number must contain only digits after the country code."
             )
         return value
 
@@ -144,7 +142,9 @@ class OTPVerifySerializer(serializers.Serializer):
     otp_code = serializers.CharField(max_length=15, required=True)
     phone_number = serializers.CharField(max_length=15, required=True)
     user_id = serializers.CharField(max_length=36)
-    type = serializers.CharField(max_length=20)  # change to choice field; mobile and telephone
+    type = serializers.CharField(max_length=20)
+    # change to choice field; mobile and telephone
+    # type = serializers.ChoiceField(choices=['mobile', 'telephone'])
 
     def validate_phone_number(self, value):
         if not value.startswith('+'):
