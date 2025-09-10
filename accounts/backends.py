@@ -1,9 +1,7 @@
 from rest_framework import authentication, exceptions
+
 from accounts.models import User
 from common.jwt_manager import JwtManager
-from django.contrib.auth.backends import ModelBackend
-from django.db.models import Q
-from django.core.exceptions import ValidationError
 
 
 class JWTAuthentication(authentication.BaseAuthentication):
@@ -30,31 +28,3 @@ class JWTAuthentication(authentication.BaseAuthentication):
         except User.DoesNotExist:
             raise exceptions.NotAuthenticated('User not authenticated', 401)
         return user, token
-
-
-class EmailOrPhoneNumberBackend(ModelBackend):
-    def authenticate(self, request, email_or_phone=None, password=None, **kwargs):
-        user = None
-
-        if email_or_phone:
-            try:
-                if '@' in email_or_phone:
-                    user = User.objects.get(email=email_or_phone)
-                else:
-                    user = User.objects.get(
-                        Q(telephone=email_or_phone) | Q(mobile=email_or_phone)
-                    )
-                    # Phone number should be verified
-                    if (user.telephone == email_or_phone and not user.is_telephone_verified) or\
-                            (user.mobile == email_or_phone and not user.is_mobile_verified):
-                        raise ValidationError("Your phone number is not verified. Please verify it before logging in. OR log in with email")
-            except User.DoesNotExist:
-                return None
-            except ValidationError as e:
-                if request is not None:
-                    request.unverified_number_err = str(e)
-                return None
-
-            if user.check_password(password) and self.user_can_authenticate(user):
-                return user
-        return None

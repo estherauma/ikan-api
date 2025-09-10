@@ -11,15 +11,6 @@
                 <div class="card bg-pattern">
 
                     <div class="card-body p-4">
-                        <div class="col">
-                            {% if messages %}
-                            <ul class="messages">
-                                {% for message in messages %}
-                                    <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                        </div>
                         
                         <div class="text-center w-75 m-auto">
                             <div class="auth-brand">
@@ -40,8 +31,7 @@
 
                         <form action="/account/login" method="POST">
                             {% csrf_token %}
-                            {{ form.as_p }}
-                            <!-- <div class="mb-3">
+                            <div class="mb-3">
                                 <label for="emailaddress" class="form-label">{{ auth_common_text.emailAddress }}</label>
                                 <input class="form-control" type="email" id="email" name="email" required="" placeholder="Enter your email">
                             </div>
@@ -54,7 +44,7 @@
                                         <span class="password-eye"></span>
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
                             <div class="text-center d-grid">
                                 <button class="btn btn-primary" type="submit">{{ auth_common_text.login }}</button>
                             </div>
@@ -80,10 +70,6 @@
 </div>
 
 <style>
-    .form-control {
-        margin-bottom: 20px;
-        min-height: 45px;
-    }
     a {
         text-decoration: underline;
     }

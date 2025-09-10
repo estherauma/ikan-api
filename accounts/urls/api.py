@@ -16,8 +16,6 @@ from ..views.api import (
     UserDetailView,
     InviteUser,
     UserListView,
-    GetOTP,
-    VerifyOTP,
 )
 
 app_name = 'accounts-api'
@@ -38,7 +36,5 @@ urlpatterns = [
     path('profile', UserProfileView.as_view(), name='profile'),
     path('profile/companies', UpdateUserCompany.as_view(), name='profile-companies'),
     path('bank-details', UserBankDetailsApiView.as_view(), name='bank-details'),
-    path('beneficiaries-bank-details', UserBeneficiariesApiView.as_view(), name='beneficiaries-bank-details'),
-    path('generate-otp/', GetOTP.as_view(), name='generate-otp'),
-    path('verify-otp/', VerifyOTP.as_view(), name='verify-otp'),
+    path('beneficiaries-bank-details', UserBeneficiariesApiView.as_view(), name='beneficiaries-bank-details')
 ]
