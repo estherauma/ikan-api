@@ -193,3 +193,8 @@ EMAIL_USE_SSL = False
 
 # Authentication
 LOGIN_URL = '/account/login'
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrPhoneNumberBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
