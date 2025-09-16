@@ -241,11 +241,12 @@ class ResendTokenForm(forms.Form):
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField()
-    password = forms.CharField()
+    email_or_phone = forms.CharField(
+        label='Email or Phone Number',
+        widget=forms.TextInput(attrs={'placeholder': 'Enter email or phone number', 'class': 'form-control'})
+    )
+    password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
+    )
 
-    def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
-        self.fields["password"].widget = forms.PasswordInput(attrs={"autocomplete": "new-password"})
-        for field in self.fields:
-            self.fields[field].widget.attrs["class"] = "form-control"
