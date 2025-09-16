@@ -25,7 +25,7 @@ class CustomUserAdmin(BaseUserAdmin):
         (None, {
             'fields': (
                 'id', 'email', 'password', 'last_login', 'first_name', 'last_name',
-                'profile_image', 'telephone', 'mobile',
+                'profile_image', 'telephone', 'is_telephone_verified', 'mobile', 'is_mobile_verified',
                 'address_line_1', 'address_line_2', 'address_line_3',
                 'city', 'country', 'postal_code', 'position',
                 'is_active', 'is_verified', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
