@@ -855,7 +855,7 @@ class GetOTP(APIView):
         if serializer.is_valid():
             resp = serializer.start_otp_process()
             if resp == 'pending':
-                num_type = serializer.validated_data['type']
+                num_type = request.data.get('type', None)
                 user = User.objects.get(
                     id=serializer.validated_data['user_id'])
                 if num_type is None or num_type == 'mobile':
