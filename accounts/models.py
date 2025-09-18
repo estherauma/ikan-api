@@ -5,6 +5,7 @@ from common.models import AuditableModel
 from django.utils.translation import gettext_lazy as _
 from common.models import BaseModel
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 
 class UserManager(BaseUserManager):
@@ -101,7 +102,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
             value = getattr(self, field)
             if value:
                 exists = User.objects.filter(
-                    models.Q(mobile=value) | models.Q(telephone=value)
+                    Q(mobile=value) | Q(telephone=value)
                 ).exclude(pk=self.pk).exists()
 
                 if exists:
