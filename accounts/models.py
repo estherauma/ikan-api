@@ -107,8 +107,15 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
         if existing_users.exists():
             errors = {}
+            # Add all mobile & telephone numbers to a set to avoid duplicate queries to the db when iterating numbers
+            conflicting_numbers = set()
+            for user in existing_users:
+                if user.mobile:
+                    conflicting_numbers.add(user.mobile.strip())
+                if user.telephone:
+                    conflicting_numbers.add(user.telephone.strip())
             for field, value in numbers.items():
-                if existing_users.filter(Q(mobile=value) | Q(telephone=value)).exists():
+                if value in conflicting_numbers:
                     errors[field] = f"{value} is already registered to another user."
             if errors:
                 raise ValidationError(errors)
