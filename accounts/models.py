@@ -4,6 +4,7 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from common.models import AuditableModel
 from django.utils.translation import gettext_lazy as _
 from common.models import BaseModel
+from django.core.exceptions import ValidationError
 
 
 class UserManager(BaseUserManager):
@@ -82,6 +83,26 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name} -- {self.email}'
+
+    def clean(self):
+        super().clean()
+
+        # Allow same user to have same value for both mobile and telephone fields
+        if self.mobile and self.telephone and self.mobile == self.telephone:
+            return
+
+        # Check global uniqueness for phone numbers across all users
+        for field in ['mobile', 'telephone']:
+            value = getattr(self, field)
+            if value:
+                exists = User.objects.filter(
+                    models.Q(mobile=value) | models.Q(telephone=value)
+                ).exclude(pk=self.pk).exists()
+
+                if exists:
+                    raise ValidationError(
+                        {field: f"{value} is already registered to another user."}
+                    )
 
 
 class LoginEvent(BaseModel):
