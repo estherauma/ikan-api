@@ -18,6 +18,7 @@ from ..views.api import (
     UserListView,
     GetOTP,
     VerifyOTP,
+    CheckPhoneNumberUniquenessView,
 )
 
 app_name = 'accounts-api'
@@ -41,4 +42,5 @@ urlpatterns = [
     path('beneficiaries-bank-details', UserBeneficiariesApiView.as_view(), name='beneficiaries-bank-details'),
     path('generate-otp/', GetOTP.as_view(), name='generate-otp'),
     path('verify-otp/', VerifyOTP.as_view(), name='verify-otp'),
+    path('check-unique-phone-number/', CheckPhoneNumberUniquenessView.as_view(), name='check-unique-phone-number'),
 ]
