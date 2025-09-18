@@ -88,27 +88,30 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     def clean(self):
         super().clean()
 
+        numbers = {}
         if self.mobile:
-            self.mobile = self.mobile.strip()
+            mobile_clean = self.mobile.strip()
+            if mobile_clean:
+                numbers['mobile'] = mobile_clean
         if self.telephone:
-            self.telephone = self.telephone.strip()
-
-        # Allow same user to have same value for both mobile and telephone fields
-        if self.mobile and self.telephone and self.mobile == self.telephone:
+            telephone_clean = self.telephone.strip()
+            if telephone_clean:
+                numbers['telephone'] = telephone_clean
+        if not numbers:
             return
 
-        # Check global uniqueness for phone numbers across all users
-        for field in ['mobile', 'telephone']:
-            value = getattr(self, field)
-            if value:
-                exists = User.objects.filter(
-                    Q(mobile=value) | Q(telephone=value)
-                ).exclude(pk=self.pk).exists()
+        # check for phone number uniqueness across all users
+        existing_users = User.objects.filter(
+            Q(mobile__in=numbers.values()) | Q(telephone__in=numbers.values())
+        ).exclude(pk=self.pk)
 
-                if exists:
-                    raise ValidationError(
-                        {field: f"{value} is already registered to another user."}
-                    )
+        if existing_users.exists():
+            errors = {}
+            for field, value in numbers.items():
+                if existing_users.filter(Q(mobile=value) | Q(telephone=value)).exists():
+                    errors[field] = f"{value} is already registered to another user."
+            if errors:
+                raise ValidationError(errors)
 
 
 class LoginEvent(BaseModel):
