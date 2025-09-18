@@ -87,6 +87,11 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     def clean(self):
         super().clean()
 
+        if self.mobile:
+            self.mobile = self.mobile.strip()
+        if self.telephone:
+            self.telephone = self.telephone.strip()
+
         # Allow same user to have same value for both mobile and telephone fields
         if self.mobile and self.telephone and self.mobile == self.telephone:
             return
