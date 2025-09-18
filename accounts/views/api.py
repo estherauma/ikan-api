@@ -909,3 +909,32 @@ class VerifyOTP(APIView):
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class CheckPhoneNumberUniquenessView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        """
+        Check if a phone number is already used by another user.
+        Allows the same user to reuse a number for both mobile & telephone.
+        Trims whitespace before checking.
+        """
+        phone_number = request.query_params.get("phone_number")
+        user_id = request.query_params.get("user_id")
+
+        if not phone_number:
+            return Response({"detail": "Phone number is required."}, status=400)
+        if not user_id:
+            return Response({"detail": "User ID is required."}, status=400)
+
+        phone_number = phone_number.strip()
+
+        exists = User.objects.filter(
+            Q(mobile=phone_number) | Q(telephone=phone_number)
+        ).exclude(pk=user_id).exists()
+
+        return Response({
+            "unique": not exists,
+            "phone_number": phone_number
+        })
