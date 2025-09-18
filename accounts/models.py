@@ -4,6 +4,8 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from common.models import AuditableModel
 from django.utils.translation import gettext_lazy as _
 from common.models import BaseModel
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 
 class UserManager(BaseUserManager):
@@ -82,6 +84,41 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name} -- {self.email}'
+
+    def clean(self):
+        super().clean()
+
+        numbers = {}
+        if self.mobile:
+            mobile_clean = self.mobile.strip()
+            if mobile_clean:
+                numbers['mobile'] = mobile_clean
+        if self.telephone:
+            telephone_clean = self.telephone.strip()
+            if telephone_clean:
+                numbers['telephone'] = telephone_clean
+        if not numbers:
+            return
+
+        # check for phone number uniqueness across all users
+        existing_users = User.objects.filter(
+            Q(mobile__in=numbers.values()) | Q(telephone__in=numbers.values())
+        ).exclude(pk=self.pk)
+
+        if existing_users.exists():
+            errors = {}
+            # Add all mobile & telephone numbers to a set to avoid duplicate queries to the db when iterating numbers
+            conflicting_numbers = set()
+            for user in existing_users:
+                if user.mobile:
+                    conflicting_numbers.add(user.mobile.strip())
+                if user.telephone:
+                    conflicting_numbers.add(user.telephone.strip())
+            for field, value in numbers.items():
+                if value in conflicting_numbers:
+                    errors[field] = f"{value} is already registered to another user."
+            if errors:
+                raise ValidationError(errors)
 
 
 class LoginEvent(BaseModel):
