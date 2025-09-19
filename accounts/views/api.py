@@ -937,4 +937,4 @@ class CheckPhoneNumberUniquenessView(APIView):
         return Response({
             "unique": not exists,
             "phone_number": phone_number
-        })
+        }, status.HTTP_200_OK)
