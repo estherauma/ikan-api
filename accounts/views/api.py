@@ -914,14 +914,14 @@ class VerifyOTP(APIView):
 class CheckPhoneNumberUniquenessView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
         Check if a phone number is already used by another user.
         Allows the same user to reuse a number for both mobile & telephone.
         Trims whitespace before checking.
         """
-        phone_number = request.query_params.get("phone_number")
-        user_id = request.query_params.get("user_id")
+        phone_number = request.data.get("phone_number")
+        user_id = request.data.get("user_id", None)
 
         if not phone_number:
             return Response({"detail": "Phone number is required."}, status=400)
