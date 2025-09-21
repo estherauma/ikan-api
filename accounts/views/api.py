@@ -925,8 +925,9 @@ class CheckPhoneNumberUniquenessView(APIView):
 
         if not phone_number:
             return Response({"detail": "Phone number is required."}, status=400)
-        if not user_id:
-            return Response({"detail": "User ID is required."}, status=400)
+        # commenting out user_id required check to allow for new users
+        # if not user_id:
+        #     return Response({"detail": "User ID is required."}, status=400)
 
         phone_number = phone_number.strip()
 
