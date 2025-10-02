@@ -124,6 +124,7 @@
                                 
                                 <div class="col-12 d-flex justify-content-end">
                                     <button
+                                        id="close-tutorial-modal"
                                         type="button"
                                         class="btn-close"
                                         data-bs-dismiss="modal"
@@ -311,5 +312,36 @@
             }
         });
     });
+
+
+    const closeBtn = document.getElementById("close-tutorial-modal");
+    const backdrop = document.getElementById("tutorial-modal");
+    const video = document.getElementById("myVideo");
+    // const playBtn = document.getElementById("playBtn");
+
+    closeBtn.onclick = () => {
+      video.pause();
+    };
+    backdrop.onclick = (e) => {
+      if (e.target === backdrop) {
+        console.log("clicked on backdrop");
+        video.pause();
+      }
+    };
+
+    // playBtn.onclick = () => {
+    //   video.play();
+    //   playBtn.classList.add("hide");
+    // };
+
+    video.onclick = () => {
+      if (video.paused) {
+        video.play();
+        // playBtn.classList.add("hide");
+      } else {
+        video.pause();
+        // playBtn.classList.remove("hide");
+      }
+    };
 </script>
 {% endblock %}
