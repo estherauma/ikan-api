@@ -99,6 +99,58 @@
 						</div>
 					</div>
                 </div>
+                <div class="col d-flex justify-content-end">
+                    <span
+                        role="button"
+                        tabindex="0"
+                        data-bs-toggle="modal"
+                        data-bs-target="#tutorial-modal"
+                        style="text-decoration: underline; cursor: pointer; color: black;"
+                    >
+                        Watch tutorial video
+                    </span>
+                </div>
+                <!-- Tutorial modal -->
+                <div
+                    id="tutorial-modal"
+                    class="modal fade"
+                    tabindex="-1"
+                    role="dialog"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-headerrr row m-0 mt-2 mb-2">
+                                
+                                <div class="col-12 d-flex justify-content-end">
+                                    <button
+                                        id="close-tutorial-modal"
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+                                <div class="col-12 text-center">
+                                    <!-- TODO: translate -->
+                                    <h3 class="modal-title">Tracking wage payments</h3>
+                                </div>
+                            </div>
+                            
+
+                            <div class="modal-body">
+                                <div class="video-wrapper">
+                                    <video id="myVideo" controls>
+                                        <!-- TODO: translate -->
+                                        <!-- TODO: add video file -->
+                                        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                                        Your browser does not support HTML5 video.
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 			</div>
 		</div>
 
@@ -218,6 +270,30 @@
         </div>
     {% endif %}
 </div>
+<style>
+    #tutorial-modal {
+        .modal-content {
+            border-radius: 20px;
+        }
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            .video-wrapper {
+                border-radius: 20px;
+                width: 80%;
+                max-width: 600px;
+                height: auto;
+                video {
+                    width: 100%;
+                    height: auto;
+                    border-radius: 20px;
+                }
+            }
+        }
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -236,5 +312,36 @@
             }
         });
     });
+
+
+    const closeBtn = document.getElementById("close-tutorial-modal");
+    const backdrop = document.getElementById("tutorial-modal");
+    const video = document.getElementById("myVideo");
+    // const playBtn = document.getElementById("playBtn");
+
+    closeBtn.onclick = () => {
+      video.pause();
+    };
+    backdrop.onclick = (e) => {
+      if (e.target === backdrop) {
+        console.log("clicked on backdrop");
+        video.pause();
+      }
+    };
+
+    // playBtn.onclick = () => {
+    //   video.play();
+    //   playBtn.classList.add("hide");
+    // };
+
+    video.onclick = () => {
+      if (video.paused) {
+        video.play();
+        // playBtn.classList.add("hide");
+      } else {
+        video.pause();
+        // playBtn.classList.remove("hide");
+      }
+    };
 </script>
 {% endblock %}
