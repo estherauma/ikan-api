@@ -3,95 +3,97 @@
 {% load custom_filters %}
 
 {% block content %}
-    <div class="content-wrapper">
-        <div class="row mt-1">
-            <div class="col">
-                {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                    <li
-                        {% if message.tags %}
-                            class="alert alert-{{ message.tags }}"
-                        {% endif %}
-                    >
-                        {{ message }}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
+    <div class="card">
+        {% if messages %}
+            <div class="row my-2">
+                <div class="col">
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <li
+                            {% if message.tags %}
+                                class="alert alert-{{ message.tags }}"
+                            {% endif %}
+                        >
+                            {{ message }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
             </div>
-        </div>
+        {% endif %}
+        
+        <!-- TODO: add worker/fisher view -->
 
         {% if loggedin_user.is_vessel_owner %}
-            <div class="row action-buttons mb-1">
-                <div class="row">
-                    <div class="col">
-                        <button
-                            type="button"
-                            data-bs-toggle="modal"
-                            data-bs-target="#add-contract-modal"
-                            class="btn btn-info btn-large waves-effect waves-light ikan-primary-button add-btn"
-                        >
-                            <i class="mdi mdi-plus"></i>
-                            {{ common_text.newContract }}
-                        </button>
-                        <!-- Add contract modal -->
-                        <div
-                            id="add-contract-modal"
-                            class="modal fade ikan-modal"
-                            tabindex="-1"
-                            role="dialog"
-                            aria-hidden="true"
-                        >
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header row m-0">
-                                        <div class="col col-10 text-center">
-                                            <h4 class="modal-title">{{ common_text.createContract }}</h4>
+            <div class="row mt-4 mb-1">
+                <div class="col d-flex justify-content-end px-4">
+                    <!-- New contract button -->
+                    <button
+                        type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#add-contract-modal"
+                        class="btn btn-large waves-effect waves-light ikan-primary-button"
+                    >
+                        <i class="mdi mdi-plus"></i>
+                        {{ common_text.newContract }}
+                    </button>
+                    <!-- Add contract modal -->
+                    <div
+                        id="add-contract-modal"
+                        class="modal fade ikan-modal"
+                        tabindex="-1"
+                        role="dialog"
+                        aria-hidden="true"
+                    >
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header row m-0">
+                                    <div class="col col-10 text-center">
+                                        <h4 class="modal-title">{{ common_text.createContract }}</h4>
+                                    </div>
+                                    <div class="col col-2 d-flex justify-content-center">
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close"
+                                        ></button>
+                                    </div>
+                                </div>
+
+                                <div class="modal-body">
+                                    <form
+                                        action="{% url 'contracts-web:contracts' %}"
+                                        method="POST"
+                                        enctype="multipart/form-data"
+                                        class="ikan-form"
+                                    >
+                                        {% csrf_token %}
+                                        
+                                        {% for field in new_contract_form %}
+                                        <div class="mb-3">
+                                            <label for="{{ field.id_for_label }}" class="form-label">
+                                            {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                            </label>
+                                            {{ field }}
+                                            {{ field.errors }}
                                         </div>
-                                        <div class="col col-2 d-flex justify-content-center">
+                                        {% endfor %}
+
+                                        {% if new_contract_form.errors %}
+                                            <div class="alert alert-danger">{{ new_contract_form.errors }}</div>
+                                        {% endif %}
+                                        <div class="mb-3 mt-3 text-center">
                                             <button
-                                                type="button"
-                                                class="btn-close"
-                                                data-bs-dismiss="modal"
-                                                aria-label="Close"
-                                            ></button>
+                                                id="contract-submit-btn"
+                                                class="btn btn-primary ikan-primary-button"
+                                                type="submit"
+                                            >
+                                                {{ common_text.save }}
+                                            </button>
                                         </div>
-                                    </div>
-
-                                    <div class="modal-body">
-                                        <form
-                                            action="{% url 'contracts-web:contracts' %}"
-                                            method="POST"
-                                            enctype="multipart/form-data"
-                                            class="ikan-form"
-                                        >
-                                            {% csrf_token %}
-                                            
-                                            {% for field in new_contract_form %}
-                                            <div class="mb-3">
-                                                <label for="{{ field.id_for_label }}" class="form-label">
-                                                {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
-                                                </label>
-                                                {{ field }}
-                                                {{ field.errors }}
-                                            </div>
-                                            {% endfor %}
-
-                                            {% if new_contract_form.errors %}
-                                                <div class="alert alert-danger">{{ new_contract_form.errors }}</div>
-                                            {% endif %}
-                                            <div class="mb-3 mt-3 text-center">
-                                                <button
-                                                    id="contract-submit-btn"
-                                                    class="btn btn-primary ikan-primary-button"
-                                                    type="submit"
-                                                >
-                                                    {{ common_text.save }}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -100,36 +102,22 @@
             </div>
 
             {% if not contracts %}
-                <div class="row m-3">
-                    <div class="col">
-                        <p>{{ common_text.noContractsAdded }}</p>
+                <div class="row m-5" style="min-height: 50vh;">
+                    <div class="col text-center">
+                        <p class="fs-3 ikan-dark-blue-100">{{ common_text.noContractsAdded }}</p>
                     </div>
+                </div>
+            {% else %}
+                <div class="card-body">
+                    <table id="contracts-table" class="table table-striped dt-responsive nowrap w-100">
+                    </table>
                 </div>
             {% endif %}
-
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <table id="contracts-table" class="table table-striped dt-responsive nowrap w-100">
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
         {% endif %}
     </div>
 <style>
     .content {
         background: #eaedf6;
-        .content-wrapper {
-            padding: 20px 0;
-
-            .add-btn {
-                float: right;
-            }
-
-        }
     }
 </style>
 {% endblock %}
