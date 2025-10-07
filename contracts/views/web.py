@@ -7,7 +7,7 @@ from django.views import View
 from django.views import generic
 from django.views.generic import CreateView
 from accounts.models import User
-from contracts.forms import ContractAccessForm, AddContractForm
+from contracts.forms import ContractAccessForm, AddContractForm, CreateContractForVOForm
 from contracts.models import Contract, UserContractAccess, ContractDocument, ContractClause
 import json
 from django.contrib import messages
@@ -46,6 +46,7 @@ class ContractsView(LoginRequiredMixin, View):
         form_labels = get_add_contract_form_labels(self.request)
         context['contract_form_labels'] = form_labels
         context['new_contract_form'] = AddContractForm(user=user, form_labels=form_labels)
+        context["contract_for_VO_form"] = CreateContractForVOForm(user=user)
 
         return context
 
@@ -57,8 +58,9 @@ class ContractsView(LoginRequiredMixin, View):
         form = AddContractForm(data=request.POST, files=request.FILES, user=request.user)
         if form.is_valid():
             contract = form.save(commit=False)
-            contract.created_by = request.user.id
-            contract.updated_by = request.user.id
+            vessel_owner = form.data.get('vessel_owner', None)
+            contract.created_by = vessel_owner if vessel_owner else request.user.id
+            contract.updated_by = vessel_owner if vessel_owner else request.user.id
             contract.app_ref = generate_uuid()
             contract.save()
 
@@ -77,13 +79,13 @@ class ContractsView(LoginRequiredMixin, View):
                     contract=contract,
                     url=file_path,
                     name=file_name,
-                    created_by=request.user.id,
-                    updated_by=request.user.id,
+                    created_by=vessel_owner if vessel_owner else request.user.id,
+                    updated_by=vessel_owner if vessel_owner else request.user.id,
                 )
                 contract_document.save()
 
                 # generate static clauses
-                generate_static_contract_clauses(request, contract)
+                generate_static_contract_clauses(request, contract, vessel_owner)
             messages.success(request, 'Contract created successfully')
             return redirect('contracts-web:contract-details', pk=contract.id)
         else:
