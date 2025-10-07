@@ -86,6 +86,22 @@ class ContractsView(LoginRequiredMixin, View):
 
                 # generate static clauses
                 generate_static_contract_clauses(request, contract, vessel_owner)
+
+                # Grant contract access to worker if selected
+                worker_id = form.data.get('worker', None)
+                if worker_id:
+                    worker = User.objects.filter(id=worker_id).first()
+                    if not UserContractAccess.objects.filter(
+                        user=worker,
+                        contract=contract
+                    ).exists():
+                        access = UserContractAccess.objects.create(
+                            user=worker,
+                            contract=contract,
+                            created_by=vessel_owner if vessel_owner else request.user.id,
+                            updated_by=vessel_owner if vessel_owner else request.user.id,
+                        )
+                        access.save()
             messages.success(request, 'Contract created successfully')
             return redirect('contracts-web:contract-details', pk=contract.id)
         else:
