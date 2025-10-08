@@ -2,107 +2,104 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col">
-            {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
-                {% endfor %}
-            </ul>
+    <div class="card">
+        {% if messages %}
+            <div class="row">
+                <div class="col">
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         {% endif %}
-        </div>
-    </div>
 
-    <div class="row action-buttons mb-2 mt-4">
-        <div class="row">
-            <div class="col">
-                <div class="button-list d-flex justify-content-end">
+        <div class="row action-buttons mb-2 mt-4">
+            <div class="row">
+                <div class="col d-flex justify-content-end">
+                    <!-- Invite worker button -->
                     <button type="button" class="btn btn-info btn-large waves-effect waves-light ikan-primary-button" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
                         {{ auth_common_text.inviteWorker }}
                     </button>
+
+                    <!--  -->
                 </div>
             </div>
         </div>
-    </div>
+        
+        <div class="card-body">
+            <div class="title">
+                <h1 class="text-center mb-3 ikan-primary-color">{{ auth_common_text.workers }}</h1>
+            </div>
+            <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>{{ auth_common_text.firstName }}</th>
+                        <th>{{ auth_common_text.lastName }}</th>
+                        <th>{{ auth_common_text.email }}</th>
+                        <th>{{ common_text.actions }}</th>
+                    </tr>
+                </thead>
+            
+                <tbody>
+                    {% for user in workers %}
+                    <tr>
+                        <td>{{user.first_name}}</td>
+                        <td>{{user.last_name}}</td>
+                        <td>{{user.email}}</td>
+                        <td>
+                            <!-- View Profile Button -->
+                            <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">{{ auth_common_text.viewProfile }}</a>
+                            <!-- Resend Code button -->
+                            {% if user.access_code %}
+                            <button
+                                id="btn-resend-code"
+                                class="btn btn-blue btn-sm mb-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#resend-code-modal-{{user.id}}"
+                                data-user-id="{{ user.pk }}"
+                                data-url="{% url 'accounts-api:user-detail' pk=user.id %}"
+                                >
+                                {{ auth_common_text.resendCode }}
+                            </button>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="title">
-                        <h1 class="text-center mb-3 ikan-primary-color">{{ auth_common_text.workers }}</h1>
-                    </div>
-                    <table id="basic-datatable" class="table dt-responsive nowrap w-100">
-                        <thead>
-                            <tr>
-                                <th>{{ auth_common_text.firstName }}</th>
-                                <th>{{ auth_common_text.lastName }}</th>
-                                <th>{{ auth_common_text.email }}</th>
-                                <th>{{ common_text.actions }}</th>
-                            </tr>
-                        </thead>
-                    
-                        <tbody>
-                            {% for user in workers %}
-                            <tr>
-                                <td>{{user.first_name}}</td>
-                                <td>{{user.last_name}}</td>
-                                <td>{{user.email}}</td>
-                                <td>
-                                    <!-- View Profile Button -->
-                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">{{ auth_common_text.viewProfile }}</a>
-                                    <!-- Resend Code button -->
-                                    {% if user.access_code %}
-                                    <button
-                                        id="btn-resend-code"
-                                        class="btn btn-blue btn-sm mb-1"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#resend-code-modal-{{user.id}}"
-                                        data-user-id="{{ user.pk }}"
-                                        data-url="{% url 'accounts-api:user-detail' pk=user.id %}"
-                                        >
-                                        {{ auth_common_text.resendCode }}
-                                    </button>
-
-                                    <!-- Resend user token modal -->
-                                    <div id="resend-code-modal-{{user.id}}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header d-flex">
-                                                    <div class="text-center w-100">
-                                                        <h3 class="modal-title ikan-primary-color">{{ auth_common_text.resendAccessCode }}</h3>
-                                                    </div>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
-                                                </div>
-
-                                                <div class="modal-body">
-                                                    <form method="POST" action="{% url 'accounts:resend-access-code' %}">
-                                                        {% csrf_token %}
-                                                        <div class="mb-3 fs-4 text-center">
-                                                            {{ auth_common_text.resendCodeToUser }} <span class="fw-bold">{{ user.email }}</span>
-                                                            <input id="email" type="hidden" name="email" value="{{ user.email }}">
-                                                        </div>
-                                                        <div class="mb-3 text-center">
-                                                            <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.resendCode }}</button>
-                                                        </div>
-                                                    </form>
-
-                                                </div>
+                            <!-- Resend user token modal -->
+                            <div id="resend-code-modal-{{user.id}}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header d-flex">
+                                            <div class="text-center w-100">
+                                                <h3 class="modal-title ikan-primary-color">{{ auth_common_text.resendAccessCode }}</h3>
                                             </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <form method="POST" action="{% url 'accounts:resend-access-code' %}">
+                                                {% csrf_token %}
+                                                <div class="mb-3 fs-4 text-center">
+                                                    {{ auth_common_text.resendCodeToUser }} <span class="fw-bold">{{ user.email }}</span>
+                                                    <input id="email" type="hidden" name="email" value="{{ user.email }}">
+                                                </div>
+                                                <div class="mb-3 text-center">
+                                                    <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.resendCode }}</button>
+                                                </div>
+                                            </form>
+
                                         </div>
                                     </div>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-                </div> <!-- end card body-->
-            </div> <!-- end card -->
-        </div><!-- end col-->
-    </div>
+        </div> <!-- end card body-->
+    </div> <!-- end card -->
 
     <!-- Invite user modal -->
     <div id="invite-user-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
