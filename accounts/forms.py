@@ -259,7 +259,6 @@ class CreateWorkerForVOForm(forms.Form):
     worker would appear in the VO's dashboard
     """
     vessel_owner = forms.ModelChoiceField(
-        # queryset=User.objects.User.objects.none()
         queryset=User.objects.filter(groups__name='vessel_owner'),
         widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
         help_text="Select a vessel owner to attach to this worker."
@@ -325,7 +324,7 @@ class CreateWorkerForVOForm(forms.Form):
         super(CreateWorkerForVOForm, self).__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['autocomplete'] = 'off'
-            pass
+
         if user:
             self.fields['vessel_owner'].queryset = User.objects.filter(
                 groups__name='vessel_owner'
