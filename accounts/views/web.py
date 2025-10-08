@@ -170,12 +170,12 @@ class WorkersListView(LoginRequiredMixin, ListView):
             if not user_exists:
                 user = User.objects.create_user(
                     email=form.cleaned_data.get('email'),
+                    password=form.cleaned_data.get('password1'),
                     first_name=form.cleaned_data.get('first_name'),
                     last_name=form.cleaned_data.get('last_name'),
                     is_active=True,
                     created_by=form.cleaned_data.get('vessel_owner', request.user),
                     updated_by=form.cleaned_data.get('vessel_owner', request.user),
-                    access_code=get_access_code()
                 )
                 # Save user group/role
                 group = Group.objects.get(name='worker')
