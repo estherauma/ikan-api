@@ -77,6 +77,48 @@
                         </div>
                         <hr class="my-2 mx-0">
 
+                        {% if wage.payslip %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <!-- TODO: translate -->
+                                    <h5 class="text-muted">Payslip:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <!-- TODO: translate -->
+                                    <img src="/{{ wage.payslip }}" alt="Payslip image" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                </div>
+                            </div>
+                            <hr class="my-2 mx-0">
+                        {% endif %}
+
+                        {% if wage.crew_bank_transfer_receipt %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <!-- TODO: translate -->
+                                    <h5 class="text-muted">Crew bank transfer receipt:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <!-- TODO: translate -->
+                                    <img src="/{{ wage.crew_bank_transfer_receipt }}" alt="Crew bank transfer receipt image" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                </div>
+                            </div>
+                            <hr class="my-2 mx-0">
+                        {% endif %}
+
+                        {% if wage.beneficiary_bank_transfer_receipt %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <!-- TODO: translate -->
+                                    <h5 class="text-muted">Beneficiary bank transfer receipt:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <!-- TODO: translate -->
+                                    <img src="/{{ wage.beneficiary_bank_transfer_receipt }}" alt="Beneficiary bank transfer receipt image" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                </div>
+                            </div>
+                            <hr class="my-2 mx-0">
+                        {% endif %}
+
                         {% if wage.beneficiary_relationship and wage.beneficiary_relationship != 'self' %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
