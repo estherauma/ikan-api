@@ -247,6 +247,86 @@ class LoginForm(forms.Form):
     )
     password = forms.CharField(
         label='Password',
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
+        widget=forms.PasswordInput(
+            attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
     )
 
+
+class CreateWorkerForVOForm(forms.Form):
+    """
+    Form to create a worker for a vessel owner.
+    This is a superuser feature to create workers for VOs so the
+    worker would appear in the VO's dashboard
+    """
+    vessel_owner = forms.ModelChoiceField(
+        # queryset=User.objects.User.objects.none()
+        queryset=User.objects.filter(groups__name='vessel_owner'),
+        widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
+        help_text="Select a vessel owner to attach to this worker."
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control mb-3',
+            'id': 'email',
+            'placeholder': 'Enter worker email',
+            'autocomplete': 'off'
+        }),
+        required=True
+    )
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control mb-3',
+            'id': 'first_name',
+            'placeholder': 'Enter worker first name (Optional)',
+            'autocomplete': 'off'
+        }),
+        max_length=30,
+        required=False,
+    )
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control mb-3',
+            'id': 'last_name',
+            'placeholder': 'Enter worker last name (Optional)',
+            'autocomplete': 'off'
+        }),
+        max_length=30,
+        required=False,
+    )
+    password1 = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'id': 'password1',
+            'placeholder': 'Enter worker password',
+            'autocomplete': 'off'
+        })
+    )
+    password2 = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'id': 'password2',
+            'placeholder': 'Confirm worker password',
+            'autocomplete': 'off'
+        })
+    )
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+
+        if password1 != password2:
+            raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
+        return password2
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
+        super(CreateWorkerForVOForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['autocomplete'] = 'off'
+            pass
+        if user:
+            self.fields['vessel_owner'].queryset = User.objects.filter(
+                groups__name='vessel_owner'
+            ).exclude(id=user.id)
