@@ -211,6 +211,52 @@
             </div>
         {% endif %}
     {% endif %}
+
+    {% if loggedin_user.is_worker and not loggedin_user.is_vessel_owner %}
+        <div class="card-body" style="min-height: 80vh;">
+            <h1 class="text-center mb-4">{{ payments_common_text.myWages }}</h1>
+
+            {% if not wages %}
+                <div class="row m-5">
+                    <div class="col text-center">
+                        <p class="fs-3 ikan-dark-blue-100">{{ payments_common_text.noWagesAddedYet }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>{{ payments_common_text.paymentPeriod }}</th>
+                            <!-- TODO: change  -->
+                            <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
+                            <th>{{ payments_common_text.paymentDate }}</th>
+                            <th>{{ common_text.vessel }}</th>
+                            <th>{{ common_text.actions }}</th>
+                        </tr>
+                    </thead>
+                
+                    <tbody>
+                        {% for payment in wages %}
+                        <tr>
+                            <td>{{payment.start_date | format_date:selected_language}} - {{payment.end_date | format_date:selected_language}}</td>
+                            <td>{{payment.usd_amount}}</td>
+                            <td>{{payment.payment_date | format_date:selected_language}}</td>
+                            <td>{{payment.vessel.name}}</td>
+                            <td>
+                                <a 
+                                    href="{% url 'payments:payment-details' payment.id %}"
+                                    class="btn btn-primary btn-sm mb-1"
+                                >
+                                    {{ payments_common_text.viewPayment }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 <style>
     #tutorial-modal {
@@ -236,4 +282,52 @@
         }
     }
 </style>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const vesselSelectField = document.getElementById('vessel-select');
+            const vesselSubmitButton = document.getElementById('vessel-submit-btn');
+
+            vesselSelectField.addEventListener('change', function() {
+                if (vesselSelectField.value) {
+                    vesselSubmitButton.disabled = false;
+                } else {
+                    vesselSubmitButton.disabled = true;
+                }
+            });
+        });
+
+
+        const closeBtn = document.getElementById("close-tutorial-modal");
+        const backdrop = document.getElementById("tutorial-modal");
+        const video = document.getElementById("myVideo");
+        // const playBtn = document.getElementById("playBtn");
+
+        closeBtn.onclick = () => {
+        video.pause();
+        };
+        backdrop.onclick = (e) => {
+        if (e.target === backdrop) {
+            console.log("clicked on backdrop");
+            video.pause();
+        }
+        };
+
+        // playBtn.onclick = () => {
+        //   video.play();
+        //   playBtn.classList.add("hide");
+        // };
+
+        video.onclick = () => {
+        if (video.paused) {
+            video.play();
+            // playBtn.classList.add("hide");
+        } else {
+            video.pause();
+            // playBtn.classList.remove("hide");
+        }
+        };
+    </script>
 {% endblock %}
