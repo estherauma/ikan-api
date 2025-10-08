@@ -1,0 +1,155 @@
+{% extends 'themes/v1/base.html' %}
+{% load static %}
+
+{% load custom_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row d-flex justify-content-center">
+        <div class="col-12 m-3 d-flex justify-content-end">
+            <button class="print-btn" onclick="printSection('print-section')">{{ common_text.print }}</button>
+        </div>
+        <div id="print-section" class="col-12 col-sm-10 col-md-8">
+            <div class="card">
+                <div class="card-header bg-light text-dark">
+                    <h3 class="card-title text-center">
+                        {{wage.user.first_name}} {{wage.user.last_name}} {{payments_common_text.paymentDetails}} ({{wage.start_date | format_date:selected_language}} - {{wage.end_date | format_date:selected_language}})
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ payments_common_text.vesselName }}:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{wage.vessel.name}}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ payments_common_text.dateOfPayment }}:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{wage.payment_date | format_date:selected_language}}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+                        
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ payments_common_text.paymentPeriod }}:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{wage.start_date | format_date:selected_language}} - {{wage.end_date | format_date:selected_language}}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ payments_common_text.duration }}:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <!-- <h4 class="">{{wage.duration |default:0}} months</h4> -->
+                                <h4>
+                                    {% if wage.duration < 1 %}
+                                        {{ payments_common_text.lessThanOneMonth }}
+                                    {% elif wage.duration == 1 %}
+                                        1 {{ payments_common_text.month }}
+                                    {% elif wage.duration > 1 %}
+                                        {{wage.duration}} {{ payments_common_text.months }}
+                                    {% endif %}
+                                </h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ payments_common_text.amount }} ({{payments_common_text.USD}}):</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="">{{ wage.usd_amount }}</h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
+                        {% if wage.beneficiary_relationship and wage.beneficiary_relationship != 'self' %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryName }}:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{wage.beneficiary_name}}</h4>
+                                </div>
+                            </div>
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryContact }}:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{wage.beneficiary_contact}}</h4>
+                                </div>
+                            </div>
+                            <!-- <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryContactPlatform }}:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="">{{wage.beneficiary_contact_platform}}</h4>
+                                </div>
+                            </div> -->
+                            <hr class="my-2 mx-0">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+	hr {
+		margin: 0;
+	}
+	.deductions {
+		.row {
+			border: 1px solid black;
+		}
+		.title-row {
+			border-bottom: 2px solid black;
+		}
+		.items-row {
+			border-top: unset;
+		}
+		.col-7 {
+			border-left: 1px solid black;
+		}
+		p {
+			margin: 7px 0;
+		}
+	}
+	.print-btn {
+		background: #3565ff;
+		color: white;
+		width: 150px;
+		padding: 7px;
+		border: none;
+		border-radius: 20px;
+		font-size: 1rem;
+	}
+</style>
+{% endblock %} {% block scripts %}
+<script>
+	function printSection(sectionId) {
+		const printContents = document.getElementById(sectionId).innerHTML;
+		const originalContents = document.body.innerHTML;
+
+		document.body.innerHTML = printContents;
+		window.print();
+		document.body.innerHTML = originalContents;
+	}
+</script>
+{% endblock %}
