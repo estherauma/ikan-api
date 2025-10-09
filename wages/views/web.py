@@ -78,3 +78,25 @@ class WageDetailView(LoginRequiredMixin, DetailView):
         context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
 
         return context
+
+
+class SelectVesselView(LoginRequiredMixin, View):
+    def get(self, request):
+        form = VesselSelectForm(user=request.user)
+        return render(request, "wages_list.html", {"vessel_form": form})
+
+    def post(self, request):
+        form = VesselSelectForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            selected_vessel = form.cleaned_data["vessel"]
+            vessel_id = selected_vessel.id
+            request.session["vessel_id"] = vessel_id
+            return redirect("wages:add-wages")
+
+        else:
+            messages.error(request, "Form is invalid.")
+            return redirect("wages:wages-list")
+
+
+class AddWagesView(LoginRequiredMixin, View):
+    template_name = "add_wages.html"
