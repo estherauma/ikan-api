@@ -54,7 +54,7 @@ class WageListView(LoginRequiredMixin, ListView):
                     grouped_wages[wage.vessel.name] = []
                 grouped_wages[wage.vessel.name].append(wage)
             grouped_wages = dict(sorted(grouped_wages.items()))
-            context["grouped_payments"] = grouped_wages
+            context["grouped_wages"] = grouped_wages
 
         # Get payments common text
         prismic_utils = PrismicUtils(self.request)
@@ -62,3 +62,19 @@ class WageListView(LoginRequiredMixin, ListView):
 
         return context
 
+
+class WageDetailView(LoginRequiredMixin, DetailView):
+    model = Wage
+    context_object_name = "wage"
+    template_name = "wage_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        wage = self.get_object()
+        context["wage"] = wage
+
+        # Get payments common text
+        prismic_utils = PrismicUtils(self.request)
+        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+
+        return context
