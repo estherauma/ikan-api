@@ -59,7 +59,7 @@
 
                             <div class="modal-body">
                                 <form
-                                    action="{% url 'payments:select-vessel' %}"
+                                    action="{% url 'wages:select-vessel' %}"
                                     method="POST"
                                     enctype="multipart/form-data"
                                 >
@@ -192,7 +192,7 @@
                                                         <td>{{v_payment.payment_date | format_date:selected_language}}</td>
                                                         <td>
                                                             <a 
-                                                                href="{% url 'payments:payment-details' v_payment.id %}"
+                                                                href="{% url 'wages:wage-details' v_payment.id %}"
                                                                 class="btn btn-primary btn-sm mb-1"
                                                             >
                                                                 {{ payments_common_text.viewPayment }}
@@ -244,7 +244,7 @@
                             <td>{{payment.vessel.name}}</td>
                             <td>
                                 <a 
-                                    href="{% url 'payments:payment-details' payment.id %}"
+                                    href="{% url 'wages:wage-details' payment.id %}"
                                     class="btn btn-primary btn-sm mb-1"
                                 >
                                     {{ payments_common_text.viewPayment }}
