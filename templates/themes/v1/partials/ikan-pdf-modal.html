@@ -1,0 +1,79 @@
+<!-- Check EOF for usage -->
+<div class="modal fade" id="ikan-pdf-modal" tabindex="-1" aria-labelledby="ikan-pdf-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header row m-0">
+        <div class="col col-10 text-center">
+            <!-- TODO: translate -->
+            <h4 id="ikan-pdf-modal-title" class="modal-title ikan-dark-blue-100">PDF preview</h4>
+        </div>
+        <div class="col col-2 d-flex justify-content-end">
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+            ></button>
+        </div>
+      </div>
+      <div class="modal-body text-center">
+        <embed 
+          id="ikan-pdf-modal-embed" 
+          src="" 
+          type="application/pdf" 
+          width="100%" 
+          height="600px"
+          style="border: none; border-radius: 4px;"
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const pdfLinks = document.querySelectorAll('[data-bs-toggle="pdf-modal"]');
+    const pdfEmbed = document.getElementById("ikan-pdf-modal-embed");
+    const modalTitle = document.getElementById("ikan-pdf-modal-title");
+    const pdfModal = new bootstrap.Modal(document.getElementById("ikan-pdf-modal"));
+    
+    pdfLinks.forEach(link => {
+        link.addEventListener("click", function() {
+            const pdfUrl = this.getAttribute("data-pdf-src");
+            const title = this.getAttribute("data-pdf-title");
+
+            modalTitle.textContent = title || "PDF Preview";
+            pdfEmbed.src = pdfUrl;
+
+            pdfModal.show();
+        });
+    });
+
+    // Clear PDF when modal closes
+    pdfModal.addEventListener("hidden.bs.modal", () => {
+        pdfEmbed.src = "";
+    });
+});
+</script>
+
+
+<!-- USAGE -->
+<!--
+1. Include this partial where needed:
+   ---This has already been added to the base.html file---
+
+2. Add links/buttons with the data attribute:
+    a. [data-bs-toggle="pdf-modal"]  (to trigger the modal)
+    b. data-pdf-src="<url_to_pdf>"  (the PDF URL to display)
+    c. data-pdf-title="<pdf_title>"  (to set a custom title in the modal header. THIS IS OPTIONAL).
+
+    Example:
+    <a 
+        href="#"
+        data-bs-toggle="pdf-modal"
+        data-pdf-src="/static/path/to/your.pdf"
+        data-pdf-title="Custom PDF Title"
+    >
+        View PDF
+    </a>
+-->
