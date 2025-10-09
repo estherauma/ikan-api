@@ -83,3 +83,46 @@ class AddContractForm(forms.ModelForm):
             for field_name, field in self.fields.items():
                 if field_name in labels:
                     field.label = labels[field_name]
+
+
+class CreateContractForVOForm(forms.Form):
+    """
+    Form for attaching VO to contract & selecting a worker to grant contract access.
+    This is a superuser feature to create contracts for VOs so the
+    contract would appear in the VO's dashboard.
+    """
+    vessel_owner = forms.ModelChoiceField(
+        # queryset=User.objects.User.objects.none()
+        queryset=User.objects.filter(groups__name='vessel_owner'),
+        widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
+        help_text="Select a vessel owner to attach to this contract."
+    )
+    worker = forms.ModelChoiceField(
+        queryset=User.objects.filter(groups__name='worker'),
+        widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
+        required=False,
+        help_text="Select a worker to grant contract access."
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['vessel_owner'].queryset = User.objects.filter(
+                groups__name='vessel_owner'
+            ).exclude(id=user.id)
+
+        # TODO: Fix filter workers based on selected vessel owner
+        if 'vessel_owner' in self.data:
+            vessel_owner_id = self.data.get('vessel_owner').id
+            self.fields['worker'].queryset = User.objects.filter(
+                groups__name='worker', created_by=vessel_owner_id
+            ).exclude(id=vessel_owner_id)
+        elif self.initial.get('vessel_owner'):
+            vessel_owner_id = self.initial.get('vessel_owner').id
+            self.fields['worker'].queryset = User.objects.filter(
+                groups__name='worker', created_by=vessel_owner_id
+            ).exclude(id=vessel_owner_id)
+        else:
+            self.fields['worker'].queryset = User.objects.filter(groups__name='worker')
+            # self.fields['worker'].queryset = User.objects.none()

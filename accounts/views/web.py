@@ -1,4 +1,4 @@
-from accounts.forms import InviteUser, ResendTokenForm
+from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
@@ -147,6 +147,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
         context['resend_token_form'] = ResendTokenForm()
+        context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=self.request.user)
 
         super_user = self.request.user.is_superuser
         users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
@@ -157,6 +158,54 @@ class WorkersListView(LoginRequiredMixin, ListView):
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         return context
+
+    # Method creates workers only. Should be modified for other roles
+    def post(self, request):
+        self.object_list = self.get_queryset()
+        form = CreateWorkerForVOForm(data=request.POST, user=request.user)
+        context = self.get_context_data()
+        context['create_worker_for_vo_form'] = form
+        if form.is_valid():
+            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
+            if not user_exists:
+                user = User.objects.create_user(
+                    email=form.cleaned_data.get('email'),
+                    password=form.cleaned_data.get('password1'),
+                    first_name=form.cleaned_data.get('first_name'),
+                    last_name=form.cleaned_data.get('last_name'),
+                    is_active=True,
+                    created_by=form.cleaned_data.get('vessel_owner', request.user),
+                    updated_by=form.cleaned_data.get('vessel_owner', request.user),
+                )
+                # Save user group/role
+                group = Group.objects.get(name='worker')
+                user.groups.add(group)
+
+                # Sending verification email is disabled for workers created by superusers for VOs
+                # # Send verification email with access code
+                # email = TunaEmailHelper()
+                # success = email.tuna_send_email(
+                #     to_emails=[user.email],
+                #     subject='Your IKAN access token',
+                #     body={
+                #         'email': user.email,
+                #         'access_token': user.access_code,
+                #     },
+                #     template=EmailTemplate.ACCESS_TOKEN.value,
+                # )
+                # if success:
+                #     messages.success(request, 'Worker created successfully.')
+                # else:
+                #     messages.error(request, 'An error occurred while sending the user an email.')
+                messages.success(request, 'Worker created successfully.')
+            else:
+                messages.info(request, 'User already exists.')
+                return render(request, 'worker-list.html', context)
+
+            return redirect('accounts:workers')
+        else:
+            messages.error(request, 'Error validating form!')
+            return render(request, 'worker-list.html', context)
 
 
 @login_required(login_url='/account/login')

@@ -48,7 +48,7 @@ def get_clause_order(clause_kind):
     return clause_order[clause_kind] if clause_kind in clause_order else None
 
 
-def generate_static_contract_clauses(request, contract):
+def generate_static_contract_clauses(request, contract, vessel_owner=None):
     prismic_utils = PrismicUtils(request)
     clause_mapping = {
         'article_3': 'contract-clauses-accident-medical-and-life-insurance',
@@ -70,8 +70,8 @@ def generate_static_contract_clauses(request, contract):
             name=page_title,
             kind=value,
             content=json.dumps({}),
-            created_by=request.user.id,
-            updated_by=request.user.id,
+            created_by=vessel_owner if vessel_owner else request.user.id,
+            updated_by=vessel_owner if vessel_owner else request.user.id,
         )
         clause.save()
 
