@@ -42,3 +42,23 @@ def get_workers_on_vessel(vessel):
     return workers_on_vessel
 
 
+def generate_wage_field_labels(payments_common_text):
+    return {
+        "user": payments_common_text.get("crewName", "Crew Name"),
+        "payment_date": payments_common_text.get("paymentDate", "Payment Date"),
+        "start_date": payments_common_text.get("startDate", "Start Date"),
+        "end_date": payments_common_text.get("endDate", "End Date"),
+        "usd_amount":
+            f'{payments_common_text.get("totalAmount", "Total amount")} {payments_common_text.get("USD", "USD")}',
+        # TODO: translate; add to Prismic
+        "payslip": payments_common_text.get("payslip", "Payslip"),
+        # TODO: translate; add to Prismic
+        "crew_bank_transfer_receipt": payments_common_text.get("crewBankTransferReceipt", "Crew Bank Transfer Receipt"),
+        # TODO: translate; add to Prismic
+        "beneficiary_bank_transfer_receipt": payments_common_text.get("beneficiaryBankTransferReceipt", "Beneficiary Bank Transfer Receipt"),
+        "beneficiary_relationship": payments_common_text.get("beneficiaryRelationship", "Beneficiary Relationship"),
+        "beneficiary_name": payments_common_text.get("beneficiaryName", "Beneficiary Name"),
+        "beneficiary_contact": payments_common_text.get("beneficiaryContact", "Beneficiary Contact"),
+        # TODO: translate; add to Prismic
+        "beneficiary_contact_platform": payments_common_text.get("beneficiaryContactPlatform", "Beneficiary Contact Platform"),
+    }
