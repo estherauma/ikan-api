@@ -109,14 +109,14 @@ class AddWageForm(forms.ModelForm):
         beneficiary_contact = cleaned_data.get("beneficiary_contact")
 
         if start_date and end_date and end_date <= start_date:
-            raise self.add_error("end_date", "End date must be after start date.")
+            self.add_error("end_date", "End date must be after start date.")
 
         # TODO: Check if payments can be made before/after end and start dates
         # if payment_date and start_date and payment_date < start_date:
-        #     raise self.add_error("payment_date", "Payment date cannot be before the start date.")
+        #     self.add_error("payment_date", "Payment date cannot be before the start date.")
 
         # if payment_date and end_date and payment_date > end_date:
-        #     raise self.add_error("payment_date", "Payment date cannot be after the end date.")
+        #     self.add_error("payment_date", "Payment date cannot be after the end date.")
 
         if not beneficiary_relationship:
             self.add_error("beneficiary_relationship", "Beneficiary relationship is required.")
