@@ -4,18 +4,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.list import ListView
 from wages.models import Wage
 from django.contrib import messages
-from payments.utils import (
-    methods_map,
-    payment_fields,
-    cash_fields,
-    bank_transfer_fields,
-    deduction_fields,
-    # get_workers_on_vessel,
-    get_formset_initial_values,
-    generate_payment_field_labels,
-    generate_payment_currency_options,
-    generate_deductions_options,
-)
 from wages.utils import (
     wage_fields,
     get_workers_on_vessel,
@@ -24,7 +12,6 @@ from wages.utils import (
 from vessels.models import Vessel
 from django.views.generic import DetailView
 from wages.forms import VesselSelectForm, WagesFormSet
-from payments.forms import PaymentsFormSet
 from notifications.models import Notification
 import json
 from prismic.utils import PrismicUtils
@@ -142,3 +129,63 @@ class AddWagesView(LoginRequiredMixin, View):
     def get(self, request):
         context = self.get_context_data()
         return render(request, self.template_name, context)
+
+    def post(self, request):
+        context = self.get_context_data()
+        vessel = context["vessel"]
+        payments_common_text = context["payments_common_text"]
+
+        formset = WagesFormSet(
+            data=request.POST,
+            files=request.FILES,
+            vessel=vessel,
+            loggedin_user=request.user,
+            payments_common_text=payments_common_text
+        )
+        context["formset"] = formset
+
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.vessel = vessel
+                instance.created_by = request.user.id
+                instance.updated_by = request.user.id
+
+                instance.save()
+
+                # Create wage notification
+                # try:
+                #     self.send_wage_notification(instance, vessel)
+                # except Exception as e:
+                #     print(f"Error sending wage notification: {e}")
+
+            # Save many-to-many data if applicable
+            formset.save_m2m()
+
+            messages.success(request, "Wage payment(s) added successfully.")
+            return redirect("wages:wages-list")
+        else:
+            messages.error(request, "There were errors in the form. Please correct them and try again.")
+            context["formset"] = formset
+            return render(request, self.template_name, context)
+
+    def send_wage_notification(self, wage, vessel):
+        notif_data = {
+            'wage_id': wage.id,
+            'vessel_id': vessel.id,
+            'vessel_name': vessel.name,
+            'crew_name': f'{wage.user.first_name} {wage.user.last_name}',
+            'payment_date': str(wage.payment_date),
+            'amount': float(wage.usd_amount),
+        }
+        json_notif_data = json.dumps(notif_data)
+        Notification.objects.create(
+            user=wage.user,
+            category='wage-payment',
+            title='New Wage Payment',
+            message=f'Wage payment of {wage.usd_amount:.2f} USD received for {vessel.name}.',
+            status='unread',
+            metadata=json_notif_data,
+            created_by=wage.created_by,
+            updated_by=wage.updated_by,
+        )
