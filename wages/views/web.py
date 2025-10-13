@@ -10,15 +10,21 @@ from payments.utils import (
     cash_fields,
     bank_transfer_fields,
     deduction_fields,
-    get_workers_on_vessel,
+    # get_workers_on_vessel,
     get_formset_initial_values,
     generate_payment_field_labels,
     generate_payment_currency_options,
     generate_deductions_options,
 )
+from wages.utils import (
+    wage_fields,
+    get_workers_on_vessel,
+    generate_wage_field_labels,
+)
 from vessels.models import Vessel
 from django.views.generic import DetailView
-from payments.forms import VesselSelectForm, PaymentsFormSet
+from wages.forms import VesselSelectForm, WagesFormSet
+from payments.forms import PaymentsFormSet
 from notifications.models import Notification
 import json
 from prismic.utils import PrismicUtils
@@ -100,3 +106,39 @@ class SelectVesselView(LoginRequiredMixin, View):
 
 class AddWagesView(LoginRequiredMixin, View):
     template_name = "add_wages.html"
+
+    def get_context_data(self, **kwargs):
+        context = {}
+
+        prismic_utils = PrismicUtils(self.request)
+        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        vessel_id = self.request.session.get("vessel_id")
+        vessel = get_object_or_404(Vessel, pk=vessel_id)
+        workers_on_vessel = get_workers_on_vessel(vessel)
+        formset = WagesFormSet(
+            queryset=Wage.objects.none(),
+            vessel=vessel,
+            loggedin_user=self.request.user,
+            payments_common_text=payments_common_text
+        )
+
+        context = {
+            **context,
+            "vessel": vessel,
+            "formset": formset,
+            "wage_fields": wage_fields,
+            "workers_on_vessel": workers_on_vessel,
+            "payments_common_text": payments_common_text,
+            "json_payments_common_text": json.dumps(
+                payments_common_text,
+            ),
+            "field_labels": generate_wage_field_labels(
+                payments_common_text,
+            ),
+        }
+
+        return context
+
+    def get(self, request):
+        context = self.get_context_data()
+        return render(request, self.template_name, context)
