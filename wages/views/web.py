@@ -16,6 +16,8 @@ from wages.forms import VesselSelectForm, WagesFormSet
 from notifications.models import Notification
 import json
 from prismic.utils import PrismicUtils
+import os
+import re
 
 
 class WageListView(LoginRequiredMixin, ListView):
@@ -136,7 +138,6 @@ class AddWagesView(LoginRequiredMixin, View):
         context = self.get_context_data()
         vessel = context["vessel"]
         payments_common_text = context["payments_common_text"]
-
         formset = WagesFormSet(
             data=request.POST,
             files=request.FILES,
@@ -147,8 +148,26 @@ class AddWagesView(LoginRequiredMixin, View):
         context["formset"] = formset
 
         if formset.is_valid():
+            # Ensure upload directory exists
+            if not os.path.exists('uploads/wages'):
+                os.makedirs('uploads/wages')
+
             instances = formset.save(commit=False)
-            for instance in instances:
+            for form, instance in zip(formset.forms, instances):
+                # Upload files to server
+                for field_name in file_fields:
+                    file = form.cleaned_data.get(field_name)
+                    if file:
+                        file_name = file.name
+                        file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Sanitize filename
+                        file_path = f'uploads/wages/{request.user.id}_ikan_{file_name}'
+                        with open(file_path, 'wb+') as destination:
+                            for chunk in file.chunks():
+                                destination.write(chunk)
+                        setattr(instance, field_name, file_path)
+                    else:
+                        setattr(instance, field_name, None)
+
                 instance.vessel = vessel
                 instance.created_by = request.user.id
                 instance.updated_by = request.user.id
