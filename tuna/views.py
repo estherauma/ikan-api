@@ -64,6 +64,8 @@ class UploadFileView(APIView):
         'profile_picture': 'uploads/profiles',
         'vessel_image': 'uploads/vessel_images',
         'my_document': 'uploads/my_documents',
+        'wage': 'uploads/wages',
+        'payment': 'uploads/payments',
     }
 
     def post(self, request):
