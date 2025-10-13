@@ -24,6 +24,13 @@ wage_fields = [
 ]
 
 
+file_fields = [
+    "payslip",
+    "crew_bank_transfer_receipt",
+    "beneficiary_bank_transfer_receipt",
+]
+
+
 def get_workers_on_vessel(vessel):
     contracts_with_vessel = []
     party_b_clauses = ContractClause.objects.filter(kind='contract-clauses-parties-requirement-fishers')

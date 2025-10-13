@@ -5,6 +5,7 @@ from django.forms import modelformset_factory, BaseModelFormSet
 from django.core.exceptions import ValidationError
 from wages.utils import (
     wage_fields,
+    file_fields,
     get_workers_on_vessel,
     generate_beneficiary_relationship_options,
 )
@@ -68,7 +69,6 @@ class AddWageForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.vessel = vessel
         self.payments_common_text = payments_common_text
-        file_fields = ["payslip", "crew_bank_transfer_receipt", "beneficiary_bank_transfer_receipt"]
         empty_select_choice = [("", "")]
 
         for field in self.fields:
