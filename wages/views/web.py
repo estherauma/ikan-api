@@ -6,6 +6,7 @@ from wages.models import Wage
 from django.contrib import messages
 from wages.utils import (
     wage_fields,
+    file_fields,
     get_workers_on_vessel,
     generate_wage_field_labels,
 )
@@ -114,6 +115,7 @@ class AddWagesView(LoginRequiredMixin, View):
             "vessel": vessel,
             "formset": formset,
             "wage_fields": wage_fields,
+            "file_fields": file_fields,
             "workers_on_vessel": workers_on_vessel,
             "payments_common_text": payments_common_text,
             "json_payments_common_text": json.dumps(
