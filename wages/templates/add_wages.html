@@ -424,10 +424,10 @@
                             beneficiaryContact.value = "";
                         }
                     });
-                
-                    payslip?.addEventListener("change", (e) => {
-                        const file = e.target.files[0];
-                        const previewWrapper = form.querySelector('.payslip-preview-wrapper');
+
+                    const previewFile = (input, wrapperClass) => {
+                        const file = input.files[0];
+                        const previewWrapper = form.querySelector(`.${wrapperClass}`);
                         previewWrapper.innerHTML = ''; // clear old preview
 
                         if (!file) return;
@@ -439,11 +439,11 @@
                                 <img 
                                     src="${imageUrl}" 
                                     style="max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px; cursor: pointer;" 
-                                    alt="Payslip Preview"
+                                    alt="Image Preview"
                                     class="img-fluid"
                                     data-bs-toggle="image-modal"
                                     data-image-src="${imageUrl}"
-                                    data-image-title="Payslip preview"
+                                    data-image-title="Image preview"
                                 />
                             `;
                         } else if (fileType === 'application/pdf') {
@@ -452,7 +452,7 @@
                                 <div
                                     data-bs-toggle="pdf-modal"
                                     data-pdf-src="${ fileURL }"
-                                    data-pdf-title="Payslip PDF Document preview"
+                                    data-pdf-title="PDF Document preview"
                                     class="ikan-dark-blue-100"
                                     style="cursor: pointer; text-decoration: underline; font-size: 1rem;"
                                 >
@@ -467,6 +467,17 @@
                                 </div>
                             `;
                         }
+                    };
+                                
+                
+                    payslip?.addEventListener("change", (e) => {
+                        previewFile(e.target, 'payslip-preview-wrapper');
+                    });
+                    crewBankTransferReceipt?.addEventListener("change", (e) => {
+                        previewFile(e.target, 'crew_bank_transfer_receipt-preview-wrapper');
+                    });
+                    beneficiaryBankTransferReceipt?.addEventListener("change", (e) => {
+                        previewFile(e.target, 'beneficiary_bank_transfer_receipt-preview-wrapper');
                     });
                 });
             };
