@@ -11,9 +11,8 @@
             </p>
         {% else %}
             <h2 class="mb-4 mt-4 text-center ikan-dark-blue-100">
-                <!-- {{ payments_common_text.addPaymentsForTheVessel }} {{vessel.name | upper }} -->
                 <!-- TODO: transate; add to prismic -->
-                {{ payments_common_text.addPaymentWagesForTheVessel | default:'Add payment wages for the vessel' }} {{vessel.name | upper }}
+                {{ payments_common_text.addWagePaymentsForTheVessel | default:'Add wage payments for the vessel' }} {{vessel.name | upper }}
             </h2>
 
             {% if not workers_on_vessel %}
@@ -81,8 +80,12 @@
                                                         {{ field.errors }}
                                                     </div>
                                                 {% endif %}
+                                            
+                                                <!-- View added file -->
+                                                {% if field.name in file_fields %}
+                                                    <div class="p-2 {{field.name}}-preview-wrapper"></div>
+                                                {% endif %}
                                             </td>
-                                            <!-- TODO: view added file -->
                                         {% endfor %}
                                     </tr>
                                 {% endfor %}
@@ -399,7 +402,6 @@
                     });
                 
                     beneficiaryRelationship?.addEventListener("change", () => {
-                        console.log("beneficiaryRelationship changed:", beneficiaryRelationship.value);
                         if (beneficiaryRelationship.value && beneficiaryRelationship.value !== "self") {
                             beneficiaryName.required = true;
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
@@ -420,6 +422,50 @@
                             beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
                             beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
                             beneficiaryContact.value = "";
+                        }
+                    });
+                
+                    payslip?.addEventListener("change", (e) => {
+                        const file = e.target.files[0];
+                        const previewWrapper = form.querySelector('.payslip-preview-wrapper');
+                        previewWrapper.innerHTML = ''; // clear old preview
+
+                        if (!file) return;
+
+                        const fileType = file.type;
+                        if (fileType.startsWith('image/')) {
+                            const imageUrl = URL.createObjectURL(file);
+                            previewWrapper.innerHTML = `
+                                <img 
+                                    src="${imageUrl}" 
+                                    style="max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px; cursor: pointer;" 
+                                    alt="Payslip Preview"
+                                    class="img-fluid"
+                                    data-bs-toggle="image-modal"
+                                    data-image-src="${imageUrl}"
+                                    data-image-title="Payslip preview"
+                                />
+                            `;
+                        } else if (fileType === 'application/pdf') {
+                            const fileURL = URL.createObjectURL(file);
+                            previewWrapper.innerHTML = `
+                                <div
+                                    data-bs-toggle="pdf-modal"
+                                    data-pdf-src="${ fileURL }"
+                                    data-pdf-title="Payslip PDF Document preview"
+                                    class="ikan-dark-blue-100"
+                                    style="cursor: pointer; text-decoration: underline; font-size: 1rem;"
+                                >
+                                    <!-- TODO:translate -->
+                                    📄 View PDF Document
+                                </div>
+                            `;
+                        } else {
+                            previewWrapper.innerHTML = `
+                                <div class="text-center ikan-dark-blue-100" style="font-size: 1rem;">
+                                    No preview available for this file type.
+                                </div>
+                            `;
                         }
                     });
                 });
