@@ -166,3 +166,65 @@ class AddWageForm(forms.ModelForm):
         self.vessel = vessel
         self.payments_common_text = payments_common_text
         empty_select_choice = [("", "")]
+
+
+class BaseWageFormSet(BaseModelFormSet):
+    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, **kwargs):
+        self.vessel = vessel
+        self.payments_common_text = payments_common_text
+        self.loggedin_user = loggedin_user
+        super().__init__(*args, **kwargs)
+
+    def _construct_form(self, i, **kwargs):
+        kwargs["vessel"] = self.vessel
+        kwargs["loggedin_user"] = self.loggedin_user
+        kwargs["payments_common_text"] = self.payments_common_text
+        return super()._construct_form(i, **kwargs)
+
+    def clean(self):
+        non_empty_forms = []
+        for form in self.forms:
+            # Check raw data to determine if the form is empty
+            if any(
+                form.cleaned_data.get(field)
+                for field in form.cleaned_data
+                if field != "DELETE"
+            ):
+                non_empty_forms.append(form)
+            else:
+                # Reset errors for completely empty forms
+                form.cleaned_data = {}
+                form._errors = {}
+
+        if not non_empty_forms:
+            self._non_form_errors = self.error_class(["Please add a payment."])
+        else:
+            self.forms = non_empty_forms
+
+        return super().clean()
+
+    # Overrides the default empty_form method to set the custom queryset for the user field
+    def empty_form(self):
+        form = self.form(
+            auto_id=self.auto_id,
+            prefix=self.add_prefix("__prefix__"),
+            empty_permitted=True,
+            use_required_attribute=False,
+            **self.get_form_kwargs(None),
+            renderer=self.renderer,
+        )
+        self.add_fields(form, None)
+
+        # set the queryset for the user field in the empty form to the workers on the vessel
+        workers_on_vessel = get_workers_on_vessel(self.vessel)
+        form.fields["user"].queryset = workers_on_vessel
+
+        return form
+
+
+WagesFormSet = modelformset_factory(
+    Wage,
+    form=AddWageForm,
+    formset=BaseWageFormSet,
+    extra=3,
+)
