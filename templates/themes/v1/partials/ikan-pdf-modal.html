@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("click", (e) => {
       const link = e.target.closest('[data-bs-toggle="pdf-modal"]');
-      console.log("Clicked link:", link);
       if (!link) return;
 
       const pdfUrl = link.getAttribute("data-pdf-src");
