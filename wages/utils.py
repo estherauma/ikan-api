@@ -2,7 +2,6 @@ from contracts.models import ContractClause
 import json
 from django.db.models import Q
 from accounts.models import User
-from django.utils.timezone import now
 
 
 # IMPORTANT: Do not change the order of the fields in this list.
@@ -20,7 +19,8 @@ wage_fields = [
     "beneficiary_relationship",
     "beneficiary_name",
     "beneficiary_contact",
-    "beneficiary_contact_platform",
+    # This field is tempoarirly disabled/removed from the form
+    # "beneficiary_contact_platform",
 ]
 
 
@@ -55,10 +55,21 @@ def generate_wage_field_labels(payments_common_text):
         # TODO: translate; add to Prismic
         "crew_bank_transfer_receipt": payments_common_text.get("crewBankTransferReceipt", "Crew Bank Transfer Receipt"),
         # TODO: translate; add to Prismic
-        "beneficiary_bank_transfer_receipt": payments_common_text.get("beneficiaryBankTransferReceipt", "Beneficiary Bank Transfer Receipt"),
+        "beneficiary_bank_transfer_receipt": payments_common_text.get("beneficiaryBankTransferReceipt",
+                                                                      "Beneficiary Bank Transfer Receipt"),
         "beneficiary_relationship": payments_common_text.get("beneficiaryRelationship", "Beneficiary Relationship"),
         "beneficiary_name": payments_common_text.get("beneficiaryName", "Beneficiary Name"),
         "beneficiary_contact": payments_common_text.get("beneficiaryContact", "Beneficiary Contact"),
         # TODO: translate; add to Prismic
-        "beneficiary_contact_platform": payments_common_text.get("beneficiaryContactPlatform", "Beneficiary Contact Platform"),
+        "beneficiary_contact_platform": payments_common_text.get("beneficiaryContactPlatform",
+                                                                 "Beneficiary Contact Platform"),
     }
+
+
+def generate_beneficiary_relationship_options(payments_common_text):
+    return [
+        {"key": "self", "label": payments_common_text.get("crewMemberHimself", "Crew member himself")},
+        {"key": "family_or_friend", "label": payments_common_text.get("familyOrFriend", "Family/friend")},
+        {"key": "crew_member_and_family_or_friend", "label": payments_common_text.get("crewMemberAndFamilyOrFriend",
+                                                                                      "Crew member and family/friend")},
+    ]
