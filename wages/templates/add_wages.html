@@ -200,3 +200,54 @@
     }
     </style>
 {% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addRowButton = document.getElementById('add-row-button');
+            const formsetBody = document.getElementById('formset-body');
+            let totalForms = document.getElementById('id_form-TOTAL_FORMS');
+
+            // Add a new row/form to the formset
+            addRowButton.addEventListener('click', function() {
+                const formCount = parseInt(totalForms.value);
+                const lastForm = formsetBody.lastElementChild;
+                const newForm = lastForm.cloneNode(true);
+                const regex = new RegExp('__prefix__', 'g');
+
+                // Update the cloned form's HTML to reflect the new form count
+                newForm.innerHTML = newForm.innerHTML.replace(regex, formCount);
+                // update row id
+                newForm.innerHTML = newForm.innerHTML.replace("empty-form-row", "form-row");
+                // above seems not to work. This is to reiterate that the id is updated to form-row
+                if (newForm.id === "empty-form-row") {
+                    newForm.id = "form-row";
+                }
+
+                // append before last form because last form is used to clone
+                formsetBody.insertBefore(newForm, lastForm);
+
+                totalForms.value = formCount + 1;
+
+                // Clear errors of the cloned fields
+                Array.from(newForm.querySelectorAll('.errorlist')).forEach(error => {
+                    error.innerHTML = '';
+                });
+                Array.from(newForm.querySelectorAll('.field-error')).forEach(field => {
+                    field.classList.remove('field-error');
+                });
+                newForm.classList.remove('invalid-form');
+                
+                // Clear the values of the cloned fields
+                Array.from(newForm.querySelectorAll('input, select, textarea')).forEach(input => {
+                    input.value = '';
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                        // remove border-color
+                        input.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
