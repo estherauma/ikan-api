@@ -84,11 +84,13 @@
                     </a>
                 </li>
 
-                <!-- Payments -->
+                <!-- Wage payments -->
                 <li class="menu-item">
-                    <a href="{% url 'payments:payments-list' %}" class="menu-link">
+                    <a href="{% url 'wages:wages-list' %}" class="menu-link">
                         <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
-                        <span class="menu-text">{{ menu_labels.payments }}</span>
+                        <!-- <span class="menu-text">{{ menu_labels.payments }}</span> -->
+                        <!-- TODO: translate; add to prismic -->
+                        <span class="menu-text">{{ menu_labels.wagePayments | default:'Wage payments' }}</span>
                     </a>
                 </li>
                 <hr class="m-2 mt-1 mb-1">

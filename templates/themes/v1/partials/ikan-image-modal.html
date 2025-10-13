@@ -35,19 +35,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = new bootstrap.Modal(document.getElementById('ikan-image-modal'));
     const modalTitle = document.getElementById('ikan-image-modal-title');
     const modalImage = document.getElementById('ikan-image-modal-img');
-    
-    document.querySelectorAll('[data-bs-toggle="image-modal"]').forEach(img => {
-        img.addEventListener('click', function() {
-            
-            modalImage.src = this.getAttribute('data-image-src');
-            // TODO: translate
-            modalTitle.textContent = this.getAttribute('data-image-title') || 'Image Preview';
-            modal.show();
-        });
+
+    document.addEventListener('click', (e) => {
+        const img = e.target.closest('[data-bs-toggle="image-modal"]');
+        if (!img) return;
+
+        modalImage.src = img.getAttribute('data-image-src');
+        modalTitle.textContent = img.getAttribute('data-image-title') || 'Image Preview';
+        modal.show();
     });
 
     // Clear image when modal closes
-    modal.addEventListener('hidden.bs.modal', () => {
+    const modalEl = document.getElementById('ikan-image-modal');
+    modalEl?.addEventListener('hidden.bs.modal', () => {
+        // if (modalImage.src.startsWith('blob:')) {
+        //     URL.revokeObjectURL(modalImage.src);
+        // }
+
         modalImage.src = '';
     });
 });

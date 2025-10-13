@@ -1,0 +1,491 @@
+{% extends 'themes/v1/base.html' %}
+{% load static %}
+
+{% load custom_filters %}
+
+{% block content %}
+    <div class="form-container">
+        {% if not vessel %}
+            <p class="m-4 pt-5 text-center ikan-dark-blue-100 fw-semibold fs-3">
+                {{ payments_common_text.noVesselsFirstAddVessel }}
+            </p>
+        {% else %}
+            <h2 class="mb-4 mt-4 text-center ikan-dark-blue-100">
+                <!-- TODO: transate; add to prismic -->
+                {{ payments_common_text.addWagePaymentsForTheVessel | default:'Add wage payments for the vessel' }} {{vessel.name | upper }}
+            </h2>
+
+            {% if not workers_on_vessel %}
+                <h4 class="m-4 text-center">
+                    {{ payments_common_text.vesselHasNoWorkersAddContractsForVessel }}
+                </h4>
+            {% else %}
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+
+                    {% if formset.non_form_errors %}
+                        <div class="error-message err-background p-2">
+                            {% for error in formset.non_form_errors %}
+                                <p style="font-size: 1rem;">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+        
+                    <div class="text-danger mx-2">
+                        <p class="my-1 fs-5 fw-bold">* {{ payments_common_text.indicatesMandatoryField }}</p>
+                    </div>
+                    <div
+                        class="table-wrapper"
+                        style="overflow-x: scroll; overflow-y: auto; border-radius: 20px; border: 1px solid #EAE4E4; margin-top: 10px;"
+                    >
+                        <table id="wagesTable" class="table">
+                            <thead style="background: #e7eaf1;">
+                                <tr style=" border-bottom-width: 1.5px; border-color: #6c757d54;">
+                                    {% for field in wage_fields %}
+                                        <th style="font-size: 1rem; padding: 10px 10px 2px 10px;">
+                                            {{ field_labels | dict_get:field }}
+                                        </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody id="formset-body">
+                                {% for form in formset %}
+                                    {% if form.non_field_errors %}
+                                        <tr class="err-background err-row">
+                                            <td colspan="100%">
+                                                <div class="error-message">
+                                                    {{ form.non_field_errors }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                    
+                                    <tr id="form-row" class="{% if form.non_field_errors %}err-background{% endif %}">
+                                        {% for field in form %}
+                                            <td class="field {% if field.errors %}field-error{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name == 'id' %}hide-field{% endif %}">
+                                                <!-- {{ field.label_tag }} -->
+                                                {% if field.field.required %}
+                                                    <div class="text-danger d-flex justify-content-end align-items-center fs-4 fw-bold" style="height: 15px;">*</div>
+                                                {% else %}
+                                                    <div class="text-danger d-flex justify-content-end align-items-center" style="height: 15px;">
+                                                        <span class="d-none fs-4 fw-bold indicator">*</span>
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {{ field }}
+                                                
+                                                {% if field.errors %}
+                                                    <div class="error-message">
+                                                        {{ field.errors }}
+                                                    </div>
+                                                {% endif %}
+                                            
+                                                <!-- View added file -->
+                                                {% if field.name in file_fields %}
+                                                    <div class="p-2 {{field.name}}-preview-wrapper"></div>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+
+                                <!-- Empty form to be cloned -->
+                                <div id="empty-form">
+                                    {% if formset.empty_form.non_field_errors %}
+                                        <tr class="err-background err-row">
+                                            <td colspan="100%">
+                                                    <div class="error-message">
+                                                        {{ formset.empty_form.non_field_errors }}
+                                                    </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                    
+                                    <tr id="empty-form-row" class="{% if formset.empty_form.non_field_errors %}err-background{% endif %}">
+                                        {% for field in formset.empty_form %}
+                                            <td class="field {% if field.errors %}field-error{% endif %} {% if field.field.required %}initial-required-field{% endif %} {% if field.name == 'id' %}hide-field{% endif %}">
+                                                <!-- {{ field.label_tag }} -->
+                                                {% if field.field.required %}
+                                                    <div class="text-danger d-flex justify-content-end fs-5 fw-bold" style="height: 15px;">*</div>
+                                                {% else %}
+                                                    <div class="text-danger d-flex justify-content-end" style="height: 15px;">
+                                                        <span class="d-none fs-5 fw-bold indicator">*</span>
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                {{ field }}
+                                                
+                                                {% if field.errors %}
+                                                    <div class="error-message">
+                                                        {{ field.errors }}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <!-- TODO: view added file -->
+                                        {% endfor %}
+                                    </tr>
+                                </div>
+                            </tbody>
+                        </table>
+
+                        <div class="btn-wrapper m-4">
+                            <button
+                                id="add-row-button"
+                                type="button"
+                                class="border rounded-pill text-white"
+                                style="min-width: 200px; max-width: 300px; font-size: 1.1rem; padding: 5px 10px; background: #535368;"
+                            >
+                                {{ payments_common_text.addRow }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-wrapper my-3 mb-5 d-flex justify-content-center">
+                        <button
+                            id="submit-button"
+                            type="submit"
+                            class="border rounded-pill text-white"
+                            style="min-width: 300px; max-width: 500px; font-size: 1.1rem; padding: 10px 20px; background: #3565FF;"
+                        >
+                            {{ common_text.submit }}
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <style>
+    /* Webkit browsers (Chrome, Safari) */
+    .table-wrapper::-webkit-scrollbar {
+        display: block; /* Ensures scrollbar is visible */
+        width: 10px; /* Customize scrollbar width */
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background-color: #888; /* Scrollbar thumb color */
+    }
+
+    /* .table-wrapper::-webkit-scrollbar-track {
+        background-color: #f1f1f1; 
+    } */
+    #wrapper {
+        display: -webkit-box;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .err-background {
+        background: rgb(243 229 229);
+    }
+    .field {
+        border-right: 1px solid rgb(210 213 213 / 12%);
+    }
+    .field-error {
+        input {
+            border: 1px solid red;
+        }
+    }
+    .err-row {
+        border-bottom: 1px solid rgb(243 229 229);
+    }
+    .table .hide-field {
+        display: none;
+    }
+    .invalid-form {
+        background: rgb(243 229 229) !important;
+    }
+
+    /* Hide last form so it's used to make duplicates */
+    #empty-form-row:last-child {
+        display: none;
+    }
+    </style>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addRowButton = document.getElementById('add-row-button');
+            const formsetBody = document.getElementById('formset-body');
+            let totalForms = document.getElementById('id_form-TOTAL_FORMS');
+
+            // Add a new row/form to the formset
+            addRowButton.addEventListener('click', function() {
+                const formCount = parseInt(totalForms.value);
+                const lastForm = formsetBody.lastElementChild;
+                const newForm = lastForm.cloneNode(true);
+                const regex = new RegExp('__prefix__', 'g');
+
+                // Update the cloned form's HTML to reflect the new form count
+                newForm.innerHTML = newForm.innerHTML.replace(regex, formCount);
+                // update row id
+                newForm.innerHTML = newForm.innerHTML.replace("empty-form-row", "form-row");
+                // above seems not to work. This is to reiterate that the id is updated to form-row
+                if (newForm.id === "empty-form-row") {
+                    newForm.id = "form-row";
+                }
+
+                // append before last form because last form is used to clone
+                formsetBody.insertBefore(newForm, lastForm);
+
+                totalForms.value = formCount + 1;
+
+                // Clear errors of the cloned fields
+                Array.from(newForm.querySelectorAll('.errorlist')).forEach(error => {
+                    error.innerHTML = '';
+                });
+                Array.from(newForm.querySelectorAll('.field-error')).forEach(field => {
+                    field.classList.remove('field-error');
+                });
+                newForm.classList.remove('invalid-form');
+                
+                // Clear the values of the cloned fields
+                Array.from(newForm.querySelectorAll('input, select, textarea')).forEach(input => {
+                    input.value = '';
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                        // remove border-color
+                        input.style.borderColor = 'rgb(118, 118, 118)';
+                    }
+                });
+
+                validateFormFields();
+            });
+
+            const submitButton = document.getElementById('submit-button');
+            submitButton.addEventListener("click", function (event) {
+                // event.preventDefault(); // TO BE REMOVED
+                const forms = document.querySelectorAll('#form-row');
+                forms.forEach((form, index) =>{
+                    const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
+                        .some(input => input.value.trim() && input.value.trim() !== "" && input.value.trim() !== "null");
+                    const errorFields = form.querySelectorAll('.field-error');
+                    const formHasError = errorFields.length > 0;
+                    if (formHasValue) {
+                        form.querySelectorAll('.initial-required-field').forEach(field => {
+                            field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                            field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                        });
+                    }
+
+                    // TODO: highlight all forms with errors not just the first one
+                    if (formHasError ) {
+                        event.preventDefault();
+                        form.querySelectorAll('.initial-required-field').forEach(field => {
+                            field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                            field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                        });
+                        // Highlight the form with errors
+                        form.classList.add("invalid-form");
+
+                        // Scroll to the first error field
+                        form.style.backgroundColor = "rgb(243 229 229)";
+                        errorFields[0].scrollIntoView({ behavior: "smooth", block: "center" });
+                        if (errorFields[0].querySelector('input')) {
+                            errorFields[0].querySelector('input').focus();
+                        } else if (errorFields[0].querySelector('select')) {
+                            errorFields[0].querySelector('select').focus();
+                        } else if (errorFields[0].querySelector('textarea')) {
+                            errorFields[0].querySelector('textarea').focus();
+                        }
+                    } else {
+                        form.style.backgroundColor = "";
+                        form.classList.remove("invalid-form");
+                    }
+                });
+            });
+
+            validateFormFields = () => {
+                // get formset initial data
+                // const jsonFormsetData = '{{ json_formset_initial_values|safe }}';
+                // const formsetData = JSON.parse(jsonFormsetData);
+
+                const forms = document.querySelectorAll('#form-row');
+                forms.forEach((form, index) =>{
+                    const user = form.querySelector(`#id_form-${index}-user`);
+                    const paymentDate = form.querySelector(`#id_form-${index}-payment_date`);
+                    const usdAmount = form.querySelector(`#id_form-${index}-usd_amount`);
+                    const startDate = form.querySelector(`#id_form-${index}-start_date`);
+                    const endDate = form.querySelector(`#id_form-${index}-end_date`);
+                    const payslip = form.querySelector(`#id_form-${index}-payslip`);
+                    const crewBankTransferReceipt = form.querySelector(`#id_form-${index}-crew_bank_transfer_receipt`);
+                    const beneficiaryBankTransferReceipt = form.querySelector(`#id_form-${index}-beneficiary_bank_transfer_receipt`);
+                    const beneficiaryRelationship = form.querySelector(`#id_form-${index}-beneficiary_relationship`);
+                    const beneficiaryName = form.querySelector(`#id_form-${index}-beneficiary_name`);
+                    const beneficiaryContact = form.querySelector(`#id_form-${index}-beneficiary_contact`);
+                    const beneficiaryContactPlatform = form.querySelector(`#id_form-${index}-beneficiary_contact_platform`);
+
+                    // const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
+                    //     .some(input => input.value.trim() !== "");
+                    // if (formHasValue) {
+                    //     form.querySelectorAll('.initial-required-field').forEach(field => {
+                    //         field.closest(".field")?.querySelector("input")?.setAttribute("required", "true");
+                    //         field.closest(".field")?.querySelector("select")?.setAttribute("required", "true");
+                    //     });
+                    // }
+
+                    // pre-populate form
+                    user?.addEventListener("change", () => {
+                        // Use previously entered start and end dates
+                        const startDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-start_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (startDates.length > 0) {
+                            // use start date entered in previous form
+                            startDate.value = startDates[startDates.length - 1].toISOString().split('T')[0];
+                        }
+                        const endDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-end_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (endDates.length > 0) {
+                            // use end date entered in previous form
+                            endDate.value = endDates[endDates.length - 1].toISOString().split('T')[0];
+                        }
+                        const paymentDates = Array.from(forms)
+                            .map((form, idx) => {
+                                const input = form.querySelector(`#id_form-${idx}-payment_date`);
+                                return input && input.value ? new Date(input.value) : null;
+                            })
+                            .filter(date => date !== null);
+                        if (paymentDates.length > 0) {
+                            // use payment date entered in previous form
+                            paymentDate.value = paymentDates[paymentDates.length - 1].toISOString().split('T')[0];
+                        } else {
+                            // use payment date entered in current form
+                            paymentDate.value = new Date().toISOString().split('T')[0];
+                        }
+                            
+                        // reset other populated fields
+                        usdAmount.value = "";
+                        payslip.value = "";
+                        crewBankTransferReceipt.value = "";
+                        beneficiaryBankTransferReceipt.value = "";
+                        beneficiaryRelationship.value = "";
+                        beneficiaryName.value = "";
+                        beneficiaryContact.value = "";
+                        beneficiaryContactPlatform.value = "";
+                        // paymentDate.value = "";
+                        // startDate.value = "";
+                        // endDate.value = "";
+                    });
+                
+                    // clear end date error
+                    endDate?.addEventListener("change", () => {
+                        if (startDate.value && endDate.value && startDate.value < endDate.value) {
+                            endDate.closest('.field').classList.remove("field-error");
+                            const endDateErr = endDate.closest('.field').querySelector('.error-message');
+                            if (endDateErr) {
+                                endDateErr.innerHTML = '';
+                            }
+                            endDate.style.borderColor = 'rgb(118, 118, 118)';
+                        }
+                    });
+
+                    // clear usd amount error
+                    usdAmount?.addEventListener("change", () => {
+                        if (usdAmount.value && usdAmount.value > 0) {
+                            usdAmount.closest('.field').classList.remove("field-error");
+                            const usdAmountErr = totalUsdAmountReceived.closest('.field').querySelector('.error-message');
+                            if (usdAmountErr) {
+                                usdAmountErr.innerHTML = '';
+                            }
+                            usdAmount.style.borderColor = 'rgb(118, 118, 118)';
+                        }
+                    });
+                
+                    beneficiaryRelationship?.addEventListener("change", () => {
+                        if (beneficiaryRelationship.value && beneficiaryRelationship.value !== "self") {
+                            beneficiaryName.required = true;
+                            beneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                            beneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-flex");
+
+                            beneficiaryContact.required = true;
+                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+
+                            // TODO: prepopulate fields here
+                        } else {
+                            beneficiaryName.required = false;
+                            beneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                            beneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
+                            beneficiaryName.value = "";
+
+                            beneficiaryContact.required = false;
+                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+                            beneficiaryContact.value = "";
+                        }
+                    });
+
+                    const previewFile = (input, wrapperClass) => {
+                        const file = input.files[0];
+                        const previewWrapper = form.querySelector(`.${wrapperClass}`);
+                        previewWrapper.innerHTML = ''; // clear old preview
+
+                        if (!file) return;
+
+                        const fileType = file.type;
+                        if (fileType.startsWith('image/')) {
+                            const imageUrl = URL.createObjectURL(file);
+                            previewWrapper.innerHTML = `
+                                <img 
+                                    src="${imageUrl}" 
+                                    style="max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px; cursor: pointer;" 
+                                    alt="Image Preview"
+                                    class="img-fluid"
+                                    data-bs-toggle="image-modal"
+                                    data-image-src="${imageUrl}"
+                                    data-image-title="Image preview"
+                                />
+                            `;
+                        } else if (fileType === 'application/pdf') {
+                            const fileURL = URL.createObjectURL(file);
+                            previewWrapper.innerHTML = `
+                                <div
+                                    data-bs-toggle="pdf-modal"
+                                    data-pdf-src="${ fileURL }"
+                                    data-pdf-title="PDF Document preview"
+                                    class="ikan-dark-blue-100"
+                                    style="cursor: pointer; text-decoration: underline; font-size: 1rem;"
+                                >
+                                    <!-- TODO:translate -->
+                                    📄 View PDF Document
+                                </div>
+                            `;
+                        } else {
+                            previewWrapper.innerHTML = `
+                                <div class="text-center ikan-dark-blue-100" style="font-size: 1rem;">
+                                    No preview available for this file type.
+                                </div>
+                            `;
+                        }
+                    };
+                                
+                
+                    payslip?.addEventListener("change", (e) => {
+                        previewFile(e.target, 'payslip-preview-wrapper');
+                    });
+                    crewBankTransferReceipt?.addEventListener("change", (e) => {
+                        previewFile(e.target, 'crew_bank_transfer_receipt-preview-wrapper');
+                    });
+                    beneficiaryBankTransferReceipt?.addEventListener("change", (e) => {
+                        previewFile(e.target, 'beneficiary_bank_transfer_receipt-preview-wrapper');
+                    });
+                });
+            };
+        
+            validateFormFields();
+        });
+    </script>
+{% endblock %}

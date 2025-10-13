@@ -36,22 +36,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const pdfEmbed = document.getElementById("ikan-pdf-modal-embed");
     const modalTitle = document.getElementById("ikan-pdf-modal-title");
     const pdfModal = new bootstrap.Modal(document.getElementById("ikan-pdf-modal"));
-    
-    pdfLinks.forEach(link => {
-        link.addEventListener("click", function() {
-            const pdfUrl = this.getAttribute("data-pdf-src");
-            const title = this.getAttribute("data-pdf-title");
 
-            modalTitle.textContent = title || "PDF Preview";
-            pdfEmbed.src = pdfUrl;
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest('[data-bs-toggle="pdf-modal"]');
+      if (!link) return;
 
-            pdfModal.show();
-        });
+      const pdfUrl = link.getAttribute("data-pdf-src");
+      const title = link.getAttribute("data-pdf-title");
+
+      modalTitle.textContent = title || "PDF Preview";
+      pdfEmbed.src = pdfUrl;
+
+      pdfModal.show();
     });
 
     // Clear PDF when modal closes
-    pdfModal.addEventListener("hidden.bs.modal", () => {
-        pdfEmbed.src = "";
+    const pdfModalEl = document.getElementById("ikan-pdf-modal");
+    pdfModalEl?.addEventListener("hidden.bs.modal", () => {
+      // if (pdfEmbed.src.startsWith("blob:")) {
+      //   URL.revokeObjectURL(pdfEmbed.src);
+      // }
+
+      pdfEmbed.src = "";
     });
 });
 </script>
@@ -60,20 +66,20 @@ document.addEventListener("DOMContentLoaded", () => {
 <!-- USAGE -->
 <!--
 1. Include this partial where needed:
-   ---This has already been added to the base.html file---
+  ---This has already been added to the base.html file---
 
 2. Add links/buttons with the data attribute:
-    a. [data-bs-toggle="pdf-modal"]  (to trigger the modal)
-    b. data-pdf-src="<url_to_pdf>"  (the PDF URL to display)
-    c. data-pdf-title="<pdf_title>"  (to set a custom title in the modal header. THIS IS OPTIONAL).
+  a. [data-bs-toggle="pdf-modal"]  (to trigger the modal)
+  b. data-pdf-src="<url_to_pdf>"  (the PDF URL to display)
+  c. data-pdf-title="<pdf_title>"  (to set a custom title in the modal header. THIS IS OPTIONAL).
 
-    Example:
-    <a 
-        href="#"
-        data-bs-toggle="pdf-modal"
-        data-pdf-src="/static/path/to/your.pdf"
-        data-pdf-title="Custom PDF Title"
-    >
-        View PDF
-    </a>
+  Example:
+  <a 
+    href="#"
+    data-bs-toggle="pdf-modal"
+    data-pdf-src="/static/path/to/your.pdf"
+    data-pdf-title="Custom PDF Title"
+  >
+    View PDF
+  </a>
 -->
