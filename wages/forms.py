@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from wages.utils import (
     wage_fields,
     get_workers_on_vessel,
+    generate_beneficiary_relationship_options,
 )
 
 
@@ -31,141 +32,114 @@ class VesselSelectForm(forms.Form):
 
 
 class AddWageForm(forms.ModelForm):
+    payment_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+            }
+        )
+    )
+    start_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+            }
+        )
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+            }
+        )
+    )
+    payslip = forms.FileField(required=False)
+    crew_bank_transfer_receipt = forms.FileField(required=False)
+    beneficiary_bank_transfer_receipt = forms.FileField(required=False)
     beneficiary_relationship = forms.ChoiceField()
 
     class Meta:
         model = Wage
+        # We are listing the fields instead of using exclude
+        # to control their order in the row when displaying
         fields = wage_fields
-        widgets = {
-            "vessel": forms.Select(
-                attrs={
-                    "class": "form-select",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                }
-            ),
-            "user": forms.Select(
-                attrs={
-                    "class": "form-select",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                }
-            ),
-            "payment_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                }
-            ),
-            "start_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                }
-            ),
-            "end_date": forms.DateInput(
-                attrs={
-                    "type": "date",
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                }
-            ),
-            "usd_amount": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "step": "0.01", 
-                    "min": "0",
-                    "placeholder": "0.00",
-                }
-            ),
-            "payslip": forms.FileInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "accept": ".pdf,.jpg,.jpeg,.png",
-                    "placeholder": "Upload payslip (PDF, JPG, PNG)",
-                    "id": "payslip-upload",
-                }
-            ),
-            "crew_bank_transfer_receipt": forms.FileInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "accept": ".pdf,.jpg,.jpeg,.png",
-                    "placeholder": "Upload crew bank transfer receipt (PDF, JPG, PNG)",
-                    "id": "crew-bank-transfer-receipt-upload",
-                }
-            ),
-            "beneficiary_bank_transfer_receipt": forms.FileInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "accept": ".pdf,.jpg,.jpeg,.png",
-                    "placeholder": "Upload beneficiary bank transfer receipt (PDF, JPG, PNG)",
-                    "id": "beneficiary-bank-transfer-receipt-upload",
-                }
-            ),
-            "beneficiary_relationship": forms.Select(
-                attrs={
-                    "class": "form-select",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",    
-                }
-            ),
-            "beneficiary_name": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "placeholder": "Enter beneficiary name",    
-                    "id": "beneficiary-name",
-                }
-            ),
-            "beneficiary_contact": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "placeholder": "Enter beneficiary contact",
-                    "id": "beneficiary-contact",
-                }
-            ),
-            "beneficiary_contact_platform": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "style": "min-height: 45px; border-radius: 10px; border-width: 1px; padding: 0 10px;\
-                        font-size: 1.1rem;",
-                    "placeholder": "Enter beneficiary contact platform (e.g., WhatsApp, Email)",
-                    "id": "beneficiary-contact-platform",
-                }
-            ),
-        }
-        labels = {
-            "usd_amount": "Amount (USD)",
-            "payslip": "Payslip",
-            "crew_bank_transfer_receipt": "Crew Bank Transfer Receipt",
-            "beneficiary_bank_transfer_receipt": "Beneficiary Bank Transfer Receipt",
-            "beneficiary_relationship": "Beneficiary Relationship",
-            "beneficiary_name": "Beneficiary Name",
-            "beneficiary_contact": "Beneficiary Contact",
-            "beneficiary_contact_platform": "Beneficiary Contact Platform",
-        }
 
     def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, **kwargs):
         super().__init__(*args, **kwargs)
         self.vessel = vessel
         self.payments_common_text = payments_common_text
+        file_fields = ["payslip", "crew_bank_transfer_receipt", "beneficiary_bank_transfer_receipt"]
         empty_select_choice = [("", "")]
+
+        for field in self.fields:
+            self.fields[field].widget.attrs["style"] = "min-height: 45px; border-radius: 10px;\
+                border-width: 1px; min-width: 100px; max-width: 160px;padding: 0 10px; font-size: 1rem;"
+            if field in file_fields:
+                self.fields[field].widget.attrs["accept"] = ".pdf,.jpg,.jpeg,.png"
+            if field == "usd_amount":
+                self.fields[field].widget.attrs["step"] = "0.01"
+                self.fields[field].widget.attrs["min"] = "0"
+                self.fields[field].widget.attrs["placeholder"] = "0.00"
+
+        self.fields["user"].widget.attrs["style"] += "max-width: 250px;"
+        for field in file_fields:
+            self.fields[field].widget.attrs["style"] += "max-width: 250px;"
+
+        beneficiary_relationship_options = generate_beneficiary_relationship_options(payments_common_text)
+        self.fields["beneficiary_relationship"].choices = empty_select_choice + [(item["key"], item["label"]) for item
+                                                                                 in beneficiary_relationship_options]
+
+        if vessel:
+            workers_on_vessel = get_workers_on_vessel(vessel)
+            self.fields["user"].queryset = workers_on_vessel
+
+    def clean_usd_amount(self):
+        usd_amount = self.cleaned_data.get("usd_amount")
+        if usd_amount is not None and usd_amount <= 0:
+            raise self.add_error("usd_amount", "Amount cannot be 0 or negative..")
+        return usd_amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = cleaned_data.get("user")
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        beneficiary_name = cleaned_data.get("beneficiary_name")
+        beneficiary_relationship = cleaned_data.get("beneficiary_relationship")
+        beneficiary_contact = cleaned_data.get("beneficiary_contact")
+
+        if start_date and end_date and end_date <= start_date:
+            raise self.add_error("end_date", "End date must be after start date.")
+
+        # TODO: Check if payments can be made before/after end and start dates
+        # if payment_date and start_date and payment_date < start_date:
+        #     raise self.add_error("payment_date", "Payment date cannot be before the start date.")
+
+        # if payment_date and end_date and payment_date > end_date:
+        #     raise self.add_error("payment_date", "Payment date cannot be after the end date.")
+
+        if not beneficiary_relationship:
+            self.add_error("beneficiary_relationship", "Beneficiary relationship is required.")
+        if beneficiary_relationship and beneficiary_relationship != "self":
+            if not beneficiary_name:
+                self.add_error("beneficiary_name", "Beneficiary name is required.")
+            if not beneficiary_contact:
+                self.add_error("beneficiary_contact", "Beneficiary contact is required.")
+
+        existing_wage = Wage.objects.filter(
+            user=user,
+            vessel=self.vessel,
+            start_date=start_date,
+            end_date=end_date,
+        ).first()
+        if existing_wage:
+            raise ValidationError(
+                f"Payment already exists for user '{user} \
+                            for the period {start_date.strftime('%b %d, %Y')} - \
+                                {end_date.strftime('%b %d, %Y')}."
+            )
+
+        return cleaned_data
 
 
 class BaseWageFormSet(BaseModelFormSet):
