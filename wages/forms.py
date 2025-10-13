@@ -96,7 +96,7 @@ class AddWageForm(forms.ModelForm):
     def clean_usd_amount(self):
         usd_amount = self.cleaned_data.get("usd_amount")
         if usd_amount is not None and usd_amount <= 0:
-            raise self.add_error("usd_amount", "Amount cannot be 0 or negative..")
+            self.add_error("usd_amount", "Amount cannot be 0 or negative.")
         return usd_amount
 
     def clean(self):

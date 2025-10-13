@@ -396,7 +396,7 @@
                     usdAmount?.addEventListener("change", () => {
                         if (usdAmount.value && usdAmount.value > 0) {
                             usdAmount.closest('.field').classList.remove("field-error");
-                            const usdAmountErr = totalUsdAmountReceived.closest('.field').querySelector('.error-message');
+                            const usdAmountErr = usdAmount.closest('.field').querySelector('.error-message');
                             if (usdAmountErr) {
                                 usdAmountErr.innerHTML = '';
                             }

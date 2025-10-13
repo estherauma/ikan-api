@@ -19,7 +19,7 @@ wage_fields = [
     "beneficiary_relationship",
     "beneficiary_name",
     "beneficiary_contact",
-    # This field is tempoarirly disabled/removed from the form
+    # This field is temporarily disabled/removed from the form
     # "beneficiary_contact_platform",
 ]
 
