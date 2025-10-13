@@ -1,0 +1,332 @@
+{% extends "themes/v1/base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="card">
+    {% if messages %}
+        <div class="row my-2">
+            <div class="col">
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li
+                        {% if message.tags %}
+                            class="alert alert-{{ message.tags }}"
+                        {% endif %}
+                    >
+                        {{ message }}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+        </div>
+    {% endif %}
+
+    {% if loggedin_user.is_vessel_owner %}
+		<div class="row mt-4 mx-4 mb-1">
+            <div class="col">
+                <button
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#select-vessel-modal"
+                    class="btn btn-info btn-large waves-effect waves-light"
+                >
+                    {{ payments_common_text.addPayments }}
+                </button>
+                <!-- Select vessel modal -->
+                <div
+                    id="select-vessel-modal"
+                    class="modal fade"
+                    tabindex="-1"
+                    role="dialog"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header row m-0">
+                                <div class="col col-10 text-center">
+                                    <h4 class="modal-title">{{ payments_common_text.selectVesselForm }}</h4>
+                                </div>
+                                <div class="col col-2 d-flex justify-content-center">
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+                            </div>
+
+                            <div class="modal-body">
+                                <form
+                                    action="{% url 'wages:select-vessel' %}"
+                                    method="POST"
+                                    enctype="multipart/form-data"
+                                >
+                                    {% csrf_token %}
+
+                                    {% if not has_vessel %}
+                                        <div class="row m-3">
+                                            <div class="col">
+                                                <p>{{ payments_common_text.noVesselsAdded }}</p>
+                                                <p>{{ payments_common_text.pleaseFirstAddVessel }}</p>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <fieldset>
+                                            <legend class="mt-3 fs-5 fw-medium text-dark">{{ payments_common_text.selectVessel }}</legend>
+                                            {{ vessel_form.vessel }}
+                                        </fieldset>
+                                        
+                                        {% if vessel_form.errors %}
+                                        <div class="alert alert-danger">{{ vessel_form.errors }}</div>
+                                        {% endif %}
+
+                                        <div class="mb-3 mt-3 text-center">
+                                            <button
+                                                id="vessel-submit-btn"
+                                                class="btn btn-primary"
+                                                type="submit"
+                                                disabled
+                                            >
+                                                {{ common_text.next }}
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col d-flex justify-content-end">
+                <span
+                    role="button"
+                    tabindex="0"
+                    data-bs-toggle="modal"
+                    data-bs-target="#tutorial-modal"
+                    style="text-decoration: underline; cursor: pointer; color: black;"
+                >
+                    Watch tutorial video
+                </span>
+            </div>
+            <!-- Tutorial modal -->
+            <div
+                id="tutorial-modal"
+                class="modal fade"
+                tabindex="-1"
+                role="dialog"
+                aria-hidden="true"
+            >
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="row m-0 mt-2 mb-2">
+                            <div class="col-12 d-flex justify-content-end">
+                                <button
+                                    id="close-tutorial-modal"
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="col-12 text-center">
+                                <!-- TODO: translate -->
+                                <h3 class="modal-title">Tracking wage payments</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="video-wrapper">
+                                <video id="myVideo" controls>
+                                    <!-- TODO: translate -->
+                                    <!-- TODO: add video file -->
+                                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                                    Your browser does not support HTML5 video.
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+		</div>
+
+        {% if not wages %}
+            <div class="row m-5" style="min-height: 50vh;">
+                <div class="col text-center">
+                    <p class="fs-3 ikan-dark-blue-100">{{ payments_common_text.noPayments }}</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="card-body">
+                <div class="accordion" id="payment-accordion">
+                    {% for vessel_name, vessel_payments in grouped_wages.items %}
+                        <div class="accordion-item">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
+                                <h4>{{ payments_common_text.paymentsForVessel }} {{ vessel_name | upper }}</h4>
+                            </button>
+
+                            <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">
+                                <div class="accordion-body">
+                                {% if vessel_payments %}
+                                            <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ common_text.worker }}</th>
+                                                        <th>{{ payments_common_text.paymentPeriod }}</th>
+                                                        <!-- todo: change -->
+                                                        <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
+                                                        <th>{{ payments_common_text.paymentDate }}</th>
+                                                        <th>{{ common_text.actions }}</th>
+                                                    </tr>
+                                                </thead>
+                                            
+                                                <tbody>
+                                                    {% for v_payment in vessel_payments %}
+                                                    <tr>
+                                                        <td>{{v_payment.user.first_name}} {{v_payment.user.last_name}}</td>
+                                                        <td>{{v_payment.start_date | format_date:selected_language}} - {{v_payment.end_date | format_date:selected_language}}</td>
+                                                        <td>{{v_payment.usd_amount}}</td>
+                                                        <td>{{v_payment.payment_date | format_date:selected_language}}</td>
+                                                        <td>
+                                                            <a 
+                                                                href="{% url 'wages:wage-details' v_payment.id %}"
+                                                                class="btn btn-primary btn-sm mb-1"
+                                                            >
+                                                                {{ payments_common_text.viewPayment }}
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if loggedin_user.is_worker and not loggedin_user.is_vessel_owner %}
+        <div class="card-body" style="min-height: 80vh;">
+            <h1 class="text-center mb-4">{{ payments_common_text.myWages }}</h1>
+
+            {% if not wages %}
+                <div class="row m-5">
+                    <div class="col text-center">
+                        <p class="fs-3 ikan-dark-blue-100">{{ payments_common_text.noWagesAddedYet }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>{{ payments_common_text.paymentPeriod }}</th>
+                            <!-- TODO: change  -->
+                            <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
+                            <th>{{ payments_common_text.paymentDate }}</th>
+                            <th>{{ common_text.vessel }}</th>
+                            <th>{{ common_text.actions }}</th>
+                        </tr>
+                    </thead>
+                
+                    <tbody>
+                        {% for payment in wages %}
+                        <tr>
+                            <td>{{payment.start_date | format_date:selected_language}} - {{payment.end_date | format_date:selected_language}}</td>
+                            <td>{{payment.usd_amount}}</td>
+                            <td>{{payment.payment_date | format_date:selected_language}}</td>
+                            <td>{{payment.vessel.name}}</td>
+                            <td>
+                                <a 
+                                    href="{% url 'wages:wage-details' payment.id %}"
+                                    class="btn btn-primary btn-sm mb-1"
+                                >
+                                    {{ payments_common_text.viewPayment }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+<style>
+    #tutorial-modal {
+        .modal-content {
+            border-radius: 20px;
+        }
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            .video-wrapper {
+                border-radius: 20px;
+                width: 80%;
+                max-width: 600px;
+                height: auto;
+                video {
+                    width: 100%;
+                    height: auto;
+                    border-radius: 20px;
+                }
+            }
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const vesselSelectField = document.getElementById('vessel-select');
+            const vesselSubmitButton = document.getElementById('vessel-submit-btn');
+
+            vesselSelectField.addEventListener('change', function() {
+                if (vesselSelectField.value) {
+                    vesselSubmitButton.disabled = false;
+                } else {
+                    vesselSubmitButton.disabled = true;
+                }
+            });
+        });
+
+
+        const closeBtn = document.getElementById("close-tutorial-modal");
+        const backdrop = document.getElementById("tutorial-modal");
+        const video = document.getElementById("myVideo");
+        // const playBtn = document.getElementById("playBtn");
+
+        closeBtn.onclick = () => {
+        video.pause();
+        };
+        backdrop.onclick = (e) => {
+        if (e.target === backdrop) {
+            console.log("clicked on backdrop");
+            video.pause();
+        }
+        };
+
+        // playBtn.onclick = () => {
+        //   video.play();
+        //   playBtn.classList.add("hide");
+        // };
+
+        video.onclick = () => {
+        if (video.paused) {
+            video.play();
+            // playBtn.classList.add("hide");
+        } else {
+            video.pause();
+            // playBtn.classList.remove("hide");
+        }
+        };
+    </script>
+{% endblock %}

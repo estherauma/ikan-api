@@ -57,6 +57,7 @@ urlpatterns = [
     path('api/v1/', include('mydocuments.urls.api')),
     path('api/v1/', include('payments.urls.api')),
     path('api/v1/', include('notifications.urls.api')),
+    # path('api/v1/', include('wages.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
@@ -67,6 +68,7 @@ urlpatterns = [
     path('vessels/', include('vessels.urls.web')),
     path('payments/', include('payments.urls.web')),
     path('notifications/', include('notifications.urls.web')),
+    path('wages/', include('wages.urls.web')),
 
     # Dasbhboard urls
     path('dashboards/', include('dashboards.urls')),

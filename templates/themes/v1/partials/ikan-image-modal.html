@@ -1,0 +1,83 @@
+<!-- Check EOF for usage -->
+<div class="modal fade" id="ikan-image-modal" tabindex="-1" aria-labelledby="ikan-image-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header row m-0">
+        <div class="col col-10 text-center">
+            <!-- TODO: translate -->
+            <h4 id="ikan-image-modal-title" class="modal-title ikan-dark-blue-100">Image preview</h4>
+        </div>
+        <div class="col col-2 d-flex justify-content-end">
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+            ></button>
+        </div>
+      </div>
+      <div class="modal-body text-center">
+        <!-- TODO: translate -->
+        <img
+            id="ikan-image-modal-img"
+            src=""
+            alt="Modal image"
+            class="img-fluid"
+            style="max-height: 80vh; object-fit: contain; border-radius: 10px;"
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = new bootstrap.Modal(document.getElementById('ikan-image-modal'));
+    const modalTitle = document.getElementById('ikan-image-modal-title');
+    const modalImage = document.getElementById('ikan-image-modal-img');
+    
+    document.querySelectorAll('[data-bs-toggle="image-modal"]').forEach(img => {
+        img.addEventListener('click', function() {
+            
+            modalImage.src = this.getAttribute('data-image-src');
+            // TODO: translate
+            modalTitle.textContent = this.getAttribute('data-image-title') || 'Image Preview';
+            modal.show();
+        });
+    });
+
+    // Clear image when modal closes
+    modal.addEventListener('hidden.bs.modal', () => {
+        modalImage.src = '';
+    });
+});
+</script>
+
+
+<!-- USAGE -->
+<!--
+1. Include this partial where needed:
+   ---This has already been added to the base.html file---
+
+2. Add images with the data attribute:
+    a. data-bs-toggle="image-modal"  (to trigger the modal)
+    b. data-image-src="<url_to_the_image>"  (the URL of the image)
+    c. data-image-title="<image_title>" (to set a custom title in the modal header. THIS IS OPTIONAL).
+    
+    Example:
+    <img 
+        src="thumbnail.jpg"
+        data-bs-toggle="image-modal"
+        data-image-src="thumbnail.jpg"
+        alt="Thumbnail"
+        style="width: 150px; height: 150px; object-fit: contain;"
+    >
+    <img
+        src="another-thumbnail.png"
+        data-bs-toggle="image-modal"
+        data-image-src="another-thumbnail.png"
+        alt="Another Thumbnail"
+        class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;"
+    >
+3. Fix image styles as needed.
+-->

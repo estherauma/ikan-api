@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'mydocuments',
     'payments',
     'notifications',
+    'wages',
 ]
 AUTH_USER_MODEL = "accounts.User"
 
