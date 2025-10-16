@@ -6,5 +6,5 @@ app_name = 'api-payments'
 
 urlpatterns = [
     path('payments/', PaymentApiListView.as_view(), name='payments-list'),
-    path('payments/<pk>/', PaymentApiListView.as_view(), name='payment-detail'),
+    # path('payments/<pk>/', WageApiDetailView.as_view(), name='payment-detail'),
 ]
