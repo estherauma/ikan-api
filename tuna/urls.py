@@ -57,7 +57,7 @@ urlpatterns = [
     path('api/v1/', include('mydocuments.urls.api')),
     path('api/v1/', include('payments.urls.api')),
     path('api/v1/', include('notifications.urls.api')),
-    # path('api/v1/', include('wages.urls.api')),
+    path('api/v1/', include('wages.urls.api')),
 
     # web urls
     path('', get_base, name='base'),
