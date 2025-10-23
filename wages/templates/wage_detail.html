@@ -87,16 +87,22 @@
                                     <div class="" style="height: auto; width: 60%;">
                                         {% if ".pdf" in wage.payslip %}
                                             <!-- TODO: translate -->
-                                            <div
+                                            <!-- <div
                                                 data-bs-toggle="pdf-modal"
                                                 data-pdf-src="/{{ wage.payslip }}"
                                                 data-pdf-title="Payslip pdf"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                <!-- TODO: translate -->
                                                 📄 View PDF Document
-                                            </div>
+                                            </div> -->
+                                            <a
+                                                href="/{{ wage.payslip }}" target="_blank"
+                                                class="ikan-dark-blue-100 my-3"
+                                                style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
+                                            >
+                                                📄 View PDF Document
+                                            </a>
                                         {% else %}
                                             <!-- TODO: translate -->
                                             <img
@@ -125,16 +131,22 @@
                                     <div class="" style="height: auto; width: 60%;">
                                         {% if ".pdf" in wage.crew_bank_transfer_receipt %}
                                             <!-- TODO: translate -->
-                                            <div
+                                            <!-- <div
                                                 data-bs-toggle="pdf-modal"
                                                 data-pdf-src="/{{ wage.crew_bank_transfer_receipt }}"
                                                 data-pdf-title="Crew bank transfer receipt pdf"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                <!-- TODO:translate -->
                                                 📄 View PDF Document
-                                            </div>
+                                            </div> -->
+                                            <a
+                                                href="/{{ wage.crew_bank_transfer_receipt }}" target="_blank"
+                                                class="ikan-dark-blue-100 my-3"
+                                                style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
+                                            >
+                                                📄 View PDF Document
+                                            </a>
                                         {% else %}
                                             <!-- TODO: translate -->
                                             <img
@@ -163,16 +175,22 @@
                                     <div class="" style="height: auto; width: 60%;">
                                         {% if ".pdf" in wage.beneficiary_bank_transfer_receipt %}
                                             <!-- TODO: translate -->
-                                            <div
+                                            <!-- <div
                                                 data-bs-toggle="pdf-modal"
                                                 data-pdf-src="/{{ wage.beneficiary_bank_transfer_receipt }}"
                                                 data-pdf-title="Beneficiary bank transfer receipt pdf"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                <!-- TODO:translate -->
                                                 📄 View PDF Document
-                                            </div>
+                                            </div> -->
+                                            <a
+                                                href="/{{ wage.beneficiary_bank_transfer_receipt }}" target="_blank"
+                                                class="ikan-dark-blue-100 my-3"
+                                                style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
+                                            >
+                                                📄 View PDF Document
+                                            </a>
                                         {% else %}
                                             <!-- TODO: translate -->
                                             <img
