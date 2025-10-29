@@ -13,7 +13,6 @@ import json
 from django.contrib import messages
 from django.db.models import Q
 from common.utils import generate_uuid
-import os
 from contracts.utils import (
     generate_static_contract_clauses,
     get_clause_order,
@@ -28,6 +27,7 @@ from prismic.utils import PrismicUtils
 import datetime
 from companies.models import Company
 import re
+from tuna.views import upload_file_to_gcs
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -65,23 +65,20 @@ class ContractsView(LoginRequiredMixin, View):
             contract.save()
 
             if 'upload_contract' in request.FILES:
-                if not os.path.exists('uploads/contracts'):
-                    os.makedirs('uploads/contracts')
 
+                file = request.FILES['upload_contract']
                 file_name = request.FILES['upload_contract'].name
                 file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
-                file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
-                with open(file_path, 'wb+') as destination:
-                    for chunk in request.FILES['upload_contract'].chunks():
-                        destination.write(chunk)
+                file_path = f'contracts/{request.user.id}_ikan_{file_name}'
 
                 contract_document = ContractDocument.objects.create(
                     contract=contract,
-                    url=file_path,
                     name=file_name,
                     created_by=vessel_owner if vessel_owner else request.user.id,
                     updated_by=vessel_owner if vessel_owner else request.user.id,
                 )
+                contract_document.url.storage.save(file_path, file)
+                contract_document.url.name = file_path
                 contract_document.save()
 
                 # generate static clauses
@@ -231,25 +228,23 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
     def handle_clause_attachments_uploads(self, request):
         obj = {}
         if 'partyASignature' in request.FILES or 'partyBSignature' in request.FILES:
-            if not os.path.exists('uploads/contract_clause_attachments'):
-                os.makedirs('uploads/contract_clause_attachments')
 
             if 'partyASignature' in request.FILES:
+                party_a_file = request.FILES['partyASignature']
                 party_a_file_name = request.FILES['partyASignature'].name
                 party_a_file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', party_a_file_name)  # Replace unsafe characters
-                party_a_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
-                with open(party_a_file_path, 'wb+') as destination:
-                    for chunk in request.FILES['partyASignature'].chunks():
-                        destination.write(chunk)
+                party_a_file_path = f'contract_clause_attachments/{request.user.id}_ikan_{party_a_file_name}'
+                # upload file to gcs
+                upload_file_to_gcs(party_a_file, party_a_file_path)
                 obj['partyASignature'] = party_a_file_path
 
             if 'partyBSignature' in request.FILES:
+                party_b_file = request.FILES['partyBSignature']
                 party_b_file_name = request.FILES['partyBSignature'].name
                 party_b_file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', party_b_file_name)  # Replace unsafe characters
-                party_b_file_path = f'uploads/contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
-                with open(party_b_file_path, 'wb+') as destination:
-                    for chunk in request.FILES['partyBSignature'].chunks():
-                        destination.write(chunk)
+                party_b_file_path = f'contract_clause_attachments/{request.user.id}_ikan_{party_b_file_name}'
+                # upload file to gcs
+                upload_file_to_gcs(party_b_file, party_b_file_path)
                 obj['partyBSignature'] = party_b_file_path
         return obj
 
@@ -268,20 +263,17 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 contract.save()
 
                 if 'upload_contract' in request.FILES:
-                    if not os.path.exists('uploads/contracts'):
-                        os.makedirs('uploads/contracts')
 
+                    file = request.FILES['upload_contract']
                     file_name = request.FILES['upload_contract'].name
                     file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Replace unsafe characters
-                    file_path = f'uploads/contracts/{request.user.id}_ikan_{file_name}'
-                    with open(file_path, 'wb+') as destination:
-                        for chunk in request.FILES['upload_contract'].chunks():
-                            destination.write(chunk)
+                    file_path = f'contracts/{request.user.id}_ikan_{file_name}'
 
                     if contract.contract_document.exists():
                         # Update existing contract document
                         contract_document = contract.contract_document.first()
-                        contract_document.url = file_path
+                        contract_document.url.storage.save(file_path, file)
+                        contract_document.url.name = file_path
                         contract_document.name = file_name
                         contract_document.updated_by = request.user.id
                         contract_document.save()
@@ -289,11 +281,12 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         # Create new contract document
                         contract_document = ContractDocument.objects.create(
                             contract=contract,
-                            url=file_path,
                             name=file_name,
                             created_by=request.user.id,
                             updated_by=request.user.id,
                         )
+                        contract_document.url.storage.save(file_path, file)
+                        contract_document.url.name = file_path
                         contract_document.save()
 
                 messages.success(request, 'Contract updated successfully')
