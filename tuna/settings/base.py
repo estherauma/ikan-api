@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
+import json
+from google.oauth2 import service_account
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -198,3 +203,27 @@ AUTHENTICATION_BACKENDS = [
     "accounts.backends.EmailOrPhoneNumberBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
+
+_gcs_sa_json = os.environ.get("GCS_SERVICE_ACCOUNT_JSON")
+if _gcs_sa_json:
+    sa_info = json.loads(_gcs_sa_json)
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_info(sa_info)
+    # Write temp file because Google SDK requires a file path
+    temp_path = os.path.join("/tmp", "gcs-temp-creds.json")
+    with open(temp_path, "w") as f:
+        f.write(_gcs_sa_json)
+
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_path
+else:
+    _gcs_file = os.path.join(BASE_DIR.parent, "gcs-credentials.json")
+    if _gcs_file and os.path.exists(_gcs_file):
+        GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+            _gcs_file
+        )
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _gcs_file
+    else:
+        GS_CREDENTIALS = None
+
+DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_DEFAULT_ACL = None
