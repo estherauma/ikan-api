@@ -63,7 +63,7 @@ class UploadFileView(APIView):
         'contract_clause_attachment': 'uploads/contract_clause_attachments',
         'passport': 'uploads/passports',
         'profile_picture': 'uploads/profiles',
-        'vessel_image': 'uploads/vessel_images',
+        'vessel_image': 'vessel_images',
         'my_document': 'uploads/my_documents',
         'wage': 'uploads/wages',
         'payment': 'uploads/payments',
@@ -89,13 +89,15 @@ class UploadFileView(APIView):
 
             # write the file to the right path
             # the _ikan_ prefix is used in the mobile app to get the file name
+            file = file_serializer.validated_data['file_content']
             file_path = self.upload_paths[request.data['entity_type']] + '/' + str(user_id) + '_ikan_' +\
                 file_serializer.validated_data['file_content'].name
             # get extension from file name
             file_extension = os.path.splitext(file_path)[1]
-            with open(file_path, 'wb+') as destination:
-                for chunk in file_serializer.validated_data['file_content'].chunks():
-                    destination.write(chunk)
+            # Disable local saving of file
+            # with open(file_path, 'wb+') as destination:
+            #     for chunk in file_serializer.validated_data['file_content'].chunks():
+            #         destination.write(chunk)
 
             result_obj = None
             if request.data['entity_type'] == 'profile_picture':
@@ -106,7 +108,9 @@ class UploadFileView(APIView):
                 vessel = Vessel.objects.get(pk=vessel_id)
                 if VesselImage.objects.filter(vessel=vessel).exists():
                     vessel_image = VesselImage.objects.get(vessel=vessel)
-                    vessel_image.image_url = file_path
+                    # save to gcs
+                    vessel_image.image_url.storage.save(file_path, file)
+                    vessel_image.image_url.name = file_path
                     vessel_image.description = request.data.get('description')
                     vessel_image.updated_by = request.data.get('updated_by', user_id)
                     vessel_image.updated_at = request.data.get('updated_at')
@@ -115,13 +119,15 @@ class UploadFileView(APIView):
                     vessel_image = VesselImage.objects.create(
                         app_ref=request.data.get('app_ref'),
                         vessel=vessel,
-                        image_url=file_path,
                         description=request.data.get('description'),
                         created_by=request.data.get('created_by', user_id),
                         updated_by=request.data.get('updated_by', user_id),
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
+                    # save to gcs
+                    vessel_image.image_url.storage.save(file_path, file)
+                    vessel_image.image_url.name = file_path
                     vessel_image.save()
                 result_obj = {'vessel_image': model_to_dict(vessel_image)}
             elif request.data['entity_type'] == 'contract':
