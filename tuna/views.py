@@ -61,7 +61,7 @@ class UploadFileView(APIView):
     upload_paths = {
         'contract': 'contracts',
         'contract_clause_attachment': 'contract_clause_attachments',
-        'passport': 'uploads/passports',
+        'passport': 'passports',
         'profile_picture': 'uploads/profiles',
         'vessel_image': 'vessel_images',
         'my_document': 'uploads/my_documents',
@@ -160,7 +160,8 @@ class UploadFileView(APIView):
             elif request.data['entity_type'] == 'passport':
                 passport_id = request.data.get('passport_id')
                 passport = Passport.objects.get(pk=passport_id)
-                passport.image_url = file_path
+                passport.image_url.storage.save(file_path, file)
+                passport.image_url.name = file_path
                 passport.save()
             elif request.data['entity_type'] == 'contract_clause_attachment':
                 clause_app_ref = request.data.get('clause_app_ref')
