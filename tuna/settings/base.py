@@ -205,7 +205,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 _gcs_sa_json = os.environ.get("GCS_SERVICE_ACCOUNT_JSON")
-if _gcs_sa_json:
+if _gcs_sa_json and _gcs_sa_json != "None":
     sa_info = json.loads(_gcs_sa_json)
     GS_CREDENTIALS = service_account.Credentials.from_service_account_info(sa_info)
     # Write temp file because Google SDK requires a file path
