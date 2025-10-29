@@ -60,7 +60,7 @@ class UploadFileView(APIView):
     permission_classes = ([IsAuthenticated, ])
     upload_paths = {
         'contract': 'contracts',
-        'contract_clause_attachment': 'uploads/contract_clause_attachments',
+        'contract_clause_attachment': 'contract_clause_attachments',
         'passport': 'uploads/passports',
         'profile_picture': 'uploads/profiles',
         'vessel_image': 'vessel_images',
@@ -168,6 +168,8 @@ class UploadFileView(APIView):
 
                 saved_clause = ContractClause.objects.get(app_ref=clause_app_ref)
                 saved_content = json.loads(saved_clause.content)
+                # save to gcs
+                upload_file_to_gcs(file, file_path)
                 saved_content[content_field] = file_path
                 saved_clause.content = json.dumps(saved_content)
                 saved_clause.save()
