@@ -24,7 +24,7 @@ class Passport(AuditableModel):
     passport_number = models.CharField(max_length=255, null=False, blank=False)
     date_of_issue = models.DateField(null=False, blank=False)
     date_of_expiry = models.DateField(null=False, blank=False)
-    image_url = models.CharField(max_length=255, null=True, blank=True)
+    image_url = models.FileField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.first_name} {self.surname} - {self.passport_number}'
