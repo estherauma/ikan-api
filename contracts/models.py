@@ -24,7 +24,7 @@ class Contract(AuditableModel):
 class ContractDocument(AuditableModel):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='contract_document')
     name = models.CharField(max_length=255, null=False, blank=False)
-    url = models.CharField(max_length=255, null=False, blank=False)
+    url = models.FileField(null=False, blank=False)
     status = models.CharField(max_length=255, null=False, blank=False)
 
     def __str__(self):
