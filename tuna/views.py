@@ -62,7 +62,7 @@ class UploadFileView(APIView):
         'contract': 'contracts',
         'contract_clause_attachment': 'contract_clause_attachments',
         'passport': 'passports',
-        'profile_picture': 'uploads/profiles',
+        'profile_picture': 'profiles',
         'vessel_image': 'vessel_images',
         'my_document': 'uploads/my_documents',
         'wage': 'uploads/wages',
@@ -101,7 +101,9 @@ class UploadFileView(APIView):
 
             result_obj = None
             if request.data['entity_type'] == 'profile_picture':
-                user.profile_image = file_path
+                # save to gcs
+                user.profile_image.storage.save(file_path, file)
+                user.profile_image.name = file_path
                 user.save()
             elif request.data['entity_type'] == 'vessel_image':
                 vessel_id = request.data.get('vessel_id')
