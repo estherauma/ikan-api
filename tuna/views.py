@@ -59,7 +59,7 @@ def sample_data(request):
 class UploadFileView(APIView):
     permission_classes = ([IsAuthenticated, ])
     upload_paths = {
-        'contract': 'uploads/contracts',
+        'contract': 'contracts',
         'contract_clause_attachment': 'uploads/contract_clause_attachments',
         'passport': 'uploads/passports',
         'profile_picture': 'uploads/profiles',
@@ -135,7 +135,9 @@ class UploadFileView(APIView):
                 contract = Contract.objects.get(pk=contract_id)
                 if ContractDocument.objects.filter(contract=contract).exists():
                     contract_document = ContractDocument.objects.get(contract=contract)
-                    contract_document.url = file_path
+                    # save to gcs
+                    contract_document.url.storage.save(file_path, file)
+                    contract_document.url.name = file_path
                     contract_document.name = request.data.get('name')
                     contract_document.updated_by = request.data.get('updated_by', user_id)
                     contract_document.updated_at = request.data.get('updated_at')
@@ -143,7 +145,6 @@ class UploadFileView(APIView):
                 else:
                     contract_document = ContractDocument.objects.create(
                         contract=contract,
-                        url=file_path,
                         name=request.data.get('name'),
                         status=request.data.get('status'),
                         created_by=request.data.get('created_by', user_id),
@@ -151,6 +152,9 @@ class UploadFileView(APIView):
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
+                    # save to gcs
+                    contract_document.url.storage.save(file_path, file)
+                    contract_document.url.name = file_path
                     contract_document.save()
                 result_obj = {'contract_document': model_to_dict(contract_document)}
             elif request.data['entity_type'] == 'passport':
