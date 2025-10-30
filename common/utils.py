@@ -14,6 +14,8 @@ from datetime import timedelta
 
 storage_client = storage.Client()
 bucket_name = os.environ.get("GS_BUCKET_NAME")
+if bucket_name is None:
+    raise ValueError("GS_BUCKET_NAME environment variable is not set.")
 bucket = storage_client.bucket(bucket_name)
 
 
