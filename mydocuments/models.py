@@ -3,11 +3,15 @@ from common.models import AuditableModel
 from accounts.models import User
 
 
+def document_upload_path(instance, filename):
+    return f'my_documents/{instance.user.id}_ikan_{filename}'
+
+
 class Document(AuditableModel):
     app_ref = models.CharField(max_length=255, null=False, blank=False, unique=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
     file_name = models.CharField(max_length=255, null=False, blank=False)
-    file_url = models.CharField(max_length=255, null=False, blank=False)
+    file_url = models.FileField(upload_to=document_upload_path, null=False, blank=False)
     file_size = models.CharField(max_length=255, null=True, blank=True)
     doc_type = models.CharField(max_length=255, null=False, blank=False)
     is_essential = models.BooleanField(default=False)
