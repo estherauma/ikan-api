@@ -27,7 +27,7 @@ from prismic.utils import PrismicUtils
 import datetime
 from companies.models import Company
 import re
-from common.utils import upload_file_to_gcs
+from common.utils import upload_file_to_gcs, get_gcs_signed_url
 
 
 class ContractsView(LoginRequiredMixin, View):
@@ -176,6 +176,9 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                             value and isinstance(value, str)):
                         value = value.split('T')[0]
                         item.content[key] = value
+                    if (key in ['partyASignature', 'partyBSignature'] and value):
+                        signed_url = get_gcs_signed_url(value)
+                        item.content[key] = signed_url
 
                 item.content['clause_kind'] = item.kind
                 item.form = get_clause_form(self.request, item.kind, item.content)
@@ -199,8 +202,9 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         upload_contract = self.object.contract_document.first() if self.object.contract_document.exists() else None
         if upload_contract:
             self.object.upload_contract_url = upload_contract.url  # for the contract detail view
+        signed_contract_url = get_gcs_signed_url(upload_contract.url.name) if upload_contract else None
         initial_data = {
-            'upload_contract': upload_contract.url if upload_contract else None,  # for the form
+            'upload_contract': signed_contract_url,  # for the form
         }
 
         form_labels = get_add_contract_form_labels(self.request)
