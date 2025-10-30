@@ -18,6 +18,7 @@ import json
 from prismic.utils import PrismicUtils
 import os
 import re
+from tuna.views import upload_file_to_gcs
 
 
 class WageListView(LoginRequiredMixin, ListView):
@@ -160,10 +161,9 @@ class AddWagesView(LoginRequiredMixin, View):
                     if file:
                         file_name = file.name
                         file_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', file_name)  # Sanitize filename
-                        file_path = f'uploads/wages/{request.user.id}_ikan_{file_name}'
-                        with open(file_path, 'wb+') as destination:
-                            for chunk in file.chunks():
-                                destination.write(chunk)
+                        file_path = f'wages/{instance.user.id}_ikan_{file_name}'
+                        # save to gcs
+                        upload_file_to_gcs(file, file_path)
                         setattr(instance, field_name, file_path)
                     else:
                         setattr(instance, field_name, None)
