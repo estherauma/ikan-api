@@ -202,7 +202,11 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         upload_contract = self.object.contract_document.first() if self.object.contract_document.exists() else None
         if upload_contract:
             self.object.upload_contract_url = upload_contract.url  # for the contract detail view
-        signed_contract_url = get_gcs_signed_url(upload_contract.url.name) if upload_contract else None
+        signed_contract_url = (
+            get_gcs_signed_url(upload_contract.url.name)
+            if upload_contract and upload_contract.url
+            else None
+        )
         initial_data = {
             'upload_contract': signed_contract_url,  # for the form
         }
