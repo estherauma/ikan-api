@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, date
 import os
 from google.cloud import storage
+from datetime import timedelta
 
 
 def write_json_to_file(file_name, data, mode='w'):
@@ -123,3 +124,37 @@ def upload_file_to_gcs(file, file_path):
     blob = bucket.blob(file_path)
     blob.upload_from_file(file)
     return blob.public_url
+
+
+def get_gcs_signed_url(file_path, hours=1):
+    """Generates a signed URL for a file in GCS."""
+    storage_client = storage.Client()
+    bucket_name = os.environ.get("GS_BUCKET_NAME")
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file_path)
+
+    url = blob.generate_signed_url(
+        expiration=timedelta(hours=hours),
+    )
+    return url
+
+
+def delete_file_from_gcs(file_path):
+    """Deletes a file from GCS."""
+    storage_client = storage.Client()
+    bucket_name = os.environ.get("GS_BUCKET_NAME")
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file_path)
+
+    blob.delete()
+    return True
+
+
+def check_file_exists_in_gcs(file_path):
+    """Checks if a file exists in GCS."""
+    storage_client = storage.Client()
+    bucket_name = os.environ.get("GS_BUCKET_NAME")
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file_path)
+
+    return blob.exists()
