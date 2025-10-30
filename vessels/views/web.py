@@ -15,6 +15,12 @@ class VesselDetailView(LoginRequiredMixin, generic.DetailView):
     model = Vessel
     template_name = 'vessels/view.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        vessel_image = self.get_object().vessel_image.first()
+        context['vessel_image'] = vessel_image
+        return context
+
 
 class VesselsDataView(LoginRequiredMixin, View):
     def get(self, request):
