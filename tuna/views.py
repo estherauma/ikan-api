@@ -66,8 +66,6 @@ class UploadFileView(APIView):
         'profile_picture': 'profiles',
         'vessel_image': 'vessel_images',
         'my_document': 'my_documents',
-        'wage': 'uploads/wages',
-        'payment': 'uploads/payments',
     }
 
     def post(self, request):
@@ -114,13 +112,18 @@ class UploadFileView(APIView):
                 vessel = Vessel.objects.get(pk=vessel_id)
                 if VesselImage.objects.filter(vessel=vessel).exists():
                     vessel_image = VesselImage.objects.get(vessel=vessel)
-                    # save to gcs
-                    vessel_image.image_url.storage.save(file_path, file)
-                    vessel_image.image_url.name = file_path
-                    vessel_image.description = request.data.get('description')
-                    vessel_image.updated_by = request.data.get('updated_by', user_id)
-                    vessel_image.updated_at = request.data.get('updated_at')
-                    vessel_image.save()
+                    if (
+                        vessel_image.updated_at is None
+                        or updated_at is None
+                        or updated_at > vessel_image.updated_at
+                    ):
+                        # save to gcs
+                        vessel_image.image_url.storage.save(file_path, file)
+                        vessel_image.image_url.name = file_path
+                        vessel_image.description = request.data.get('description')
+                        vessel_image.updated_by = request.data.get('updated_by', user_id)
+                        vessel_image.updated_at = request.data.get('updated_at')
+                        vessel_image.save()
                 else:
                     vessel_image = VesselImage.objects.create(
                         app_ref=request.data.get('app_ref'),
@@ -141,13 +144,18 @@ class UploadFileView(APIView):
                 contract = Contract.objects.get(pk=contract_id)
                 if ContractDocument.objects.filter(contract=contract).exists():
                     contract_document = ContractDocument.objects.get(contract=contract)
-                    # save to gcs
-                    contract_document.url.storage.save(file_path, file)
-                    contract_document.url.name = file_path
-                    contract_document.name = request.data.get('name')
-                    contract_document.updated_by = request.data.get('updated_by', user_id)
-                    contract_document.updated_at = request.data.get('updated_at')
-                    contract_document.save()
+                    if (
+                        contract_document.updated_at is None
+                        or updated_at is None
+                        or updated_at > contract_document.updated_at
+                    ):
+                        # save to gcs
+                        contract_document.url.storage.save(file_path, file)
+                        contract_document.url.name = file_path
+                        contract_document.name = request.data.get('name')
+                        contract_document.updated_by = request.data.get('updated_by', user_id)
+                        contract_document.updated_at = request.data.get('updated_at')
+                        contract_document.save()
                 else:
                     contract_document = ContractDocument.objects.create(
                         contract=contract,
