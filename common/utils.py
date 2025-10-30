@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 import uuid
 from datetime import datetime, date
+import os
+from google.cloud import storage
 
 
 def write_json_to_file(file_name, data, mode='w'):
@@ -109,3 +111,15 @@ def format_local_date(value, current_language='en-us'):
         return value
 
     return dt.strftime(format_str)
+
+
+def upload_file_to_gcs(file, file_path):
+    """Uploads a file to the given GCS path."""
+    storage_client = storage.Client()
+    bucket_name = os.environ.get("GS_BUCKET_NAME")
+    bucket = storage_client.bucket(bucket_name)
+
+    # Create a new blob and upload the file's content.
+    blob = bucket.blob(file_path)
+    blob.upload_from_file(file)
+    return blob.public_url

@@ -27,7 +27,7 @@ from prismic.utils import PrismicUtils
 import datetime
 from companies.models import Company
 import re
-from tuna.views import upload_file_to_gcs
+from common.utils import upload_file_to_gcs
 
 
 class ContractsView(LoginRequiredMixin, View):

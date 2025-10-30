@@ -18,7 +18,7 @@ import json
 from prismic.utils import PrismicUtils
 import os
 import re
-from tuna.views import upload_file_to_gcs
+from common.utils import upload_file_to_gcs
 
 
 class WageListView(LoginRequiredMixin, ListView):

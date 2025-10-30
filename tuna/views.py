@@ -15,8 +15,8 @@ from contracts.models import Contract, ContractDocument, ContractClause
 from django.forms.models import model_to_dict
 from mydocuments.models import Passport, Document
 import json
-from google.cloud import storage
 from django.utils.dateparse import parse_datetime
+from common.utils import upload_file_to_gcs
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -243,15 +243,3 @@ class UploadFileView(APIView):
             }, status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-def upload_file_to_gcs(file, file_path):
-    """Uploads a file to the given GCS path."""
-    storage_client = storage.Client()
-    bucket_name = os.environ.get("GS_BUCKET_NAME")
-    bucket = storage_client.bucket(bucket_name)
-
-    # Create a new blob and upload the file's content.
-    blob = bucket.blob(file_path)
-    blob.upload_from_file(file)
-    return blob.public_url
