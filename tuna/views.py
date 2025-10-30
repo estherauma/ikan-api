@@ -16,7 +16,7 @@ from django.forms.models import model_to_dict
 from mydocuments.models import Passport, Document
 import json
 from django.utils.dateparse import parse_datetime
-from common.utils import upload_file_to_gcs
+from common.utils import upload_file_to_gcs, bucket
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -243,3 +243,23 @@ class UploadFileView(APIView):
             }, status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DownloadFileView(APIView):
+    permission_classes = ([IsAuthenticated, ])
+
+    def get(self, request):
+        url = request.GET.get('url')
+        if not url:
+            return HttpResponse('Missing URL', status=400)
+
+        blob = bucket.blob(url)
+        if not blob.exists():
+            return HttpResponse('File not found', status=404)
+
+        content_type = blob.content_type or 'application/octet-stream'
+        filename = url.split('/')[-1]
+        content = blob.download_as_bytes()
+        response = HttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
