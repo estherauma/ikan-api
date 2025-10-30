@@ -12,6 +12,11 @@ from google.cloud import storage
 from datetime import timedelta
 
 
+storage_client = storage.Client()
+bucket_name = os.environ.get("GS_BUCKET_NAME")
+bucket = storage_client.bucket(bucket_name)
+
+
 def write_json_to_file(file_name, data, mode='w'):
     # This is purely for debugging
     # We can use it if we ever need to write to a file
@@ -116,9 +121,6 @@ def format_local_date(value, current_language='en-us'):
 
 def upload_file_to_gcs(file, file_path):
     """Uploads a file to the given GCS path."""
-    storage_client = storage.Client()
-    bucket_name = os.environ.get("GS_BUCKET_NAME")
-    bucket = storage_client.bucket(bucket_name)
 
     # Create a new blob and upload the file's content.
     blob = bucket.blob(file_path)
@@ -128,33 +130,12 @@ def upload_file_to_gcs(file, file_path):
 
 def get_gcs_signed_url(file_path, hours=1):
     """Generates a signed URL for a file in GCS."""
-    storage_client = storage.Client()
-    bucket_name = os.environ.get("GS_BUCKET_NAME")
-    bucket = storage_client.bucket(bucket_name)
+    if not file_path:
+        return None
+
     blob = bucket.blob(file_path)
 
     url = blob.generate_signed_url(
         expiration=timedelta(hours=hours),
     )
     return url
-
-
-def delete_file_from_gcs(file_path):
-    """Deletes a file from GCS."""
-    storage_client = storage.Client()
-    bucket_name = os.environ.get("GS_BUCKET_NAME")
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(file_path)
-
-    blob.delete()
-    return True
-
-
-def check_file_exists_in_gcs(file_path):
-    """Checks if a file exists in GCS."""
-    storage_client = storage.Client()
-    bucket_name = os.environ.get("GS_BUCKET_NAME")
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(file_path)
-
-    return blob.exists()
