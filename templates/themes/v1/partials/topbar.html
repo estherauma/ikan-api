@@ -177,8 +177,15 @@
             <!-- User Dropdown -->
             <li class="dropdown">
                 <a class="nav-link dropdown-toggle nav-user me-0 waves-effect waves-light" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                    <!-- TODO: display profile picture -->
-                    <img src="/static/themes/v1/assets/images/users/user-1.jpg" alt="user-image" class="rounded-circle">
+                    {% if loggedin_user.profile_image %}
+                        <img 
+                            src="{{ loggedin_user.profile_image.url }}" 
+                            alt="Profile Image" 
+                            class="rounded-circle" 
+                        >
+                    {% else %}
+                        <i class="bi bi-person-circle" style="font-size: 2rem; color: #3565ff;"></i>
+                    {% endif %}
                     <span class="ms-1 d-none d-md-inline-block">
                         {% if loggedin_user.first_name %}
                             {{ loggedin_user.first_name }}

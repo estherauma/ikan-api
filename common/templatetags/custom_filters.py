@@ -55,3 +55,18 @@ def format_date(date, lang='en-us'):
         Formats a datetime object to a localized string based on the current language settings.
     """
     return format_local_date(date, lang)
+
+
+@register.filter(name="endsWithPdf")
+def ends_with_pdf(value):
+    """
+    Returns True if the given filename ends with .pdf (case-insensitive).
+    Example:
+      {{ myfile.name|endsWithPdf }}
+    """
+    if not value:
+        return False
+    try:
+        return str(value).lower().endswith(".pdf")
+    except Exception:
+        return False

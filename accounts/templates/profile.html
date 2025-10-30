@@ -24,7 +24,19 @@
                     {% endif %}
 
                     <div class="text-center">
-                        <img src="/static/themes/v1/assets/images/users/user-1.jpg" alt="user-image" class="rounded-circle">
+                        {% if user.profile_image %}
+                            <img 
+                                src="{{ user.profile_image.url }}" 
+                                alt="Profile Image" 
+                                class="rounded-circle" 
+                                style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;"
+                                data-bs-toggle="image-modal"
+                                data-image-src="{{ user.profile_image.url }}"
+                                data-image-title="{{ user.first_name }}'s Profile Image"
+                            >
+                        {% else %}
+                            <i class="bi bi-person-circle" style="font-size: 150px; color: #3565ff;"></i>
+                        {% endif %}
                     </div>
 
                     <hr class="mr-0 ml-0 mb-0 mt-3">

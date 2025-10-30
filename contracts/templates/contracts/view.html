@@ -61,9 +61,10 @@
                                                 {% if field.name == 'upload_contract' and field.value %}
                                                     <div id="contract-upload-preview" class="text-center" style="margin: 10px auto;">
                                                         {% if ".pdf" in field.value  %}
-                                                            <embed src="/{{ field.value }}" type="application/pdf" width="75%" height="200px"/>
+                                                            <!-- <embed src="{{ field.value }}" type="application/pdf" width="75%" height="200px"/> -->
+                                                            <a href="{{ field.value }}" target="_blank" class="ikan-primary-color">View PDF Contract</a>
                                                         {% else %}
-                                                            <img src="/{{ field.value }}" alt="Contract upload image" style="max-width: 75%; height: 200px; object-fit: contain;">
+                                                            <img src="{{ field.value }}" alt="Contract upload image" style="max-width: 75%; height: 200px; object-fit: contain;">
                                                         {% endif %}
                                                         <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enableContractUploadEdit()"></i>
                                                     </div>
@@ -139,7 +140,11 @@
                             <p class="mt-0 mb-2 detail-value">
                                 {% if contract.upload_contract_url %}
                                     <div class="text-center" style="margin: 10px auto;">
-                                        <img src="/{{ contract.upload_contract_url }}" alt="Contract upload" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                        {% if contract.upload_contract_url.name|endsWithPdf %}
+                                            <a href="{{ contract.upload_contract_url.url }}" target="_blank" class="ikan-primary-color">View PDF Contract</a>
+                                        {% else %}
+                                            <img src="{{ contract.upload_contract_url.url }}" alt="Contract upload" class="img-fluid" style="width: 90%; height: 200px; object-fit: contain;">
+                                        {% endif %}
                                     </div>
                                 {% else %}
                                     No contract uploaded
@@ -352,7 +357,7 @@
             <!-- Contract Documents -->
             <div class="card section-wrapper">
                 <div class="card-header bg-light text-dark">
-                    <h5 class="card-ttile">{{ common_text.documents}}</h5>
+                    <h5 class="card-title">{{ common_text.documents}}</h5>
                 </div>
                 <div class="card-body">
                    !{{ common_text.notYetImplemented }}
@@ -477,9 +482,10 @@
                                         {% if field.value and field.name == 'partyASignature' or field.name == 'partyBSignature' %}
                                             <div id="{{field.name}}-preview" class="text-center" style="margin: 10px auto;">
                                                 {% if ".pdf" in field.value  %}
-                                                    <embed src="/{{ field.value }}" type="application/pdf" width="75%" height="200px"/>
+                                                    <!-- <embed src="{{ field.value }}" type="application/pdf" width="75%" height="200px"/> -->
+                                                    <a href="{{ field.value }}" target="_blank" class="ikan-primary-color">View PDF Signature</a>
                                                 {% else %}
-                                                    <img src="/{{ field.value }}" alt="Party signature image" style="max-width: 75%; height: 200px; object-fit: contain;">
+                                                    <img src="{{ field.value }}" alt="Party signature image" style="max-width: 75%; height: 200px; object-fit: contain;">
                                                 {% endif %}
                                                 {% if field.name == 'partyASignature' %}
                                                     <i class="mdi mdi-delete del-icon" style="cursor: pointer; color: red;" onclick="enablePartyASignatureEdit()"></i>

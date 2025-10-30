@@ -18,7 +18,7 @@ class Vessel(AuditableModel):
 class VesselImage(AuditableModel):
     app_ref = models.CharField(max_length=255, null=False, blank=False)
     vessel = models.ForeignKey(Vessel, on_delete=models.CASCADE, related_name='vessel_image')
-    image_url = models.CharField(max_length=255, null=False, blank=False)
+    image_url = models.ImageField(null=False, blank=False)
     description = models.CharField(max_length=255)
 
     def __str__(self):

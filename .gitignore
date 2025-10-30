@@ -167,3 +167,5 @@ dump.rdb
 staticfiles/*
 localnotes.md
 uploads/
+
+gcs-credentials.json

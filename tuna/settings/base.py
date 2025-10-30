@@ -9,9 +9,15 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 from decouple import config
+import json
+from google.oauth2 import service_account
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,87 +27,89 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-lf+u!a_r@!6fdt5=u-cz9g&d6c&*%#@7y6ea=7e5c5btssgutw'
+SECRET_KEY = "django-insecure-lf+u!a_r@!6fdt5=u-cz9g&d6c&*%#@7y6ea=7e5c5btssgutw"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS", cast=lambda v: [s.strip() for s in v.split(",")]
+)
 
 # Application definition
 
 INSTALLED_APPS = [
-    'accounts',
-    'companies',
-    'contracts',
-    'corsheaders',
-    'common',
-    'dashboards',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_filters',
-    'drf_yasg',
-    'prismic',
-    'rest_framework',
-    'survey',
-    'vessels',
-    'mydocuments',
-    'payments',
-    'notifications',
-    'wages',
+    "accounts",
+    "companies",
+    "contracts",
+    "corsheaders",
+    "common",
+    "dashboards",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django_filters",
+    "drf_yasg",
+    "prismic",
+    "rest_framework",
+    "survey",
+    "vessels",
+    "mydocuments",
+    "payments",
+    "notifications",
+    "wages",
 ]
 AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'accounts.middleware.SelectLanguageMiddleware'
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "accounts.middleware.SelectLanguageMiddleware",
 ]
 
-ROOT_URLCONF = 'tuna.urls'
+ROOT_URLCONF = "tuna.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR.parent, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'accounts.views.web.loggedin_user'
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR.parent, "templates")],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "accounts.views.web.loggedin_user",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'tuna.wsgi.application'
+WSGI_APPLICATION = "tuna.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE'),
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USERNAME'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+    "default": {
+        "ENGINE": config("DB_ENGINE"),
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USERNAME"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
     }
 }
 
@@ -111,16 +119,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -128,9 +136,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Europe/Istanbul'
+TIME_ZONE = "Europe/Istanbul"
 
 USE_I18N = True
 
@@ -143,59 +151,79 @@ USE_TZ = True
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR.parent, "staticfiles")
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR.parent, 'static'),
-)
-MEDIA_URL = '/uploads/'
-MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'uploads')
+STATICFILES_DIRS = (os.path.join(BASE_DIR.parent, "static"),)
+MEDIA_URL = "/uploads/"
+MEDIA_ROOT = os.path.join(BASE_DIR.parent, "uploads")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 REST_FRAMEWORK = {
-
-    'DEFAULT_RENDERER_CLASSES': (
-        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
-        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
+    "DEFAULT_RENDERER_CLASSES": (
+        "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
+        "djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer",
     ),
-
-    'DEFAULT_PARSER_CLASSES': (
+    "DEFAULT_PARSER_CLASSES": (
         # If you use MultiPartFormParser or FormParser, we also have a camel case version
-        'djangorestframework_camel_case.parser.CamelCaseFormParser',
-        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
-        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+        "djangorestframework_camel_case.parser.CamelCaseFormParser",
+        "djangorestframework_camel_case.parser.CamelCaseMultiPartParser",
+        "djangorestframework_camel_case.parser.CamelCaseJSONParser",
     ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'accounts.backends.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "accounts.backends.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
 }
 
 # jwt token settings
-TOKEN_ISSUER = config('TOKEN_ISSUER', '50Eight')
-TOKEN_EXPIRATION_TIME = config('TOKEN_EXPIRATION_TIME', default=10520064)
+TOKEN_ISSUER = config("TOKEN_ISSUER", "50Eight")
+TOKEN_EXPIRATION_TIME = config("TOKEN_EXPIRATION_TIME", default=10520064)
 
 
 # cors settings
 CORS_ORIGIN_ALLOW_ALL = True
 
 # email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
 # Authentication
-LOGIN_URL = '/account/login'
+LOGIN_URL = "/account/login"
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.backends.EmailOrPhoneNumberBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "accounts.backends.EmailOrPhoneNumberBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
+
+_gcs_sa_json = os.environ.get("GCS_SERVICE_ACCOUNT_JSON")
+if _gcs_sa_json and _gcs_sa_json != "None":
+    sa_info = json.loads(_gcs_sa_json)
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_info(sa_info)
+    # Write temp file because Google SDK requires a file path
+    temp_path = os.path.join("/tmp", "gcs-temp-creds.json")
+    with open(temp_path, "w") as f:
+        f.write(_gcs_sa_json)
+
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_path
+else:
+    _gcs_file = os.path.join(BASE_DIR.parent, "gcs-credentials.json")
+    if _gcs_file and os.path.exists(_gcs_file):
+        GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+            _gcs_file
+        )
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _gcs_file
+    else:
+        GS_CREDENTIALS = None
+
+DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
+GS_DEFAULT_ACL = None

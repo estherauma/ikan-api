@@ -4,6 +4,7 @@ from contracts.models import ContractClause
 from prismic.utils import PrismicUtils
 from vessels.models import Vessel
 from common.utils import format_local_date
+from common.utils import get_gcs_signed_url
 
 
 clause_order = {
@@ -245,9 +246,11 @@ def format_clause_values(request, clause_type, key, value):
         selected_language = request.session.get('language', 'en-us')
         return format_local_date(value, selected_language)
     elif key in ['partyASignature', 'partyBSignature']:
+        signed_url = get_gcs_signed_url(value)
         if value.endswith('.pdf'):
-            return f'<embed src="/{value}" type="application/pdf" width="100%" height="500px"></embed>'
-        return f'<img class="image" src="/{value}" alt="image" style="max-width: 200px; max-height: 150px;"/>'
+            # return f'<embed src="{signed_url}" type="application/pdf" width="100%" height="500px"></embed>'
+            return f'<a href="{signed_url}" target="_blank">View PDF Signature</a>'
+        return f'<img class="image" src="{signed_url}" alt="image" style="max-width: 200px; max-height: 150px;"/>'
     elif clause_type == 'contract-clauses-parties-to-this-contract-content' and key == 'vessel':
         vessel = Vessel.objects.filter(app_ref=value).values('name').first()
         return vessel['name'] if vessel else None

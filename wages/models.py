@@ -4,6 +4,10 @@ from django.db import models
 from vessels.models import Vessel
 
 
+def wage_upload_path(instance, filename):
+    return f'wages/{instance.user.id}_ikan_{filename}'
+
+
 class Wage(AuditableModel):
     vessel = models.ForeignKey(Vessel, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -11,9 +15,9 @@ class Wage(AuditableModel):
     start_date = models.DateField()
     end_date = models.DateField()
     usd_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payslip = models.CharField(max_length=255, null=True, blank=True)
-    crew_bank_transfer_receipt = models.CharField(max_length=255, null=True, blank=True)
-    beneficiary_bank_transfer_receipt = models.CharField(max_length=255, null=True, blank=True)
+    payslip = models.FileField(upload_to=wage_upload_path, null=True, blank=True)
+    crew_bank_transfer_receipt = models.FileField(upload_to=wage_upload_path, null=True, blank=True)
+    beneficiary_bank_transfer_receipt = models.FileField(upload_to=wage_upload_path, null=True, blank=True)
     beneficiary_relationship = models.CharField(max_length=255, null=True, blank=True)
     beneficiary_name = models.CharField(max_length=255, null=True, blank=True)
     beneficiary_contact = models.CharField(max_length=255, null=True, blank=True)
