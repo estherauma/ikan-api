@@ -13,9 +13,10 @@ from accounts.models import User
 from vessels.models import Vessel, VesselImage
 from contracts.models import Contract, ContractDocument, ContractClause
 from django.forms.models import model_to_dict
-from mydocuments.models import Passport
+from mydocuments.models import Passport, Document
 import json
 from google.cloud import storage
+from django.utils.dateparse import parse_datetime
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -64,7 +65,7 @@ class UploadFileView(APIView):
         'passport': 'passports',
         'profile_picture': 'profiles',
         'vessel_image': 'vessel_images',
-        'my_document': 'uploads/my_documents',
+        'my_document': 'my_documents',
         'wage': 'uploads/wages',
         'payment': 'uploads/payments',
     }
@@ -86,6 +87,9 @@ class UploadFileView(APIView):
             else:
                 user_id = request.user.id
                 user = request.user
+
+            updated_at = request.data.get('updated_at')
+            updated_at = parse_datetime(updated_at) if updated_at else None
 
             # write the file to the right path
             # the _ikan_ prefix is used in the mobile app to get the file name
@@ -162,6 +166,7 @@ class UploadFileView(APIView):
             elif request.data['entity_type'] == 'passport':
                 passport_id = request.data.get('passport_id')
                 passport = Passport.objects.get(pk=passport_id)
+                # save to gcs
                 passport.image_url.storage.save(file_path, file)
                 passport.image_url.name = file_path
                 passport.save()
@@ -176,6 +181,41 @@ class UploadFileView(APIView):
                 saved_content[content_field] = file_path
                 saved_clause.content = json.dumps(saved_content)
                 saved_clause.save()
+            elif request.data['entity_type'] == 'my_document':
+                doc_id = request.data.get('doc_id')
+                doc = Document.objects.get(pk=doc_id)
+                if Document.objects.filter(pk=doc_id).exists():
+                    if (
+                        doc.updated_at is None
+                        or updated_at is None
+                        or updated_at > doc.updated_at
+                    ):
+                        # save to gcs
+                        doc.file_url.storage.save(file_path, file)
+                        doc.file_url.name = file_path
+                        doc.file_name = request.data.get('file_name')
+                        doc.file_size = request.data.get('file_size')
+                        doc.doc_type = request.data.get('doc_type')
+                        doc.updated_by = request.data.get('updated_by', user_id)
+                        doc.updated_at = request.data.get('updated_at')
+                        doc.save()
+                else:
+                    doc = Document.objects.create(
+                        app_ref=request.data.get('app_ref'),
+                        user=user,
+                        file_name=request.data.get('file_name'),
+                        file_size=request.data.get('file_size'),
+                        doc_type=request.data.get('doc_type'),
+                        created_by=request.data.get('created_by', user_id),
+                        updated_by=request.data.get('updated_by', user_id),
+                        created_at=request.data.get('created_at'),
+                        updated_at=request.data.get('updated_at'),
+                    )
+                    # save to gcs
+                    doc.file_url.storage.save(file_path, file)
+                    doc.file_url.name = file_path
+                    doc.save()
+                result_obj = {'document': model_to_dict(doc)}
 
             if result_obj is not None:
                 data = {
