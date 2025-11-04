@@ -5,5 +5,5 @@ app_name = 'companies'
 
 urlpatterns = [
     path('companies', CompanyApiListView.as_view(), name='company-list'),
-    path('companies/<int:id>', CompanyApiDetailView.as_view(), name='company-detail'),
+    path('companies/<str:id>', CompanyApiDetailView.as_view(), name='company-detail'),
 ]
