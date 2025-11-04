@@ -9,6 +9,22 @@ def wage_upload_path(instance, filename):
 
 
 class Wage(AuditableModel):
+    RIGHT_AMOUNT_CHOICES = [
+        ('yes', 'Yes'),
+        ('no', 'No'),
+        ('unsure', 'Unsure'),
+    ]
+    BENEFICIARY_RELATIONSHIP_CHOICES = [
+        ('self', 'Crew member himself'),
+        ('family_or_friend', 'Family/friend'),
+        ('crew_member_and_family_or_friend', 'Crew member and family/friend'),
+    ]
+    STATUS_CHOICES = [
+        ('action_required', 'Action Required'),
+        ('issue_pending', 'Issue Pending'),
+        ('received', 'Received'),
+    ]
+
     vessel = models.ForeignKey(Vessel, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     payment_date = models.DateField()
@@ -22,6 +38,10 @@ class Wage(AuditableModel):
     beneficiary_name = models.CharField(max_length=255, null=True, blank=True)
     beneficiary_contact = models.CharField(max_length=255, null=True, blank=True)
     beneficiary_contact_platform = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=30, default='action_required', choices=STATUS_CHOICES)
+    crew_received_right_amount = models.CharField(max_length=10, choices=RIGHT_AMOUNT_CHOICES, null=True, blank=True)
+    beneficiary_received_right_amount = models.CharField(max_length=10,
+                                                         choices=RIGHT_AMOUNT_CHOICES, null=True, blank=True)
 
     @property
     def duration(self):

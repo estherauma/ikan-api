@@ -54,9 +54,6 @@ class AddWageForm(forms.ModelForm):
             }
         )
     )
-    payslip = forms.FileField(required=False)
-    crew_bank_transfer_receipt = forms.FileField(required=False)
-    beneficiary_bank_transfer_receipt = forms.FileField(required=False)
     beneficiary_relationship = forms.ChoiceField()
 
     class Meta:
