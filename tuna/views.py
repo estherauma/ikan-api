@@ -278,7 +278,8 @@ class UploadTempFileView(APIView):
             user_id = request.user.id
             file = file_serializer.validated_data['file_content']
             file_name = file.name
-            file_path = temp_path + '/' + user_id + '_ikan_' + file_name
+            file_path = os.path.join(temp_path, f"{user_id}_ikan_{file_name}")
+            file_path = os.path.normpath(file_path)
 
             with open(file_path, 'wb+') as destination:
                 for chunk in file.chunks():
