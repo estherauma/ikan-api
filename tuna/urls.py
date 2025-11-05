@@ -23,7 +23,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from accounts.views.web import get_base, select_language
-from tuna.views import UploadFileView, DownloadFileView
+from tuna.views import UploadFileView, DownloadFileView, UploadTempFileView
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -55,6 +55,7 @@ urlpatterns = [
     path('api/v1/', include('vessels.urls.api')),
     path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),
     path('api/v1/file-download', DownloadFileView.as_view(), name='api-file-download'),
+    path('api/v1/temp-file-upload', UploadTempFileView.as_view(), name='api-temp-file-upload'),
     path('api/v1/', include('mydocuments.urls.api')),
     path('api/v1/', include('payments.urls.api')),
     path('api/v1/', include('notifications.urls.api')),

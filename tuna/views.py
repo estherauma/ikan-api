@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import django
 from django.db.utils import OperationalError
-from tuna.serializers import UploadFileSerializer
+from tuna.serializers import UploadFileSerializer, UploadTemporaryFileSerializer
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -263,3 +263,31 @@ class DownloadFileView(APIView):
         response = HttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+class UploadTempFileView(APIView):
+    permission_classes = ([IsAuthenticated, ])
+
+    def post(self, request):
+        file_serializer = UploadTemporaryFileSerializer(data=request.data)
+        if file_serializer.is_valid():
+            temp_path = 'uploads/temp_files'
+            if not os.path.exists(temp_path):
+                os.makedirs(temp_path)
+
+            user_id = request.user.id
+            file = file_serializer.validated_data['file_content']
+            file_name = file.name
+            file_path = os.path.join(temp_path, f"{user_id}_ikan_{file_name}")
+            file_path = os.path.normpath(file_path)
+
+            with open(file_path, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+
+            return Response({
+                'status': 'OK',
+                'file_location': file_path,
+            }, status.HTTP_201_CREATED)
+        else:
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
