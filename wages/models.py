@@ -40,8 +40,11 @@ class Wage(AuditableModel):
     beneficiary_contact_platform = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=30, default='action_required', choices=STATUS_CHOICES)
     crew_received_right_amount = models.CharField(max_length=10, choices=RIGHT_AMOUNT_CHOICES, null=True, blank=True)
+    crew_received_right_amount_date = models.DateField(null=True, blank=True)
     beneficiary_received_right_amount = models.CharField(max_length=10,
                                                          choices=RIGHT_AMOUNT_CHOICES, null=True, blank=True)
+    beneficiary_received_right_amount_date = models.DateField(null=True, blank=True)
+    why_the_discrepancy = models.JSONField(null=True, blank=True)
 
     @property
     def duration(self):
