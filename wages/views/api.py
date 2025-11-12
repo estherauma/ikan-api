@@ -8,6 +8,7 @@ from wages.serializers import WageSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
+from django.utils.dateparse import parse_datetime
 
 
 class WageApiListView(ListAPIView):
@@ -48,12 +49,20 @@ class WageApiDetailView(RetrieveUpdateDestroyAPIView):
         }, status=status.HTTP_200_OK)
 
     def update(self, request, id):
-        wage = self.get_wage(id)
-        serializer = self.serializer_class(
-            wage, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status=status.HTTP_202_ACCEPTED)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > self.get_wage(id).updated_at:
+            wage = self.get_wage(id)
+            serializer = self.serializer_class(
+                wage, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'Ok',
+                'message': 'Record is already up to date, no changes made.'
+            }, status=status.HTTP_200_OK)
