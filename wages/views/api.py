@@ -63,6 +63,6 @@ class WageApiDetailView(RetrieveUpdateDestroyAPIView):
             }, status=status.HTTP_202_ACCEPTED)
         else:
             return Response({
-                'status': 'Ok',
+                'status': 'OK',
                 'message': 'Record is already up to date, no changes made.'
             }, status=status.HTTP_200_OK)
