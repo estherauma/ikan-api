@@ -76,12 +76,20 @@ class WageDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        wage = self.get_object()
-        context["wage"] = wage
 
         # Get payments common text
         prismic_utils = PrismicUtils(self.request)
-        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        context["payments_common_text"] = payments_common_text
+
+        user = self.request.user
+        roles = user.groups.all().values_list("name", flat=True)
+        is_vessel_owner = "vessel_owner" in roles
+        wage = self.get_object()
+        status_object = get_status_label(wage.status, payments_common_text, is_vessel_owner)
+        wage.status_class = status_object['class']
+        wage.status_label = status_object['label']
+        context["wage"] = wage
 
         return context
 
