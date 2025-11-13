@@ -77,6 +77,18 @@
                         </div>
                         <hr class="my-2 mx-0">
 
+                        <div class="row d-flex align-items-center">
+                            <div class="col-12 col-sm-4">
+                                <h5 class="text-muted">{{ common_text.status }}:</h5>
+                            </div>
+                            <div class="col-12 col-sm-8">
+                                <h4 class="status-text">
+                                    <span class="{{wage.status_class}}">{{ wage.status_label }}</span>
+                                </h4>
+                            </div>
+                        </div>
+                        <hr class="my-2 mx-0">
+
                         {% if wage.payslip %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
@@ -272,6 +284,24 @@
 		border-radius: 20px;
 		font-size: 1rem;
 	}
+    h4.status-text span {
+        color: #191970;
+        padding: 7px 15px;
+        border-radius: 20px;
+        font-size: 1rem;
+    }
+    h4 span.action-required,
+    h4 span.pending {
+        background: #f0a751;
+    }
+    h4 span.issue-pending {
+        color: white;
+        background: #F0525C;
+    }
+    h4 span.received,
+    h4 span.confirmed {
+        background: #74F080;
+    }
 </style>
 {% endblock %} {% block scripts %}
 <script>
