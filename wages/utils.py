@@ -80,3 +80,27 @@ def generate_beneficiary_relationship_options(payments_common_text):
         {"key": "crew_member_and_family_or_friend", "label": payments_common_text.get("crewMemberAndFamilyOrFriend",
                                                                                       "Crew member and family/friend")},
     ]
+
+
+def get_status_label(status, payments_common_text, is_vessel_owner=False):
+    label = payments_common_text.get("unknown", "Unknown")
+    status_class = "unknown"
+    if is_vessel_owner:
+        if status == "action_required" or status == "issue_pending":
+            label = payments_common_text.get("pending", "Pending")
+            status_class = "pending"
+        elif status == "received":
+            label = payments_common_text.get("confirmed", "Confirmed")
+            status_class = "confirmed"
+    else:
+        if status == "action_required":
+            label = payments_common_text.get("actionRequired", "Action Required")
+            status_class = "action-required"
+        elif status == "issue_pending":
+            label = payments_common_text.get("issuePending", "Issue Pending")
+            status_class = "issue-pending"
+        elif status == "received":
+            label = payments_common_text.get("received", "Received")
+            status_class = "received"
+
+    return {"label": label, "class": status_class}

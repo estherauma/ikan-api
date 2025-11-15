@@ -179,6 +179,7 @@
                                                         <!-- todo: change -->
                                                         <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
                                                         <th>{{ payments_common_text.paymentDate }}</th>
+                                                        <th>{{ common_text.status }}</th>
                                                         <th>{{ common_text.actions }}</th>
                                                     </tr>
                                                 </thead>
@@ -190,6 +191,9 @@
                                                         <td>{{v_payment.start_date | format_date:selected_language}} - {{v_payment.end_date | format_date:selected_language}}</td>
                                                         <td>{{v_payment.usd_amount}}</td>
                                                         <td>{{v_payment.payment_date | format_date:selected_language}}</td>
+                                                        <td>
+                                                            <span class="{{v_payment.status_class}}">{{v_payment.status_label}}</span>
+                                                        </td>
                                                         <td>
                                                             <a 
                                                                 href="{% url 'wages:wage-details' v_payment.id %}"
@@ -230,6 +234,7 @@
                             <!-- TODO: change  -->
                             <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
                             <th>{{ payments_common_text.paymentDate }}</th>
+                            <th>{{ common_text.status }}</th>
                             <th>{{ common_text.vessel }}</th>
                             <th>{{ common_text.actions }}</th>
                         </tr>
@@ -241,6 +246,9 @@
                             <td>{{payment.start_date | format_date:selected_language}} - {{payment.end_date | format_date:selected_language}}</td>
                             <td>{{payment.usd_amount}}</td>
                             <td>{{payment.payment_date | format_date:selected_language}}</td>
+                            <td>
+                                <span class="{{payment.status_class}}">{{payment.status_label}}</span>
+                            </td>
                             <td>{{payment.vessel.name}}</td>
                             <td>
                                 <a 
@@ -279,6 +287,30 @@
                     border-radius: 20px;
                 }
             }
+        }
+    }
+    th {
+        text-align: center;
+    }
+    td {
+        text-align: center;
+        vertical-align: middle;
+        span {
+            color: #191970;
+            padding: 7px 15px;
+            border-radius: 20px;
+        }
+        span.action-required,
+        span.pending {
+            background: #f0a751;
+        }
+        span.issue-pending {
+            color: white;
+            background: #F0525C;
+        }
+        span.received,
+        span.confirmed {
+            background: #74F080;
         }
     }
 </style>

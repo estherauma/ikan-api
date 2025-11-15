@@ -9,6 +9,7 @@ from wages.utils import (
     file_fields,
     get_workers_on_vessel,
     generate_wage_field_labels,
+    get_status_label,
 )
 from vessels.models import Vessel
 from django.views.generic import DetailView
@@ -32,12 +33,24 @@ class WageListView(LoginRequiredMixin, ListView):
         user = self.request.user
         is_super_user = user.is_superuser
         roles = user.groups.all().values_list("name", flat=True)
+        is_vessel_owner = "vessel_owner" in roles
         has_vessel = Vessel.objects.filter(created_by=user.id).exists()
         wages = Wage.objects.filter(created_by=user.id)
         if is_super_user:
             wages = Wage.objects.all()
         elif "worker" in roles:
             wages = Wage.objects.filter(user=user)
+
+        # Get payments common text
+        prismic_utils = PrismicUtils(self.request)
+        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        context["payments_common_text"] = payments_common_text
+
+        # add status label and class to each wage
+        for wage in wages:
+            status_object = get_status_label(wage.status, payments_common_text, is_vessel_owner)
+            wage.status_class = status_object['class']
+            wage.status_label = status_object['label']
 
         context["wages"] = wages
         context["has_vessel"] = has_vessel
@@ -53,10 +66,6 @@ class WageListView(LoginRequiredMixin, ListView):
             grouped_wages = dict(sorted(grouped_wages.items()))
             context["grouped_wages"] = grouped_wages
 
-        # Get payments common text
-        prismic_utils = PrismicUtils(self.request)
-        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
-
         return context
 
 
@@ -67,12 +76,20 @@ class WageDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        wage = self.get_object()
-        context["wage"] = wage
 
         # Get payments common text
         prismic_utils = PrismicUtils(self.request)
-        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        context["payments_common_text"] = payments_common_text
+
+        user = self.request.user
+        roles = user.groups.all().values_list("name", flat=True)
+        is_vessel_owner = "vessel_owner" in roles
+        wage = self.get_object()
+        status_object = get_status_label(wage.status, payments_common_text, is_vessel_owner)
+        wage.status_class = status_object['class']
+        wage.status_label = status_object['label']
+        context["wage"] = wage
 
         return context
 
