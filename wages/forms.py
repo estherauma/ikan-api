@@ -103,7 +103,8 @@ class AddWageForm(forms.ModelForm):
         end_date = cleaned_data.get("end_date")
         beneficiary_name = cleaned_data.get("beneficiary_name")
         beneficiary_relationship = cleaned_data.get("beneficiary_relationship")
-        beneficiary_contact = cleaned_data.get("beneficiary_contact")
+        # Temporarily disabling beneficiary_contact validation
+        # beneficiary_contact = cleaned_data.get("beneficiary_contact")
 
         if start_date and end_date and end_date <= start_date:
             self.add_error("end_date", "End date must be after start date.")
@@ -120,8 +121,9 @@ class AddWageForm(forms.ModelForm):
         if beneficiary_relationship and beneficiary_relationship != "self":
             if not beneficiary_name:
                 self.add_error("beneficiary_name", "Beneficiary name is required.")
-            if not beneficiary_contact:
-                self.add_error("beneficiary_contact", "Beneficiary contact is required.")
+            # Temporarily disabling beneficiary_contact validation
+            # if not beneficiary_contact:
+            #     self.add_error("beneficiary_contact", "Beneficiary contact is required.")
 
         existing_wage = Wage.objects.filter(
             user=user,
