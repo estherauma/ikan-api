@@ -31,7 +31,6 @@
                     data-bs-target="#select-vessel-modal"
                     class="btn btn-info btn-large waves-effect waves-light"
                 >
-                    <!-- TODO: translate -->
                     {{ payments_common_text.addWagePayments | default:'Add wage payments' }}
                 </button>
                 <!-- Select vessel modal -->
@@ -108,7 +107,7 @@
                     data-bs-target="#tutorial-modal"
                     style="text-decoration: underline; cursor: pointer; color: black;"
                 >
-                    Watch tutorial video
+                    {{ payments_common_text.watchTutorialVideo }}
                 </span>
             </div>
             <!-- Tutorial modal -->
@@ -132,8 +131,7 @@
                                 ></button>
                             </div>
                             <div class="col-12 text-center">
-                                <!-- TODO: translate -->
-                                <h3 class="modal-title">Tracking wage payments</h3>
+                                <h3 class="modal-title">{{ payments_common_text.trackingWagePayments }}</h3>
                             </div>
                         </div>
                         
@@ -155,7 +153,7 @@
         {% if not wages %}
             <div class="row m-5" style="min-height: 50vh;">
                 <div class="col text-center">
-                    <p class="fs-3 ikan-dark-blue-100">{{ payments_common_text.noPayments }}</p>
+                    <p class="fs-3 ikan-dark-blue-100">{{ payments_common_text.noWagePayments }}</p>
                 </div>
             </div>
         {% else %}
@@ -165,7 +163,7 @@
                         <div class="accordion-item">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#accordion-{{forloop.counter}}" aria-expanded="false" aria-controls="collapseOne">
-                                <h4>{{ payments_common_text.paymentsForVessel }} {{ vessel_name | upper }}</h4>
+                                <h4>{{ payments_common_text.wagePaymentsForVessel }} {{ vessel_name | upper }}</h4>
                             </button>
 
                             <div id="accordion-{{forloop.counter}}" class="accordion-collapse collapse" data-bs-parent="#clauseAccordion">

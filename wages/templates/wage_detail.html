@@ -92,39 +92,36 @@
                         {% if wage.payslip %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <!-- TODO: translate -->
-                                    <h5 class="text-muted">Payslip:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.payslip }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <div class="" style="height: auto; width: 60%;">
                                         {% if wage.payslip.name|endsWithPdf %}
-                                            <!-- TODO: translate -->
                                             <!-- <div
                                                 data-bs-toggle="pdf-modal"
                                                 data-pdf-src="{{ wage.payslip.url }}"
-                                                data-pdf-title="Payslip pdf"
+                                                data-pdf-title="{{ payments_common_text.payslipPDF }}"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                📄 View PDF Document
+                                                📄 {{ payments_common_text.viewPDFDocument }}
                                             </div> -->
                                             <a
                                                 href="{{ wage.payslip.url }}" target="_blank"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                📄 View PDF Document
+                                                📄 {{ payments_common_text.viewPDFDocument }}
                                             </a>
                                         {% else %}
-                                            <!-- TODO: translate -->
                                             <img
                                                 src="{{ wage.payslip.url }}"
-                                                alt="Payslip image"
+                                                alt="{{ payments_common_text.payslipImage }}"
                                                 class="img-fluid"
                                                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px; cursor: pointer;"
                                                 data-bs-toggle="image-modal"
                                                 data-image-src="{{ wage.payslip.url }}"
-                                                data-image-title="Payslip"
+                                                data-image-title="{{ payments_common_text.payslipImage }}"
                                             >
                                         {% endif %}
                                     </div>
@@ -136,39 +133,36 @@
                         {% if wage.crew_bank_transfer_receipt %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <!-- TODO: translate -->
-                                    <h5 class="text-muted">Crew bank transfer receipt:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.crewBankTransferReceipt }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <div class="" style="height: auto; width: 60%;">
                                         {% if wage.crew_bank_transfer_receipt.name|endsWithPdf %}
-                                            <!-- TODO: translate -->
                                             <!-- <div
                                                 data-bs-toggle="pdf-modal"
                                                 data-pdf-src="{{ wage.crew_bank_transfer_receipt.url }}"
-                                                data-pdf-title="Crew bank transfer receipt pdf"
+                                                data-pdf-title="{{ payments_common_text.crewBankTransferReceiptPDF }}"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                📄 View PDF Document
+                                                📄 {{ payments_common_text.viewPDFDocument }}
                                             </div> -->
                                             <a
                                                 href="{{ wage.crew_bank_transfer_receipt.url }}" target="_blank"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                📄 View PDF Document
+                                                📄 {{ payments_common_text.viewPDFDocument }}
                                             </a>
                                         {% else %}
-                                            <!-- TODO: translate -->
                                             <img
                                                 src="{{ wage.crew_bank_transfer_receipt.url }}"
-                                                alt="Crew bank transfer receipt image"
+                                                alt="{{ payments_common_text.crewBankTransferReceiptImage }}"
                                                 class="img-fluid"
                                                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px; cursor: pointer;"
                                                 data-bs-toggle="image-modal"
                                                 data-image-src="{{ wage.crew_bank_transfer_receipt.url }}"
-                                                data-image-title="Crew bank transfer receipt image"
+                                                data-image-title="{{ payments_common_text.crewBankTransferReceiptImage }}"
                                             >
                                         {% endif %}
                                     </div>
@@ -180,39 +174,36 @@
                         {% if wage.beneficiary_bank_transfer_receipt %}
                             <div class="row d-flex align-items-center">
                                 <div class="col-12 col-sm-4">
-                                    <!-- TODO: translate -->
-                                    <h5 class="text-muted">Beneficiary bank transfer receipt:</h5>
+                                    <h5 class="text-muted">{{ payments_common_text.beneficiaryBankTransferReceipt }}:</h5>
                                 </div>
                                 <div class="col-12 col-sm-8">
                                     <div class="" style="height: auto; width: 60%;">
                                         {% if wage.beneficiary_bank_transfer_receipt.name|endsWithPdf %}
-                                            <!-- TODO: translate -->
                                             <!-- <div
                                                 data-bs-toggle="pdf-modal"
                                                 data-pdf-src="{{ wage.beneficiary_bank_transfer_receipt.url }}"
-                                                data-pdf-title="Beneficiary bank transfer receipt pdf"
+                                                data-pdf-title="{{ payments_common_text.beneficiaryBankTransferReceiptPDF }}"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                📄 View PDF Document
+                                                📄 {{ payments_common_text.viewPDFDocument }}
                                             </div> -->
                                             <a
                                                 href="{{ wage.beneficiary_bank_transfer_receipt.url }}" target="_blank"
                                                 class="ikan-dark-blue-100 my-3"
                                                 style="cursor: pointer; text-decoration: underline; width: 150%; font-size: 1.1rem;"
                                             >
-                                                📄 View PDF Document
+                                                📄 {{ payments_common_text.viewPDFDocument }}
                                             </a>
                                         {% else %}
-                                            <!-- TODO: translate -->
                                             <img
                                                 src="{{ wage.beneficiary_bank_transfer_receipt.url }}"
-                                                alt="Beneficiary bank transfer receipt image"
+                                                alt="{{ payments_common_text.beneficiaryBankTransferReceiptImage }}"
                                                 class="img-fluid"
                                                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px; cursor: pointer;"
                                                 data-bs-toggle="image-modal"
                                                 data-image-src="{{ wage.beneficiary_bank_transfer_receipt.url }}"
-                                                data-image-title="Beneficiary bank transfer receipt"
+                                                data-image-title="{{ payments_common_text.beneficiaryBankTransferReceiptImage }}"
                                             >
                                         {% endif %}
                                     </div>
