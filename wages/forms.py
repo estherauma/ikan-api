@@ -93,7 +93,9 @@ class AddWageForm(forms.ModelForm):
     def clean_usd_amount(self):
         usd_amount = self.cleaned_data.get("usd_amount")
         if usd_amount is not None and usd_amount <= 0:
-            self.add_error("usd_amount", "Amount cannot be 0 or negative.")
+            self.add_error("usd_amount",
+                           self.payments_common_text.get("amountCannotBe0OrNegative",
+                                                         "Amount cannot be 0 or negative."))
         return usd_amount
 
     def clean(self):
@@ -108,24 +110,24 @@ class AddWageForm(forms.ModelForm):
 
         # TODO: translate date error messages
         if start_date and end_date and end_date <= start_date:
-            self.add_error("end_date", "End date must be after start date.")
-
-        # TODO: Check if payments can be made before/after end and start dates
-        # if payment_date and start_date and payment_date < start_date:
-        #     self.add_error("payment_date", "Payment date cannot be before the start date.")
-
-        # if payment_date and end_date and payment_date > end_date:
-        #     self.add_error("payment_date", "Payment date cannot be after the end date.")
+            self.add_error("end_date", self.payments_common_text.get("endDateMustBeAfterStartDate",
+                                                                     "End date must be after start date."))
 
         # TODO: translate beneficiary relationship error messages
         if not beneficiary_relationship:
-            self.add_error("beneficiary_relationship", "Beneficiary relationship is required.")
+            self.add_error("beneficiary_relationship",
+                           self.payments_common_text.get(
+                               "beneficiaryRelationshipIsRequired",
+                               "Beneficiary relationship is required."))
         if beneficiary_relationship and beneficiary_relationship != "self":
             if not beneficiary_name:
-                self.add_error("beneficiary_name", "Beneficiary name is required.")
+                self.add_error("beneficiary_name", self.payments_common_text.get("beneficiaryNameIsRequired",
+                                                                                 "Beneficiary name is required."))
             # Temporarily disabling beneficiary_contact validation
             # if not beneficiary_contact:
-            #     self.add_error("beneficiary_contact", "Beneficiary contact is required.")
+            #     self.add_error("beneficiary_contact",
+            #                    self.payments_common_text.get("beneficiaryContactIsRequired",
+            #                                                  "Beneficiary contact is required."))
 
         existing_wage = Wage.objects.filter(
             user=user,
@@ -172,7 +174,8 @@ class BaseWageFormSet(BaseModelFormSet):
                 form._errors = {}
 
         if not non_empty_forms:
-            self._non_form_errors = self.error_class(["Please add a payment."])
+            self._non_form_errors = self.error_class(
+                [self.payments_common_text.get("pleaseAddAWagePayment", "Please add a wage payment.")])
         else:
             self.forms = non_empty_forms
 
