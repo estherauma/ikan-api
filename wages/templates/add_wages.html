@@ -293,6 +293,10 @@
                         } else if (errorFields[0].querySelector('textarea')) {
                             errorFields[0].querySelector('textarea').focus();
                         }
+
+                        // Re-enable the submit button
+                        submitButton.disabled = false;
+                        submitButton.innerText = "{{ common_text.submit | default:'Submit' }}";
                     } else {
                         form.style.backgroundColor = "";
                         form.classList.remove("invalid-form");
@@ -486,6 +490,17 @@
             };
         
             validateFormFields();
+
+            const formEl = document.querySelector('form');
+            formEl.addEventListener('submit', function() {
+                // Disable the submit button to prevent multiple submissions
+                submitButton.disabled = true;
+                submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
+            });
+            if (formEl.errors) {
+                submitButton.disabled = false;
+                submitButton.innerText = "{{ common_text.submit | default:'Submit' }}";
+            }
         });
     </script>
 {% endblock %}
