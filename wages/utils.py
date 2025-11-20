@@ -18,8 +18,8 @@ wage_fields = [
     "beneficiary_bank_transfer_receipt",
     "beneficiary_relationship",
     "beneficiary_name",
-    "beneficiary_contact",
     # This field is temporarily disabled/removed from the form
+    # "beneficiary_contact",
     # "beneficiary_contact_platform",
 ]
 
