@@ -77,7 +77,7 @@ def generate_static_contract_clauses(request, contract, vessel_owner=None):
         clause.save()
 
 
-def get_clause_form_questions(request, clause_kind):
+def get_clause_form_questions(request, clause_kind, created_by=None):
     prismic_utils = PrismicUtils(request)
     form_questions = prismic_utils.get_form_questions(clause_kind)
     if not form_questions:
@@ -85,7 +85,8 @@ def get_clause_form_questions(request, clause_kind):
 
     for question in form_questions:
         if clause_kind == 'contract-clauses-parties-requirement-fishers' and question['key'] == 'vessel':
-            vessels = Vessel.objects.filter(created_by=request.user.id).values('app_ref', 'name')
+            generated_by = created_by if created_by else request.user.id
+            vessels = Vessel.objects.filter(created_by=generated_by).values('app_ref', 'name')
             question['options'] = [{'value': v['app_ref'], 'label': v['name']} for v in vessels]
         # elif clause_kind == 'contract-clauses-contract-validity':
         #     if question['key'] == 'validityStartDate' and contract.start_date:
@@ -97,9 +98,9 @@ def get_clause_form_questions(request, clause_kind):
     return form_questions
 
 
-def get_clause_form(request, clause_kind, initial_data=None):
+def get_clause_form(request, clause_kind, initial_data=None, created_by=None):
     prismic_utils = PrismicUtils(request)
-    form_questions = get_clause_form_questions(request, clause_kind)
+    form_questions = get_clause_form_questions(request, clause_kind, created_by=created_by)
     if not form_questions:
         return None
 
@@ -122,7 +123,8 @@ def get_clauses_to_be_added(request, contract):
     for kind in missing_clause_kinds:
         form_questions = get_clause_form_questions(request, kind)
         # get clause form
-        form = get_clause_form(request, kind)
+        created_by = contract.created_by if contract.created_by else request.user.id
+        form = get_clause_form(request=request, clause_kind=kind, created_by=created_by)
 
         # TODO: translate name when language switching is implemented
         if kind == 'contract-clauses-parties-requirement-vessel':
