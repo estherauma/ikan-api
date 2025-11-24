@@ -87,6 +87,11 @@ def get_clause_form_questions(request, clause_kind, created_by=None):
         if clause_kind == 'contract-clauses-parties-requirement-fishers' and question['key'] == 'vessel':
             generated_by = created_by if created_by else request.user.id
             vessels = Vessel.objects.filter(created_by=generated_by).values('app_ref', 'name')
+            if not vessels.exists():
+                question['help_text'] = prismic_utils.common_text.get(
+                    'noVesselsAvailableForSelection',
+                    'No vessels available for selection. Please add a vessel first.'
+                )
             question['options'] = [{'value': v['app_ref'], 'label': v['name']} for v in vessels]
         # elif clause_kind == 'contract-clauses-contract-validity':
         #     if question['key'] == 'validityStartDate' and contract.start_date:
