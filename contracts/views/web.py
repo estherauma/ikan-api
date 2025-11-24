@@ -311,7 +311,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     messages.error(request, 'The specified clause does not exist.')
                     return redirect('contracts-web:contract-details', pk=contract.id)
 
-                form_questions = get_clause_form_questions(request, clause.kind)
+                form_questions = get_clause_form_questions(request=request, clause_kind=clause.kind,
+                                                           created_by=contract.created_by)
                 if clause.kind == 'contract-clauses-attachments' and clause.content:
                     # If clause is attachments, we need to add the existing signatures to the form
                     data = json.loads(clause.content)
@@ -347,7 +348,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         else:  # CLAUSE ADDITION
             clause_kind = request.POST.get('clause_kind')
             page_title = request.POST.get('page_title')
-            form_questions = get_clause_form_questions(request, clause_kind)
+            form_questions = get_clause_form_questions(request=request, clause_kind=clause_kind,
+                                                       created_by=contract.created_by)
             Form = prismic_utils.create_form(form_questions)
             form = Form(request.POST, request.FILES)
             if form.is_valid():

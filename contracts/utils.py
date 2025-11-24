@@ -121,9 +121,9 @@ def get_clauses_to_be_added(request, contract):
     missing_clause_kinds = set(required_clause_kinds) - existing_clause_kinds
     missing_clause_kinds = sorted(missing_clause_kinds, key=lambda x: get_clause_order(x))
     for kind in missing_clause_kinds:
-        form_questions = get_clause_form_questions(request, kind)
-        # get clause form
         created_by = contract.created_by if contract.created_by else request.user.id
+        form_questions = get_clause_form_questions(request=request, clause_kind=kind, created_by=created_by)
+        # get clause form
         form = get_clause_form(request=request, clause_kind=kind, created_by=created_by)
 
         # TODO: translate name when language switching is implemented
