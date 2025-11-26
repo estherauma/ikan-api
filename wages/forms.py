@@ -108,12 +108,10 @@ class AddWageForm(forms.ModelForm):
         # Temporarily disabling beneficiary_contact validation
         # beneficiary_contact = cleaned_data.get("beneficiary_contact")
 
-        # TODO: translate date error messages
         if start_date and end_date and end_date <= start_date:
             self.add_error("end_date", self.payments_common_text.get("endDateMustBeAfterStartDate",
                                                                      "End date must be after start date."))
 
-        # TODO: translate beneficiary relationship error messages
         if not beneficiary_relationship:
             self.add_error("beneficiary_relationship",
                            self.payments_common_text.get(

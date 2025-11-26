@@ -108,7 +108,9 @@ class SelectVesselView(LoginRequiredMixin, View):
             return redirect("wages:add-wages")
 
         else:
-            messages.error(request, "Form is invalid.")
+            prismic_utils = PrismicUtils(self.request)
+            common_text = prismic_utils.common_text
+            messages.error(request, common_text.get("formIsInvalid", "Form is invalid."))
             return redirect("wages:wages-list")
 
 
@@ -200,10 +202,13 @@ class AddWagesView(LoginRequiredMixin, View):
             # Save many-to-many data if applicable
             formset.save_m2m()
 
-            messages.success(request, "Wage payment(s) added successfully.")
+            messages.success(request, payments_common_text.get("wagePaymentsAddedSuccessfully",
+                                                               "Wage payment(s) added successfully."))
             return redirect("wages:wages-list")
         else:
-            messages.error(request, "There were errors in the form. Please correct them and try again.")
+            messages.error(request, payments_common_text.get(
+                "errorsInTheFormCorrectThemAndTryAgain",
+                "There were errors in the form. Please correct them and try again."))
             context["formset"] = formset
             return render(request, self.template_name, context)
 
