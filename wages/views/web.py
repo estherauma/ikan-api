@@ -192,10 +192,10 @@ class AddWagesView(LoginRequiredMixin, View):
                 instance.save()
 
                 # Create wage notification
-                # try:
-                #     self.send_wage_notification(instance, vessel)
-                # except Exception as e:
-                #     print(f"Error sending wage notification: {e}")
+                try:
+                    self.send_wage_notification(instance, vessel)
+                except Exception as e:
+                    print(f"Error sending wage notification: {e}")
 
             # Save many-to-many data if applicable
             formset.save_m2m()
