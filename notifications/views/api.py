@@ -67,7 +67,7 @@ class NotificationDetailApiView(RetrieveUpdateDestroyAPIView):
                 notification, data=request.data, partial=True
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save(update_by=request.user.id)
+            serializer.save(updated_by=request.user.id)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
