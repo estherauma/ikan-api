@@ -4,6 +4,7 @@ from notifications.models import Notification
 from notifications.serializers import NotificationSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from django.utils.dateparse import parse_datetime
 
 
 class NotificationApiListView(ListAPIView):
@@ -59,15 +60,23 @@ class NotificationDetailApiView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         notification = self.get_notification(id)
-        serializer = self.serializer_class(
-            notification, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(update_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > notification.updated_at:
+            serializer = self.serializer_class(
+                notification, data=request.data, partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(update_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes made.'
+            }, status=status.HTTP_200_OK)
 
     def destroy(self, request, id):
         notification = self.get_notification(id)
