@@ -193,14 +193,23 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
         vessel_image = self.get_vessel_image(req=request, id=id)
-        serializer = self.serializer_class(vessel_image, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status.HTTP_202_ACCEPTED)
+        if req_updated_at is None or req_updated_at > vessel_image.updated_at:
+            serializer = self.serializer_class(vessel_image, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(vessel_image).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         vessel_image = self.get_vessel_image(req=request, id=id)
