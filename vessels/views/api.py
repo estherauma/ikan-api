@@ -48,10 +48,15 @@ class VesselApiListView(ListCreateAPIView):
             vessels = Vessel.objects.filter(created_by=request.user.id)
 
         serializer = self.get_serializer(vessels, many=True)
+        list_data = serializer.data
+        # Add vessel images to the response
+        for vessel in list_data:
+            vessel_image = VesselImage.objects.filter(vessel_id=vessel['id'])
+            vessel['vessel_image'] = VesselImageSerializer(vessel_image, many=True).data
         return Response(
             {
                 'status': 'OK',
-                'data': serializer.data,
+                'data': list_data,
             },
             status.HTTP_200_OK
         )
@@ -85,9 +90,16 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
     def retrieve(self, request, id):
         vessel = self.get_vessel(req=request, id=id)
         serializer = self.serializer_class(vessel)
+        # Add vessel image to the response
+        vessel_image = VesselImage.objects.filter(vessel=vessel) if vessel else []
+        images_serializer = VesselImageSerializer(vessel_image, many=True)
+        data = {
+            **serializer.data,
+            'vessel_image': images_serializer.data
+        }
         return Response({
             'status': 'Ok',
-            'data': serializer.data
+            'data': data
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
@@ -98,15 +110,29 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
             serializer = self.serializer_class(vessel, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save(updated_by=request.user.id)
+            # Add vessel image to the response
+            vessel_image = VesselImage.objects.filter(vessel=vessel) if vessel else []
+            images_serializer = VesselImageSerializer(vessel_image, many=True)
+            data = {
+                **serializer.data,
+                'vessel_image': images_serializer.data
+            }
             return Response({
                 'status': 'OK',
-                'data': serializer.data
+                'data': data
             }, status.HTTP_202_ACCEPTED)
         else:
+            # Add vessel image to the update response
+            vessel_image = VesselImage.objects.filter(vessel=vessel) if vessel else []
+            images_serializer = VesselImageSerializer(vessel_image, many=True)
+            vessel_data = {
+                **self.serializer_class(vessel).data,
+                'vessel_image': images_serializer.data
+            }
             return Response({
                 'status': 'OK',
                 'message': 'Record is already up to date, no changes were made.',
-                'data': self.serializer_class(vessel).data,
+                'data': vessel_data
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
