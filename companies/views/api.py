@@ -62,8 +62,8 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
     def update(self, request, id):
         req_updated_at = request.data.get('updated_at', None)
         req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
-        if req_updated_at is None or req_updated_at > self.get_company(req=request, id=id).updated_at:
-            company = self.get_company(req=request, id=id)
+        company = self.get_company(req=request, id=id)
+        if req_updated_at is None or req_updated_at > company.updated_at:
             serializer = self.serializer_class(company, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save(updated_by=request.user.id)
@@ -74,7 +74,8 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
         else:
             return Response({
                 'status': 'OK',
-                'message': 'Record is already up to date, no changes made.'
+                'message': 'Record is already up to date, no changes made.',
+                'data': self.serializer_class(company).data,
             }, status=status.HTTP_200_OK)
 
     def destroy(self, request, id):
