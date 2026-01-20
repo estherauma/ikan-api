@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from companies.models import Company
 from companies.serializers import CompanySerializer
+from django.utils.dateparse import parse_datetime
 
 
 class CompanyApiListView(ListCreateAPIView):
@@ -59,14 +60,22 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
-        company = self.get_company(req=request, id=id)
-        serializer = self.serializer_class(company, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status.HTTP_202_ACCEPTED)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > self.get_company(req=request, id=id).updated_at:
+            company = self.get_company(req=request, id=id)
+            serializer = self.serializer_class(company, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes made.'
+            }, status=status.HTTP_200_OK)
 
     def destroy(self, request, id):
         company = self.get_company(req=request, id=id)
