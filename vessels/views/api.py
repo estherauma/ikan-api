@@ -8,6 +8,7 @@ from vessels.serializers import VesselSerializer, VesselImageSerializer
 from contracts.models import ContractClause
 import json
 from django.db.models import Q
+from django.utils.dateparse import parse_datetime
 
 
 class VesselApiListView(ListCreateAPIView):
@@ -90,14 +91,23 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
         vessel = self.get_vessel(req=request, id=id)
-        serializer = self.serializer_class(vessel, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status.HTTP_202_ACCEPTED)
+        if req_updated_at is None or req_updated_at > vessel.updated_at:
+            serializer = self.serializer_class(vessel, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(vessel).data,
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         vessel = self.get_vessel(req=request, id=id)
