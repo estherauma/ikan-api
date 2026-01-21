@@ -27,6 +27,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from notifications.models import Notification
 from django.db.models import Q
+from django.utils.dateparse import parse_datetime
 
 
 import random
@@ -846,6 +847,34 @@ class UserBeneficiariesApiView(APIView):
                     'data': [],
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            beneficiary = UserBeneficiaries.objects.get(pk=pk)
+        except UserBeneficiaries.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'Beneficiary not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > beneficiary.updated_at:
+            serializer = UserBeneficiarySerializer(beneficiary, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': UserBeneficiarySerializer(beneficiary).data
+            }, status.HTTP_200_OK)
 
 
 class GetOTP(APIView):
