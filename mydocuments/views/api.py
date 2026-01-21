@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from mydocuments.models import Document, Passport
 from mydocuments.serializers import DocumentSerializer, PassportSerializer
+from django.utils.dateparse import parse_datetime
 
 
 class DocumentApiListView(ListCreateAPIView):
@@ -140,13 +141,22 @@ class PassportApiDetailView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         passport = self.get_passport(req=request, id=id)
-        serializer = self.serializer_class(passport, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > passport.updated_at:
+            serializer = self.serializer_class(passport, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(passport).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         passport = self.get_passport(req=request, id=id)
