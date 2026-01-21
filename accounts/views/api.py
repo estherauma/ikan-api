@@ -782,6 +782,34 @@ class UserBankDetailsApiView(APIView):
                     'errors': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+    def put(self, request, pk):
+        try:
+            user_bank = UserBank.objects.get(pk=pk)
+        except UserBank.DoesNotExist:
+            return Response(
+                {
+                    'status': 'FAIL',
+                    'message': 'User bank not found.'
+                },
+                status.HTTP_404_NOT_FOUND
+            )
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > user_bank.updated_at:
+            serializer = UserBankDetailsSerializer(user_bank, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': UserBankDetailsSerializer(user_bank).data
+            }, status=status.HTTP_200_OK)
+
 
 class UserBeneficiariesApiView(APIView):
     """
