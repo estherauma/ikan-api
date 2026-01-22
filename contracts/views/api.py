@@ -14,6 +14,8 @@ from contracts.serializers import (
     ContractSerializer, contractClauseSerializer, ContractDocumentSerializer
 )
 
+from django.utils.dateparse import parse_datetime
+
 
 class ContractListView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -81,14 +83,22 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         contract = self.get_item(id)
-        serializer = self.serializer_class(
-            contract, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status=status.HTTP_202_ACCEPTED)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > contract.updated_at:
+            serializer = self.serializer_class(contract, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(contract).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         pass
@@ -152,14 +162,22 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         contract_clause = self.get_item(id)
-        serializer = self.serializer_class(
-            contract_clause, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status=status.HTTP_202_ACCEPTED)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > contract_clause.updated_at:
+            serializer = self.serializer_class(contract_clause, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(contract_clause).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         pass
@@ -204,14 +222,22 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         contract_document = self.get_item(id)
-        serializer = self.serializer_class(
-            contract_document, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status=status.HTTP_202_ACCEPTED)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > contract_document.updated_at:
+            serializer = self.serializer_class(contract_document, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(contract_document).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         pass
