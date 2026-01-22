@@ -8,6 +8,7 @@ from vessels.serializers import VesselSerializer, VesselImageSerializer
 from contracts.models import ContractClause
 import json
 from django.db.models import Q
+from django.utils.dateparse import parse_datetime
 
 
 class VesselApiListView(ListCreateAPIView):
@@ -47,10 +48,18 @@ class VesselApiListView(ListCreateAPIView):
             vessels = Vessel.objects.filter(created_by=request.user.id)
 
         serializer = self.get_serializer(vessels, many=True)
+        list_data = serializer.data
+
+        # TODO: fix N+1 query issue, multiple db hits
+        # Add vessel images to the response
+        for vessel in list_data:
+            vessel_image = VesselImage.objects.filter(vessel_id=vessel['id'])
+            vessel_image_list = VesselImageSerializer(vessel_image, many=True).data
+            vessel['vessel_image'] = vessel_image_list[0] if vessel_image_list else None
         return Response(
             {
                 'status': 'OK',
-                'data': serializer.data,
+                'data': list_data,
             },
             status.HTTP_200_OK
         )
@@ -84,20 +93,50 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
     def retrieve(self, request, id):
         vessel = self.get_vessel(req=request, id=id)
         serializer = self.serializer_class(vessel)
+        # Add vessel image to the response
+        vessel_image = VesselImage.objects.filter(vessel=vessel) if vessel else []
+        images_serializer = VesselImageSerializer(vessel_image, many=True)
+        data = {
+            **serializer.data,
+            'vessel_image': images_serializer.data
+        }
         return Response({
             'status': 'Ok',
-            'data': serializer.data
+            'data': data
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
         vessel = self.get_vessel(req=request, id=id)
-        serializer = self.serializer_class(vessel, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status.HTTP_202_ACCEPTED)
+        if req_updated_at is None or req_updated_at > vessel.updated_at:
+            serializer = self.serializer_class(vessel, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            # Add vessel image to the response
+            vessel_image = VesselImage.objects.filter(vessel=vessel) if vessel else []
+            images_serializer = VesselImageSerializer(vessel_image, many=True)
+            data = {
+                **serializer.data,
+                'vessel_image': images_serializer.data
+            }
+            return Response({
+                'status': 'OK',
+                'data': data
+            }, status.HTTP_202_ACCEPTED)
+        else:
+            # Add vessel image to the update response
+            vessel_image = VesselImage.objects.filter(vessel=vessel) if vessel else []
+            images_serializer = VesselImageSerializer(vessel_image, many=True)
+            vessel_data = {
+                **self.serializer_class(vessel).data,
+                'vessel_image': images_serializer.data
+            }
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': vessel_data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         vessel = self.get_vessel(req=request, id=id)
@@ -157,14 +196,23 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
         }, status.HTTP_200_OK)
 
     def update(self, request, id):
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
         vessel_image = self.get_vessel_image(req=request, id=id)
-        serializer = self.serializer_class(vessel_image, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user.id)
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status.HTTP_202_ACCEPTED)
+        if req_updated_at is None or req_updated_at > vessel_image.updated_at:
+            serializer = self.serializer_class(vessel_image, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user.id)
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status.HTTP_202_ACCEPTED)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(vessel_image).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         vessel_image = self.get_vessel_image(req=request, id=id)

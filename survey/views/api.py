@@ -8,6 +8,7 @@ from survey.serializers import SurveySerializer, InLineQuestionSerializer, Learn
 from accounts.models import User
 from common.utils import generate_uuid
 from rest_framework.views import APIView
+from django.utils.dateparse import parse_datetime
 
 
 class SurveyApiListView(ListCreateAPIView):
@@ -135,13 +136,22 @@ class InlineQuestionApiDetailView(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, id):
         inline_question = self.get_inline_question(req=request, id=id)
-        serializer = self.serializer_class(inline_question, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({
-            'status': 'OK',
-            'data': serializer.data
-        }, status.HTTP_200_OK)
+        req_updated_at = request.data.get('updated_at', None)
+        req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
+        if req_updated_at is None or req_updated_at > inline_question.updated_at:
+            serializer = self.serializer_class(inline_question, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({
+                'status': 'OK',
+                'data': serializer.data
+            }, status.HTTP_200_OK)
+        else:
+            return Response({
+                'status': 'OK',
+                'message': 'Record is already up to date, no changes were made.',
+                'data': self.serializer_class(inline_question).data
+            }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
         inline_question = self.get_inline_question(req=request, id=id)
@@ -203,10 +213,12 @@ class LearningHubProgressApiView(APIView):
             lb_progress_exists = LearningHubProgress.objects.filter(user=user).exists()
             if lb_progress_exists:
                 lb_progress = LearningHubProgress.objects.get(user=user)
-                lb_progress.progress_data = progress_data
-                lb_progress.updated_by = updated_by
-                lb_progress.updated_at = updated_at
-                lb_progress.save()
+                req_updated_at = parse_datetime(updated_at) if updated_at else None
+                if req_updated_at is None or req_updated_at > lb_progress.updated_at:
+                    lb_progress.progress_data = progress_data
+                    lb_progress.updated_by = updated_by
+                    lb_progress.updated_at = updated_at
+                    lb_progress.save()
             else:
                 lb_progress = LearningHubProgress.objects.create(
                     app_ref=app_ref,
