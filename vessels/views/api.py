@@ -49,10 +49,13 @@ class VesselApiListView(ListCreateAPIView):
 
         serializer = self.get_serializer(vessels, many=True)
         list_data = serializer.data
+
+        # TODO: fix N+1 query issue, multiple db hits
         # Add vessel images to the response
         for vessel in list_data:
             vessel_image = VesselImage.objects.filter(vessel_id=vessel['id'])
-            vessel['vessel_image'] = VesselImageSerializer(vessel_image, many=True).data
+            vessel_image_list = VesselImageSerializer(vessel_image, many=True).data
+            vessel['vessel_image'] = vessel_image_list[0] if vessel_image_list else None
         return Response(
             {
                 'status': 'OK',
