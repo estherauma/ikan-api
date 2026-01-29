@@ -181,7 +181,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         item.content[key] = signed_url
 
                 item.content['clause_kind'] = item.kind
-                item.form = get_clause_form(self.request, item.kind, item.content)
+                created_by = self.object.created_by if self.object.created_by else None
+                item.form = get_clause_form(self.request, item.kind, item.content, created_by)
 
         clauses = sorted(context['clauses'], key=lambda x: x.order)
 
