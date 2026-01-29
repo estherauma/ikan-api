@@ -85,7 +85,7 @@ def get_clause_form_questions(request, clause_kind, created_by=None):
 
     for question in form_questions:
         if clause_kind == 'contract-clauses-parties-requirement-fishers' and question['key'] == 'vessel':
-            generated_by = created_by if created_by else request.user.id
+            generated_by = created_by if created_by else None
             vessels = Vessel.objects.filter(created_by=generated_by).values('app_ref', 'name')
             if not vessels.exists():
                 question['help_text'] = prismic_utils.common_text.get(
@@ -126,16 +126,15 @@ def get_clauses_to_be_added(request, contract):
     missing_clause_kinds = set(required_clause_kinds) - existing_clause_kinds
     missing_clause_kinds = sorted(missing_clause_kinds, key=lambda x: get_clause_order(x))
     for kind in missing_clause_kinds:
-        created_by = contract.created_by if contract.created_by else request.user.id
+        created_by = contract.created_by if contract.created_by else None
         form_questions = get_clause_form_questions(request=request, clause_kind=kind, created_by=created_by)
         # get clause form
         form = get_clause_form(request=request, clause_kind=kind, created_by=created_by)
 
-        # TODO: translate name when language switching is implemented
         if kind == 'contract-clauses-parties-requirement-vessel':
-            name = common_text.get('partiesToThisContractPartyA', 'Parties to this contract - Party A---------')
+            name = common_text.get('partiesToThisContractPartyA', 'Parties to this contract - Party A')
         elif kind == 'contract-clauses-parties-requirement-fishers':
-            name = common_text.get('partiesToThisContractPartyB', 'Parties to this contract - Party B----------')
+            name = common_text.get('partiesToThisContractPartyB', 'Parties to this contract - Party B')
         else:
             clause_data = prismic_utils.get_content_by_property_name(f'{kind}-content')
             name = clause_data['pageTitle'] if clause_data else kind.replace('-', ' ')
