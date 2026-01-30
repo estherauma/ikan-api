@@ -17,8 +17,8 @@ class RegisterSerializer(serializers.Serializer):
     '''Register user serializer '''
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
-    first_name = serializers.CharField(required=False)
-    last_name = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
     profile_image = serializers.URLField(required=False)
 
     def validate_email(self, value):
