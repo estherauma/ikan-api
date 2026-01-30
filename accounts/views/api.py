@@ -181,12 +181,13 @@ def verify_email(request, uidb64, token):
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
             user.is_verified = True
+            user.is_active = True
             user.save()
             notify_admin(user)
-            return redirect('verify-email-success')
+            return redirect('accounts-api:verify-email-success')
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         pass
-    return redirect('verify-email-failure')
+    return redirect('accounts-api:verify-email-failure')
 
 
 def notify_admin(user):
