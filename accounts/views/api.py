@@ -25,7 +25,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from notifications.models import Notification
+# from notifications.models import Notification
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 
@@ -90,7 +90,8 @@ class LoginView(APIView):
                 # check if the phone number is verified
                 if (user.telephone == phone_number and not user.is_telephone_verified) or\
                         (user.mobile == phone_number and not user.is_mobile_verified):
-                    raise AuthenticationFailed("Your phone number is not verified. Please verify it before logging in. OR log in with email.")
+                    raise AuthenticationFailed(
+                        "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
         else:
             return Response({
                 'status': 'FAIL',
@@ -151,6 +152,12 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save(is_active=False)
 
+        # Set default user group/role
+        role = data.get('role', data.get('user_role', 'public'))
+        group = Group.objects.get(name=role) if \
+            Group.objects.filter(name=role).exists() else Group.objects.get_or_create(name='public')[0]
+        user.groups.add(group)
+
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
@@ -181,12 +188,13 @@ def verify_email(request, uidb64, token):
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
             user.is_verified = True
+            user.is_active = True
             user.save()
             notify_admin(user)
-            return redirect('verify-email-success')
+            return redirect('accounts-api:verify-email-success')
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         pass
-    return redirect('verify-email-failure')
+    return redirect('accounts-api:verify-email-failure')
 
 
 def notify_admin(user):
@@ -943,10 +951,10 @@ class VerifyOTP(APIView):
 
                 if num_type == "mobile" or num_type is None:
                     user.is_mobile_verified = True
-                    message = 'Your mobile phone number has been verified successfully.'
+                    # message = 'Your mobile phone number has been verified successfully.'
                 elif num_type == "telephone":
                     user.is_telephone_verified = True
-                    message = 'Your telephone number has been verified successfully.'
+                    # message = 'Your telephone number has been verified successfully.'
                 user.is_verified = True
                 user.is_active = True
                 user.save()

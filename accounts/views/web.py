@@ -328,8 +328,13 @@ class RegisterWebView(View):
             password=form.cleaned_data.get('password1'),
             first_name=form.cleaned_data.get('first_name'),
             last_name=form.cleaned_data.get('last_name'),
+            is_verified=False,
             is_active=False
         )
+        # Set default user group/role
+        group, _ = Group.objects.get_or_create(name='public')
+        user.groups.add(group)
+
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
