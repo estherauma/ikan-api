@@ -151,6 +151,11 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save(is_active=False)
 
+        # Set default user group/role
+        role = data.get('role', data.get('user_role', 'public'))
+        group = Group.objects.get(name=role) if Group.objects.filter(name=role).exists() else Group.objects.get(name='public')
+        user.groups.add(group)
+
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
