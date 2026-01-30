@@ -332,7 +332,7 @@ class RegisterWebView(View):
             is_active=False
         )
         # Set default user group/role
-        group = Group.objects.get(name='public')
+        group, _ = Group.objects.get_or_create(name='public')
         user.groups.add(group)
 
         # Send verification email

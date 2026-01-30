@@ -155,7 +155,7 @@ class RegisterView(APIView):
         # Set default user group/role
         role = data.get('role', data.get('user_role', 'public'))
         group = Group.objects.get(name=role) if \
-            Group.objects.filter(name=role).exists() else Group.objects.get(name='public')
+            Group.objects.filter(name=role).exists() else Group.objects.get_or_create(name='public')[0]
         user.groups.add(group)
 
         # Send verification email
