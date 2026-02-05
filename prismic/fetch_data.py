@@ -221,12 +221,24 @@ class PrismicAPI():
                 aggregated_data = {**aggregated_data, **content}
 
             if item['type'] == 'page':
-                agg_page_res = agg_page_text(item['data']['body'])
+                item_body = item['data']['body'] if 'body' in item['data'] and item['data']['body'] else None
+                page_media = {}
+                additional_text = None
+                if item_body:
+                    for i in item_body:
+                        if i['slice_type'] == 'media':
+                            if i['primary']['media_key'] and i['primary']['media_value']:
+                                media_key = i['primary']['media_key']
+                                media_value = aggregate_media_data(i['primary']['media_value'])
+                                page_media[media_key] = media_value
+                        if i['slice_type'] == 'additional_text':
+                            additional_text = agg_page_text([i])
                 page_data = {
                     'page_name': item['uid'],
                     'page_title': item['data']['page_title'],
                     'last_updated': item['last_publication_date'],
-                    'additional_text': agg_page_res
+                    'additional_text': additional_text,
+                    'page_media': page_media,
                 }
                 aggregated_data[item['uid']] = page_data
 
