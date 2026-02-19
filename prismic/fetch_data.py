@@ -834,8 +834,8 @@ def format_case_study(page, sub_chapter=None, item=None):
         'subChapter': sub_chapter,
         'pageIcon': aggregate_media_data(page['data'].get('page_icon'))
         if page['data'].get('page_icon') else None,
-        'analyticsEventName': item['data'].get('analytics_event_name')
-        if item['data'].get('analytics_event_name') else None,
+        'analyticsEventName': page['data'].get('analytics_event_name')
+        if page['data'].get('analytics_event_name') else None,
     }
 
     if 'body' in page['data'] and page['data']['body']:
