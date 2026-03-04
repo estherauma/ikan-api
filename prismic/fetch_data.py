@@ -468,7 +468,11 @@ def aggregate_content(data):
                 for el in page_content:
                     slice_data = format_common_slice_data(el, data, item)
                     # Add subtopic id to slice data if slice is a learning hub subchapter and subtopic id exists
-                    if item['type'] == 'learning_hub_subchapter' and el['primary'].get('subtopic_id'):
+                    if (
+                            item['type'] == 'learning_hub_subchapter'
+                            and el['primary'].get('subtopic_id')
+                            and isinstance(slice_data, dict)
+                    ):
                         slice_data['subtopicId'] = el['primary'].get('subtopic_id')
 
                     page_data['pageContent'].append(slice_data)
