@@ -216,7 +216,8 @@ class PrismicAPI():
                 aggregated_data[item['uid']] = page_data
 
             if item['type'] == 'create_content_area' or\
-                    item['type'] == 'sub_chapter_list':
+                    item['type'] == 'sub_chapter_list' or\
+                    item['type'] == 'learning_hub_subchapter_list':
                 content = aggregate_content(data['results'])
                 aggregated_data = {**aggregated_data, **content}
 
@@ -414,7 +415,9 @@ def aggregate_content(data):
     for item in data:
         if item['type'] == 'message' or\
                 item['type'] == 'create_content_area' or\
-                item['type'] == 'sub_chapter_list':
+                item['type'] == 'sub_chapter_list' or\
+                item['type'] == 'learning_hub_subchapter_list' or\
+                item['type'] == 'learning_hub_subchapter':
             page_data = {
                 'id': item['id'],
                 'page_name': item['uid'],
