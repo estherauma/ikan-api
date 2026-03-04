@@ -440,12 +440,34 @@ def aggregate_content(data):
 
             # Add userRole to message page_data
             if item['type'] == 'message':
-                page_data['userRole'] = item['data'].get('user_role') if item['data'].get('user_role') else None,
+                page_data['userRole'] = item['data'].get('user_role') if item['data'].get('user_role') else None
+
+            # Add chapter number to learning hub subchapter list page_data
+            if item['type'] == 'learning_hub_subchapter_list':
+                page_data['chapter'] = item['data'].get('chapter') if item['data'].get('chapter') else None
+
+            # Add summary and subtopics to learning hub subchapter page_data
+            if item['type'] == 'learning_hub_subchapter':
+                page_data['subchapter'] = item['data'].get('subchapter') if item['data'].get('subchapter') else None
+                page_data['subchapterSummary'] = aggregate_text_data(item['data'].get('subchapter_summary')) if \
+                    item['data'].get('subchapter_summary') else None
+                subtopics = []
+                if item['data'].get('subchapter_subtopics'):
+                    for subtopic in item['data']['subchapter_subtopics']:
+                        subtopics.append({
+                            'id': subtopic.get('subtopic_id'),
+                            'title': subtopic.get('subtopic_title'),
+                        })
+                page_data['subchapterSubtopics'] = subtopics
 
             if 'body' in item['data'] and item['data']['body']:
                 page_content = item['data']['body']
                 for el in page_content:
                     slice_data = format_common_slice_data(el, data, item)
+                    # Add subtopic id to slice data if slice is a learning hub subchapter and subtopic id exists
+                    if item['type'] == 'learning_hub_subchapter' and el['primary'].get('subtopic_id'):
+                        slice_data['subtopicId'] = el['primary'].get('subtopic_id')
+
                     page_data['pageContent'].append(slice_data)
             if item['uid'] is not None:
                 agg_data[item['uid']] = page_data
