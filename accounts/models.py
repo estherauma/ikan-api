@@ -91,7 +91,10 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
         return name_on_contract
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name} -- {self.email}'
+        if self.name_on_contract:
+            return f'{self.name_on_contract} ({self.email})'
+
+        return f'{self.first_name} {self.last_name} ({self.email})'
 
     def clean(self):
         super().clean()
