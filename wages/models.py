@@ -58,5 +58,9 @@ class Wage(AuditableModel):
         return None
 
     def __str__(self):
-        return f'{self.user.first_name} {self.user.last_name}, {self.start_date.strftime("%b %d, %Y")} - \
-            {self.end_date.strftime("%b %d, %Y")}'
+        if self.user.name_on_contract:
+            return f'{self.user.name_on_contract} ({self.start_date.strftime("%b %d, %Y")} - \
+                {self.end_date.strftime("%b %d, %Y")})'
+
+        return f'{self.user.first_name} {self.user.last_name} ({self.start_date.strftime("%b %d, %Y")} - \
+            {self.end_date.strftime("%b %d, %Y")})'
