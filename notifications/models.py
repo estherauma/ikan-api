@@ -16,4 +16,6 @@ class Notification(AuditableModel):
     metadata = models.JSONField(default=dict, null=True, blank=True)
 
     def __str__(self):
+        if self.user.name_on_contract:
+            return f"Notification for {self.user.name_on_contract} - {self.title}"
         return f"Notification for {self.user.first_name} {self.user.last_name} - {self.title}"

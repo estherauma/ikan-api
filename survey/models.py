@@ -61,4 +61,6 @@ class LearningHubProgress(AuditableModel):
     progress_data = models.JSONField(default=list)
 
     def __str__(self):
+        if self.user.name_on_contract:
+            return f'Learning hub progress data for {self.user.name_on_contract}.'
         return f'Learning hub progress data for {self.user.first_name} {self.user.last_name}.'

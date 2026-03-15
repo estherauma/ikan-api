@@ -17,6 +17,8 @@ class Document(AuditableModel):
     is_essential = models.BooleanField(default=False)
 
     def __str__(self):
+        if self.user.name_on_contract:
+            return f'{self.user.name_on_contract} - {self.file_name}'
         return f'{self.user.first_name} {self.user.last_name} - {self.file_name}'
 
 

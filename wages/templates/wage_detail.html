@@ -13,7 +13,11 @@
             <div class="card">
                 <div class="card-header bg-light text-dark">
                     <h3 class="card-title text-center">
-                        {{wage.user.first_name}} {{wage.user.last_name}} {{payments_common_text.paymentDetails}} ({{wage.start_date | format_date:selected_language}} - {{wage.end_date | format_date:selected_language}})
+                        {% if wage.user.name_on_contract %}
+                            {{ wage.user.name_on_contract }} ({{wage.start_date | format_date:selected_language}} - {{wage.end_date | format_date:selected_language}})
+                        {% else %}
+                            {{wage.user.first_name}} {{wage.user.last_name}} ({{wage.start_date | format_date:selected_language}} - {{wage.end_date | format_date:selected_language}})
+                        {% endif %}
                     </h3>
                 </div>
                 <div class="card-body">
