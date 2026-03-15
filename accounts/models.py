@@ -82,6 +82,14 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     def is_admin(self):
         return self.is_superuser
 
+    @property
+    def name_on_contract(self):
+        name_on_contract = None
+        if self.groups.filter(name='worker').exists():
+            name_on_contract = self.user_contract_access.select_related('contract') \
+                .values_list('contract__name', flat=True).first()
+        return name_on_contract
+
     def __str__(self):
         return f'{self.first_name} {self.last_name} -- {self.email}'
 
