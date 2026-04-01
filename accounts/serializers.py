@@ -117,6 +117,7 @@ class UserBeneficiarySerializer(serializers.ModelSerializer):
 class OTPGenerateSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=15, required=True)
     user_id = serializers.CharField(max_length=36)
+    locale = serializers.CharField(max_length=5, default='en')
 
     def validate_phone_number(self, value):
         if not value.startswith('+'):
@@ -131,8 +132,9 @@ class OTPGenerateSerializer(serializers.Serializer):
     def start_otp_process(self):
         try:
             phone_number = self.validated_data['phone_number']
+            locale = self.validated_data.get('locale', 'en')
             otp_service = OTPVerification()
-            response = otp_service.send_otp(phone_number)
+            response = otp_service.send_otp(phone_number, locale)
             return response
         except Exception as e:
             return {"error": f"An unexpected error occurred: {str(e)}"}
