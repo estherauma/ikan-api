@@ -70,25 +70,29 @@
                     </div>
                     <hr class="m-0">
                     
-                    <div class="row m-2">
-                        <div class="col-sm-6">
-                            <h5 class="m-0">{{ form_labels.telephone }}</h5>
+                    {% if user.telephone %}
+                        <div class="row m-2">
+                            <div class="col-sm-6">
+                                <h5 class="m-0">{{ form_labels.telephone }}</h5>
+                            </div>
+                            <div class="col-sm-6 text-secondary">
+                                <p class="m-0 mt-1">{{ user.telephone }}</p>
+                            </div>
                         </div>
-                        <div class="col-sm-6 text-secondary">
-                            <p class="m-0 mt-1">{{ user.telephone }}</p>
-                        </div>
-                    </div>
-                    <hr class="m-0">
+                        <hr class="m-0">
+                    {% endif %}
                     
-                    <div class="row m-2">
-                        <div class="col-sm-6">
-                            <h5 class="m-0">{{ form_labels.mobile }}</h5>
+                    {% if user.mobile %}
+                        <div class="row m-2">
+                            <div class="col-sm-6">
+                                <h5 class="m-0">{{ form_labels.mobile }}</h5>
+                            </div>
+                            <div class="col-sm-6 text-secondary">
+                                <p class="m-0 mt-1">{{ user.mobile }}</p>
+                            </div>
                         </div>
-                        <div class="col-sm-6 text-secondary">
-                            <p class="m-0 mt-1">{{ user.mobile }}</p>
-                        </div>
-                    </div>
-                    <hr class="m-0">
+                        <hr class="m-0">
+                    {% endif %}
                     
                     <div class="row m-2">
                         <div class="col-sm-6">
