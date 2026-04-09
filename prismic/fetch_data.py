@@ -633,6 +633,11 @@ def add_spans(text_data):
                     text_to_bold = paragraph[span['start']:span['end']]
                     bold_text = f'<strong>{text_to_bold}</strong>'
                     formated_text = paragraph[:span['start']] + bold_text + paragraph[span['end']:]
+                elif span['type'] == 'em':
+                    paragraph = formated_text
+                    text_to_italicize = paragraph[span['start']:span['end']]
+                    italicized_text = f'<em>{text_to_italicize}</em>'
+                    formated_text = paragraph[:span['start']] + italicized_text + paragraph[span['end']:]
         elif len(text_data['spans']) > 1:
             prev_start_idx = 0
             prev_end_idx = 0
@@ -659,6 +664,13 @@ def add_spans(text_data):
                     text_to_bold = paragraph[start_idx:end_idx]
                     bold_text = f'<strong>{text_to_bold}</strong>'
                     formated_text = paragraph[:start_idx] + bold_text + paragraph[end_idx:]
+                    prev_start_idx = start_idx
+                    prev_end_idx = end_idx
+                elif span['type'] == 'em':
+                    paragraph = formated_text
+                    text_to_italicize = paragraph[start_idx:end_idx]
+                    italicized_text = f'<em>{text_to_italicize}</em>'
+                    formated_text = paragraph[:start_idx] + italicized_text + paragraph[end_idx:]
                     prev_start_idx = start_idx
                     prev_end_idx = end_idx
     return formated_text
