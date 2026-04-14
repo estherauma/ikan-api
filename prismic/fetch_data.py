@@ -705,6 +705,9 @@ def aggregate_question_options(data, doc_data=None):
         if len(option['options']) == 0:
             pass
         elif len(option['options']) > 1:
+            # Here options are listed in a single field as separate paragraphs on prismic
+            # and then split into separate options in the backend.
+            # This is because options don't have follow up questions
             for item in option['options']:
                 list_of_options.append({
                     'option': item['text'],
@@ -713,6 +716,7 @@ def aggregate_question_options(data, doc_data=None):
                     'followUpQuestion': None,
                 })
         else:
+            # Here each option is a separate field on prismic as it has follow up question related fields
             list_of_options.append({
                 'option': option['options'][0]['text'] if option.get('options') else None,
                 'description': add_spans(option['option_description'][0]) if option.get('option_description')
