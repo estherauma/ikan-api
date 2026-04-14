@@ -760,7 +760,7 @@ def get_second_follow_up_question(option_text, follow_up_question_key, doc_data)
 
     qtn = next((item for item in doc_data if item['slice_type'] == 'second_followup_question' and
                 item['primary']['follow_up_question_key'] == follow_up_question_key and
-                item['primary']['follow_up_question_option'] == option_text), None)
+                item['primary']['follow_up_question_option'].strip() == option_text.strip()), None)
     if qtn:
         second_followup_qtn_options = []
         if qtn['primary'].get('second_follow_up_question_options'):
