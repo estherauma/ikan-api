@@ -466,7 +466,7 @@ def aggregate_content(data):
             if 'body' in item['data'] and item['data']['body']:
                 page_content = item['data']['body']
                 for el in page_content:
-                    slice_data = format_common_slice_data(el, data, item)
+                    slice_data = format_common_slice_data(item=el, pagesList=data, page=item, page_content=page_content)
                     # Add subtopic id to slice data if slice is a learning hub subchapter and subtopic id exists
                     if (
                             item['type'] == 'learning_hub_subchapter'
@@ -699,7 +699,7 @@ def aggregate_highlight_link(data):
     return html_link
 
 
-def aggregate_question_options(data, doc_data=None):
+def aggregate_question_options(data, page_content=None):
     list_of_options = []
     for option in data:
         if len(option['options']) == 0:
@@ -732,26 +732,30 @@ def aggregate_question_options(data, doc_data=None):
                     'options': get_follow_up_question_options(
                         option['follow_up_question_options'],
                         option['follow_up_question_key'] if option.get('follow_up_question_key') else None,
-                        doc_data
+                        page_content
                     ) if option.get('follow_up_question_options') else None,
                 } if option.get('follow_up_question') else None,
             })
     return list_of_options
 
 
-def get_follow_up_question_options(options_list, follow_up_question_key, doc_data):
+def get_follow_up_question_options(options_list, follow_up_question_key, page_content):
     list_of_options = []
     for option in options_list:
         list_of_options.append({
             'option': option['text'],
             # TODO: add value after getting solution for translations
             'description': None,
-            'secondFollowUpQuestion': get_second_follow_up_question(option['text'], follow_up_question_key, doc_data)
+            'secondFollowUpQuestion': get_second_follow_up_question(
+                option['text'], follow_up_question_key, page_content)
         })
     return list_of_options
 
 
 def get_second_follow_up_question(option_text, follow_up_question_key, doc_data):
+    if doc_data is None:
+        return None
+
     qtn = next((item for item in doc_data if item['slice_type'] == 'second_followup_question' and
                 item['primary']['follow_up_question_key'] == follow_up_question_key and
                 item['primary']['follow_up_question_option'] == option_text), None)
@@ -927,7 +931,7 @@ def format_case_study(page, sub_chapter=None, item=None):
     return case_study
 
 
-def format_common_slice_data(item, pagesList=None, page=None):
+def format_common_slice_data(item, pagesList=None, page=None, page_content=None):
     try:
         if item['slice_type'] == 'video_area':
             return {
@@ -1010,7 +1014,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
-                'options': aggregate_question_options(item['items'], item) if item.get('items') else None,
+                'options': aggregate_question_options(item['items'], page_content) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':
             layout = item['primary']['layout'].lower() if item['primary'].get('layout') else 'grid'
