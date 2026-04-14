@@ -1016,8 +1016,6 @@ def format_common_slice_data(item, pagesList=None, page=None, page_content=None)
                 'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
                 'questionAudio': aggregate_media_data(item['primary']['question_audio']) if item['primary'].get(
                     'question_audio') else None,
-                'questionLink': item['primary']['question_link']['url'] if item['primary']['question_link']
-                and item['primary']['question_link']['link_type'] == 'Web' else None,
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
