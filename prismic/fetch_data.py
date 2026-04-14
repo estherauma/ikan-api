@@ -466,7 +466,7 @@ def aggregate_content(data):
             if 'body' in item['data'] and item['data']['body']:
                 page_content = item['data']['body']
                 for el in page_content:
-                    slice_data = format_common_slice_data(el, data, item)
+                    slice_data = format_common_slice_data(item=el, pagesList=data, page=item, page_content=page_content)
                     # Add subtopic id to slice data if slice is a learning hub subchapter and subtopic id exists
                     if (
                             item['type'] == 'learning_hub_subchapter'
@@ -699,12 +699,15 @@ def aggregate_highlight_link(data):
     return html_link
 
 
-def aggregate_question_options(data):
+def aggregate_question_options(data, page_content=None):
     list_of_options = []
     for option in data:
         if len(option['options']) == 0:
             pass
         elif len(option['options']) > 1:
+            # Here options are listed in a single field as separate paragraphs on prismic
+            # and then split into separate options in the backend.
+            # This is because options don't have follow up questions
             for item in option['options']:
                 list_of_options.append({
                     'option': item['text'],
@@ -713,6 +716,7 @@ def aggregate_question_options(data):
                     'followUpQuestion': None,
                 })
         else:
+            # Here each option is a separate field on prismic as it has follow up question related fields
             list_of_options.append({
                 'option': option['options'][0]['text'] if option.get('options') else None,
                 'description': add_spans(option['option_description'][0]) if option.get('option_description')
@@ -722,25 +726,66 @@ def aggregate_question_options(data):
                     'question': option['follow_up_question'] if option.get('follow_up_question') else None,
                     'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
                     else None,
+                    'questionLink': option['follow_up_question_link']['url'] if option.get('follow_up_question_link')
+                    and option['follow_up_question_link']['link_type'] == 'Web' else None,
                     'isRequired': option['is_required'] if option.get('is_required') else None,
                     'displayquestion': option['display_followup_question'] if option.get('display_followup_question')
                     else False,
-                    'options': get_follow_up_question_options(option['follow_up_question_options']) if
-                    option.get('follow_up_question_options') else None,
+                    'options': get_follow_up_question_options(
+                        option['follow_up_question_options'],
+                        option['follow_up_question_key'] if option.get('follow_up_question_key') else None,
+                        page_content
+                    ) if option.get('follow_up_question_options') else None,
                 } if option.get('follow_up_question') else None,
             })
     return list_of_options
 
 
-def get_follow_up_question_options(options_list):
+def get_follow_up_question_options(options_list, follow_up_question_key, page_content):
     list_of_options = []
     for option in options_list:
         list_of_options.append({
             'option': option['text'],
             # TODO: add value after getting solution for translations
-            'description': None
+            'description': None,
+            'secondFollowUpQuestion': get_second_follow_up_question(
+                option['text'], follow_up_question_key, page_content)
         })
     return list_of_options
+
+
+def get_second_follow_up_question(option_text, follow_up_question_key, doc_data):
+    if doc_data is None:
+        return None
+
+    qtn = next((item for item in doc_data if item['slice_type'] == 'second_followup_question' and
+                item['primary']['follow_up_question_key'] == follow_up_question_key and
+                item['primary']['follow_up_question_option'].strip() == option_text.strip()), None)
+    if qtn:
+        second_followup_qtn_options = []
+        if qtn['primary'].get('second_follow_up_question_options'):
+            for option in qtn['primary']['second_follow_up_question_options']:
+                second_followup_qtn_options.append({
+                    'option': option['text'] if option.get('text') else None,
+                    'description': None,
+                })
+        return {
+            'key': qtn['primary']['second_follow_up_question_key'] if
+            qtn['primary'].get('second_follow_up_question_key') else None,
+            'question': qtn['primary']['second_follow_up_question'] if
+            qtn['primary'].get('second_follow_up_question') else None,
+            'questionType': qtn['primary']['second_follow_up_question_type'] if
+            qtn['primary'].get('second_follow_up_question_type') else None,
+            'questionLink': qtn['primary']['second_follow_up_question_link']['url'] if
+            qtn['primary'].get('second_follow_up_question_link')
+            and qtn['primary']['second_follow_up_question_link']['link_type'] == 'Web' else None,
+            'isRequired': qtn['primary']['is_required'] if
+            qtn['primary'].get('is_required') else None,
+            'displayquestion': qtn['primary']['display_second_followup_question'] if
+            qtn['primary'].get('display_second_followup_question') else False,
+            'options': second_followup_qtn_options
+        }
+    return None
 
 
 def aggregate_document_link(data):
@@ -891,7 +936,7 @@ def format_case_study(page, sub_chapter=None, item=None):
     return case_study
 
 
-def format_common_slice_data(item, pagesList=None, page=None):
+def format_common_slice_data(item, pagesList=None, page=None, page_content=None):
     try:
         if item['slice_type'] == 'video_area':
             return {
@@ -971,10 +1016,12 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
                 'questionAudio': aggregate_media_data(item['primary']['question_audio']) if item['primary'].get(
                     'question_audio') else None,
+                'questionLink': item['primary']['question_link']['url'] if item['primary']['question_link']
+                and item['primary']['question_link']['link_type'] == 'Web' else None,
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
-                'options': aggregate_question_options(item['items']) if item.get('items') else None,
+                'options': aggregate_question_options(item['items'], page_content) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':
             layout = item['primary']['layout'].lower() if item['primary'].get('layout') else 'grid'
