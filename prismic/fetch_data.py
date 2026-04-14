@@ -699,7 +699,7 @@ def aggregate_highlight_link(data):
     return html_link
 
 
-def aggregate_question_options(data):
+def aggregate_question_options(data, doc_data=None):
     list_of_options = []
     for option in data:
         if len(option['options']) == 0:
@@ -725,22 +725,54 @@ def aggregate_question_options(data):
                     'isRequired': option['is_required'] if option.get('is_required') else None,
                     'displayquestion': option['display_followup_question'] if option.get('display_followup_question')
                     else False,
-                    'options': get_follow_up_question_options(option['follow_up_question_options']) if
-                    option.get('follow_up_question_options') else None,
+                    'options': get_follow_up_question_options(
+                        option['follow_up_question_options'],
+                        option['follow_up_question_key'] if option.get('follow_up_question_key') else None,
+                        doc_data
+                    ) if option.get('follow_up_question_options') else None,
                 } if option.get('follow_up_question') else None,
             })
     return list_of_options
 
 
-def get_follow_up_question_options(options_list):
+def get_follow_up_question_options(options_list, follow_up_question_key, doc_data):
     list_of_options = []
     for option in options_list:
         list_of_options.append({
             'option': option['text'],
             # TODO: add value after getting solution for translations
-            'description': None
+            'description': None,
+            'secondFollowUpQuestion': get_second_follow_up_question(option['text'], follow_up_question_key, doc_data)
         })
     return list_of_options
+
+
+def get_second_follow_up_question(option_text, follow_up_question_key, doc_data):
+    qtn = next((item for item in doc_data if item['slice_type'] == 'second_followup_question' and
+                item['primary']['follow_up_question_key'] == follow_up_question_key and
+                item['primary']['follow_up_question_option'] == option_text), None)
+    if qtn:
+        second_followup_qtn_options = []
+        if qtn['primary'].get('second_follow_up_question_options'):
+            for option in qtn['primary']['second_follow_up_question_options']:
+                second_followup_qtn_options.append({
+                    'option': option['text'] if option.get('text') else None,
+                    'description': None,
+                })
+        return {
+            'key': qtn['primary']['second_follow_up_question_key'] if
+            qtn['primary'].get('second_follow_up_question_key') else None,
+            'question': qtn['primary']['second_follow_up_question'] if
+            qtn['primary'].get('second_follow_up_question') else None,
+            'questionType': qtn['primary']['second_follow_up_question_type'] if
+            qtn['primary'].get('second_follow_up_question_type') else None,
+            'isRequired': qtn['primary']['is_second_follow_up_required'] if
+            qtn['primary'].get('is_second_follow_up_required') else None,
+            'displayquestion': qtn['primary']['display_second_followup_question'] if
+            qtn['primary'].get('display_second_followup_question') else False,
+            'options': second_followup_qtn_options
+        }
+    return None
 
 
 def aggregate_document_link(data):
@@ -974,7 +1006,7 @@ def format_common_slice_data(item, pagesList=None, page=None):
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
-                'options': aggregate_question_options(item['items']) if item.get('items') else None,
+                'options': aggregate_question_options(item['items'], item) if item.get('items') else None,
             }
         elif item['slice_type'] == 'list':
             layout = item['primary']['layout'].lower() if item['primary'].get('layout') else 'grid'
