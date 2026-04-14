@@ -779,8 +779,8 @@ def get_second_follow_up_question(option_text, follow_up_question_key, doc_data)
             'questionLink': qtn['primary']['second_follow_up_question_link']['url'] if
             qtn['primary'].get('second_follow_up_question_link')
             and qtn['primary']['second_follow_up_question_link']['link_type'] == 'Web' else None,
-            'isRequired': qtn['primary']['is_second_follow_up_required'] if
-            qtn['primary'].get('is_second_follow_up_required') else None,
+            'isRequired': qtn['primary']['is_required'] if
+            qtn['primary'].get('is_required') else None,
             'displayquestion': qtn['primary']['display_second_followup_question'] if
             qtn['primary'].get('display_second_followup_question') else False,
             'options': second_followup_qtn_options
