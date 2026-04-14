@@ -726,6 +726,8 @@ def aggregate_question_options(data, page_content=None):
                     'question': option['follow_up_question'] if option.get('follow_up_question') else None,
                     'questionType': option['follow_up_question_type'] if option.get('follow_up_question_type')
                     else None,
+                    'questionLink': option['follow_up_question_link']['url'] if option.get('follow_up_question_link')
+                    and option['follow_up_question_link']['link_type'] == 'Web' else None,
                     'isRequired': option['is_required'] if option.get('is_required') else None,
                     'displayquestion': option['display_followup_question'] if option.get('display_followup_question')
                     else False,
@@ -774,6 +776,9 @@ def get_second_follow_up_question(option_text, follow_up_question_key, doc_data)
             qtn['primary'].get('second_follow_up_question') else None,
             'questionType': qtn['primary']['second_follow_up_question_type'] if
             qtn['primary'].get('second_follow_up_question_type') else None,
+            'questionLink': qtn['primary']['second_follow_up_question_link']['url'] if
+            qtn['primary'].get('second_follow_up_question_link')
+            and qtn['primary']['second_follow_up_question_link']['link_type'] == 'Web' else None,
             'isRequired': qtn['primary']['is_second_follow_up_required'] if
             qtn['primary'].get('is_second_follow_up_required') else None,
             'displayquestion': qtn['primary']['display_second_followup_question'] if
@@ -1011,6 +1016,8 @@ def format_common_slice_data(item, pagesList=None, page=None, page_content=None)
                 'key': item['primary']['question_key'] if item['primary'].get('question_key') else None,
                 'questionAudio': aggregate_media_data(item['primary']['question_audio']) if item['primary'].get(
                     'question_audio') else None,
+                'questionLink': item['primary']['question_link']['url'] if item['primary']['question_link']
+                and item['primary']['question_link']['link_type'] == 'Web' else None,
                 'isRequired': item['primary']['is_required'] if item['primary'].get('is_required') else None,
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
