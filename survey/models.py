@@ -19,10 +19,17 @@ class Survey(AuditableModel):
     question_type = models.TextField(max_length=255, null=True, blank=False)
     question_text = models.TextField(max_length=255, null=False, blank=False)
     question_response = models.TextField(null=False, blank=False)
+    other_input = models.TextField(max_length=255, null=True, blank=True)
     follow_up_question_key = models.CharField(max_length=255, null=True, blank=True)
     follow_up_question_type = models.TextField(max_length=255, null=True, blank=True)
     follow_up_question_text = models.TextField(max_length=255, null=True, blank=True)
     follow_up_question_response = models.TextField(null=True, blank=True)
+    follow_up_question_other_input = models.TextField(max_length=255, null=True, blank=True)
+    second_follow_up_question_key = models.CharField(max_length=255, null=True, blank=True)
+    second_follow_up_question_type = models.TextField(max_length=255, null=True, blank=True)
+    second_follow_up_question_text = models.TextField(max_length=255, null=True, blank=True)
+    second_follow_up_question_response = models.TextField(null=True, blank=True)
+    second_follow_up_question_other_input = models.TextField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.question_text
@@ -46,10 +53,17 @@ class InlineQuestion(AuditableModel):
     question_text = models.TextField(max_length=255, null=False, blank=False)
     question_response = models.TextField(null=False, blank=False)
     sub_chapter = models.CharField(max_length=255, null=False, blank=False)
+    other_input = models.TextField(max_length=255, null=True, blank=True)
     follow_up_question_key = models.CharField(max_length=255, null=True, blank=True)
     follow_up_question_type = models.TextField(max_length=255, null=True, blank=True)
     follow_up_question_text = models.TextField(max_length=255, null=True, blank=True)
     follow_up_question_response = models.TextField(null=True, blank=True)
+    follow_up_question_other_input = models.TextField(max_length=255, null=True, blank=True)
+    second_follow_up_question_key = models.CharField(max_length=255, null=True, blank=True)
+    second_follow_up_question_type = models.TextField(max_length=255, null=True, blank=True)
+    second_follow_up_question_text = models.TextField(max_length=255, null=True, blank=True)
+    second_follow_up_question_response = models.TextField(null=True, blank=True)
+    second_follow_up_question_other_input = models.TextField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.question_text
