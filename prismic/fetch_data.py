@@ -710,7 +710,7 @@ def aggregate_question_options(data, page_content=None):
             # This is because options don't have follow up questions
             for item in option['options']:
                 list_of_options.append({
-                    'option': item['text'],
+                    'option': item['text'].strip() if item.get('text') else None,
                     # TODO: add value after getting solution for translations
                     'description': None,
                     'followUpQuestion': None,
@@ -718,7 +718,7 @@ def aggregate_question_options(data, page_content=None):
         else:
             # Here each option is a separate field on prismic as it has follow up question related fields
             list_of_options.append({
-                'option': option['options'][0]['text'] if option.get('options') else None,
+                'option': option['options'][0]['text'].strip() if option.get('options') else None,
                 'description': add_spans(option['option_description'][0]) if option.get('option_description')
                 else None,
                 'followUpQuestion': {
@@ -745,7 +745,7 @@ def get_follow_up_question_options(options_list, follow_up_question_key, page_co
     list_of_options = []
     for option in options_list:
         list_of_options.append({
-            'option': option['text'],
+            'option': option['text'].strip() if option.get('text') else None,
             # TODO: add value after getting solution for translations
             'description': None,
             'secondFollowUpQuestion': get_second_follow_up_question(
@@ -766,7 +766,7 @@ def get_second_follow_up_question(option_text, follow_up_question_key, doc_data)
         if qtn['primary'].get('second_follow_up_question_options'):
             for option in qtn['primary']['second_follow_up_question_options']:
                 second_followup_qtn_options.append({
-                    'option': option['text'] if option.get('text') else None,
+                    'option': option['text'].strip() if option.get('text') else None,
                     'description': None,
                 })
         return {
