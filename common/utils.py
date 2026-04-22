@@ -141,3 +141,10 @@ def get_gcs_signed_url(file_path, hours=1):
         expiration=timedelta(hours=hours),
     )
     return url
+
+
+def split_string_by_comma(string):
+    # split string by comma and remove any leading or trailing spaces
+    if string is None:
+        return []
+    return [item.strip() for item in string.split(',')] if string else []
