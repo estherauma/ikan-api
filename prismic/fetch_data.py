@@ -2,6 +2,7 @@ import requests
 from decouple import config
 from prismic.models import AggregatedContent, MessagingContent, PushNotificationsContent
 import re
+from common.utils import split_string_by_comma
 
 
 class PrismicAPI():
@@ -736,6 +737,7 @@ def aggregate_question_options(data, page_content=None):
                         option['follow_up_question_key'] if option.get('follow_up_question_key') else None,
                         page_content
                     ) if option.get('follow_up_question_options') else None,
+                    'roles': split_string_by_comma(option['roles']) if option.get('roles') else None,
                 } if option.get('follow_up_question') else None,
             })
     return list_of_options
@@ -783,7 +785,8 @@ def get_second_follow_up_question(option_text, follow_up_question_key, doc_data)
             qtn['primary'].get('is_required') else None,
             'displayquestion': qtn['primary']['display_second_followup_question'] if
             qtn['primary'].get('display_second_followup_question') else False,
-            'options': second_followup_qtn_options
+            'options': second_followup_qtn_options,
+            'roles': split_string_by_comma(qtn['primary']['roles']) if qtn['primary'].get('roles') else None,
         }
     return None
 
@@ -1020,6 +1023,7 @@ def format_common_slice_data(item, pagesList=None, page=None, page_content=None)
                 'displayquestion': item['primary']['display_question'] if item['primary'].get('display_question')
                 else False,
                 'options': aggregate_question_options(item['items'], page_content) if item.get('items') else None,
+                'roles': split_string_by_comma(item['primary']['roles']) if item['primary'].get('roles') else None,
             }
         elif item['slice_type'] == 'list':
             layout = item['primary']['layout'].lower() if item['primary'].get('layout') else 'grid'
