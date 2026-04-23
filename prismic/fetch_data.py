@@ -19,8 +19,8 @@ class PrismicAPI():
             return f'{self.api_url}?access_token={self.access_token}'
 
         if type == 'doc_search':
-            return f'{self.api_url}/documents/search?ref={self.master_ref}&'\
-                f'access_token={self.access_token}&pageSize=100'
+            # params are added in the initiate_document_fetch function to handle pagination
+            return f'{self.api_url}/documents/search'
 
     def get_master_ref_response(self):
         url = self.build_url()
@@ -43,19 +43,39 @@ class PrismicAPI():
         url = self.build_url(type='doc_search')
         for language in self.languages:
             lang_id = language['id']
-            lang_url = f'{url}&lang={lang_id}'
-            documents[lang_id] = self.get_documents(url=lang_url)
+            page = 1
+            page_size = 100
+            all_docs = []
+
+            while True:
+                params = {
+                    "page": page,
+                    "pageSize": page_size,
+                    "ref": self.master_ref,
+                    "access_token": self.access_token,
+                    "lang": language['id'],
+                }
+                res = requests.get(url, params=params)
+                res.raise_for_status()
+                res = res.json()
+                res_data = res.get("results", [])
+                all_docs.extend(res_data)
+
+                if page >= res.get("total_pages", 0):
+                    break
+
+                page += 1
+
+            # Aggregate content by language
+            # using the results key to match the expected input (old logic) for the aggr_data function
+            aggregated_lang_data = self.aggr_data({'results': all_docs})
+            documents[lang_id] = aggregated_lang_data
+
         #  ToDo: Find a better place to place this logic for storing the content
+        # Save aggregated content to the db
         aggregated_content = AggregatedContent()
         aggregated_content.content = documents
         aggregated_content.save()
-
-    def get_documents(self, url):
-        req = requests.get(url)
-        req.raise_for_status()
-        docs_data = req.json()
-        agg_data = self.aggr_data(docs_data)
-        return agg_data
 
     def aggr_data(self, data):
         aggregated_data = {}
