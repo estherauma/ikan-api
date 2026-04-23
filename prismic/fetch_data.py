@@ -3,6 +3,7 @@ from decouple import config
 from prismic.models import AggregatedContent, MessagingContent, PushNotificationsContent
 import re
 from common.utils import split_string_by_comma
+import time
 
 
 class PrismicAPI():
@@ -41,6 +42,10 @@ class PrismicAPI():
     def initiate_document_fetch(self):
         documents = {}
         url = self.build_url(type='doc_search')
+        session = requests.Session()
+        MAX_RETRIES = 3
+        TIMEOUT = (3, 10)  # (connect timeout, read timeout)
+
         for language in self.languages:
             lang_id = language['id']
             page = 1
@@ -53,15 +58,32 @@ class PrismicAPI():
                     "pageSize": page_size,
                     "ref": self.master_ref,
                     "access_token": self.access_token,
-                    "lang": language['id'],
+                    "lang": lang_id,
                 }
-                res = requests.get(url, params=params)
-                res.raise_for_status()
-                res = res.json()
-                res_data = res.get("results", [])
-                all_docs.extend(res_data)
 
-                if page >= res.get("total_pages", 0):
+                attempt = 0
+                while attempt < MAX_RETRIES:
+                    try:
+                        response = session.get(url, params=params, timeout=TIMEOUT)
+                        response.raise_for_status()
+                        data = response.json()
+                        break
+                    except requests.exceptions.Timeout:
+                        attempt += 1
+                        print(f"Timeout fetching page {page} (lang={lang_id}), attempt {attempt}")
+                        if attempt >= MAX_RETRIES:
+                            print(f"Max retries reached for page {page} (lang={lang_id})")
+                            raise
+                        # Wait before retrying (exponential backoff)
+                        time.sleep(2 ** attempt)
+                    except requests.exceptions.RequestException as e:
+                        print(f"Request failed for page {page} (lang={lang_id}): {str(e)}")
+                        raise
+
+                results = data.get("results", [])
+                all_docs.extend(results)
+
+                if page >= data.get("total_pages", 0):
                     break
 
                 page += 1
