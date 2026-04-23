@@ -3,6 +3,7 @@ from decouple import config
 from prismic.models import AggregatedContent, MessagingContent, PushNotificationsContent
 import re
 from common.utils import split_string_by_comma
+import time
 
 
 class PrismicAPI():
@@ -19,8 +20,8 @@ class PrismicAPI():
             return f'{self.api_url}?access_token={self.access_token}'
 
         if type == 'doc_search':
-            return f'{self.api_url}/documents/search?ref={self.master_ref}&'\
-                f'access_token={self.access_token}&pageSize=100'
+            # params are added in the initiate_document_fetch function to handle pagination
+            return f'{self.api_url}/documents/search'
 
     def get_master_ref_response(self):
         url = self.build_url()
@@ -41,21 +42,62 @@ class PrismicAPI():
     def initiate_document_fetch(self):
         documents = {}
         url = self.build_url(type='doc_search')
+        session = requests.Session()
+        MAX_RETRIES = 3
+        TIMEOUT = (3, 10)  # (connect timeout, read timeout)
+
         for language in self.languages:
             lang_id = language['id']
-            lang_url = f'{url}&lang={lang_id}'
-            documents[lang_id] = self.get_documents(url=lang_url)
+            page = 1
+            page_size = 100
+            all_docs = []
+
+            while True:
+                params = {
+                    "page": page,
+                    "pageSize": page_size,
+                    "ref": self.master_ref,
+                    "access_token": self.access_token,
+                    "lang": lang_id,
+                }
+
+                attempt = 0
+                while attempt < MAX_RETRIES:
+                    try:
+                        response = session.get(url, params=params, timeout=TIMEOUT)
+                        response.raise_for_status()
+                        data = response.json()
+                        break
+                    except requests.exceptions.Timeout:
+                        attempt += 1
+                        print(f"Timeout fetching page {page} (lang={lang_id}), attempt {attempt}")
+                        if attempt >= MAX_RETRIES:
+                            print(f"Max retries reached for page {page} (lang={lang_id})")
+                            raise
+                        # Wait before retrying (exponential backoff)
+                        time.sleep(2 ** attempt)
+                    except requests.exceptions.RequestException as e:
+                        print(f"Request failed for page {page} (lang={lang_id}): {str(e)}")
+                        raise
+
+                results = data.get("results", [])
+                all_docs.extend(results)
+
+                if page >= data.get("total_pages", 0):
+                    break
+
+                page += 1
+
+            # Aggregate content by language
+            # using the results key to match the expected input (old logic) for the aggr_data function
+            aggregated_lang_data = self.aggr_data({'results': all_docs})
+            documents[lang_id] = aggregated_lang_data
+
         #  ToDo: Find a better place to place this logic for storing the content
+        # Save aggregated content to the db
         aggregated_content = AggregatedContent()
         aggregated_content.content = documents
         aggregated_content.save()
-
-    def get_documents(self, url):
-        req = requests.get(url)
-        req.raise_for_status()
-        docs_data = req.json()
-        agg_data = self.aggr_data(docs_data)
-        return agg_data
 
     def aggr_data(self, data):
         aggregated_data = {}
