@@ -54,6 +54,7 @@ def loggedin_user(request):
             'show_users_menu_item': show_users_menu_item,
             'selected_language': request.session.get('language', 'en-us'),
             'common_text': prismic_utils.common_text,
+            'auth_common_text': prismic_utils.get_page_text('auth-common-text'),
             'menu_labels': prismic_utils.get_menu_labels(),
         }
 
@@ -378,8 +379,8 @@ class RequestPasswordReset(View):
 
         user = User.objects.get(email=form.cleaned_data.get('email'))
         if user:
-            password_rest_token = random.randrange(11111, 99999,)
-            user.reset_password_token = password_rest_token
+            password_reset_token = random.randrange(11111, 99999,)
+            user.reset_password_token = password_reset_token
             user.save()
 
             email_helper = TunaEmailHelper()
@@ -388,7 +389,7 @@ class RequestPasswordReset(View):
                 subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
                 body={
                     'first_name': user.first_name,
-                    'password_rest_token': password_rest_token,
+                    'password_reset_token': password_reset_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
             )
@@ -417,7 +418,7 @@ class ResetPassword(View):
     def post(self, request):
         context = self.get_context_data()
         auth_common_text = context.get('auth_common_text', {})
-        form = PasswordResetForm(data=request.POST, )
+        form = PasswordResetForm(data=request.POST, auth_common_text=auth_common_text)
         context['form'] = form
         if not form.is_valid():
             return render(request, template_name='password-reset/reset-password.html', context={'form': form})

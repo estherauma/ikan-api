@@ -158,6 +158,9 @@ class RegisterView(APIView):
             Group.objects.filter(name=role).exists() else Group.objects.get_or_create(name='public')[0]
         user.groups.add(group)
 
+        language = data.get('language', 'en-us')
+        request.session['language'] = language
+
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
@@ -220,6 +223,8 @@ class RequestPasswordReset(APIView):
 
     def post(self, request):
         email = request.data.get('email')
+        language = request.data.get('language', 'en-us')
+        request.session['language'] = language
         if not email:
             return Response({
                 'status': 'FAIL',
@@ -228,8 +233,8 @@ class RequestPasswordReset(APIView):
 
         user = User.objects.filter(email=email).first()
         if user:
-            password_rest_token = random.randrange(11111, 99999,)
-            user.reset_password_token = password_rest_token
+            password_reset_token = random.randrange(11111, 99999,)
+            user.reset_password_token = password_reset_token
             user.save()
 
             email_helper = TunaEmailHelper()
@@ -238,7 +243,7 @@ class RequestPasswordReset(APIView):
                 subject='Reset your IKAN password',
                 body={
                     'first_name': user.first_name,
-                    'password_rest_token': password_rest_token,
+                    'password_reset_token': password_reset_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
             )
