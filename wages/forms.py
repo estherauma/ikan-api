@@ -71,16 +71,16 @@ class AddWageForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs["style"] = "min-height: 45px; border-radius: 10px;\
                 border-width: 1px; min-width: 100px; max-width: 160px;padding: 0 10px; font-size: 1rem;"
+            
             if field in file_fields:
                 self.fields[field].widget.attrs["accept"] = ".pdf, application/pdf"  # ".pdf,.jpg,.jpeg,.png"
+                self.fields[field].widget.attrs["style"] += "max-width: 250px;"
             if field == "usd_amount":
                 self.fields[field].widget.attrs["step"] = "0.01"
                 self.fields[field].widget.attrs["min"] = "0"
                 self.fields[field].widget.attrs["placeholder"] = "0.00"
-
-        self.fields["user"].widget.attrs["style"] += "max-width: 250px;"
-        for field in file_fields:
-            self.fields[field].widget.attrs["style"] += "max-width: 250px;"
+            if field == "user":
+                self.fields[field].widget.attrs["style"] += "max-width: 250px;"
 
         beneficiary_relationship_options = generate_beneficiary_relationship_options(payments_common_text)
         self.fields["beneficiary_relationship"].choices = empty_select_choice + [(item["key"], item["label"]) for item
