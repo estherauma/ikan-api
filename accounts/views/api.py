@@ -160,6 +160,9 @@ class RegisterView(APIView):
         user.groups.add(group)
 
         language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
         request.session['language'] = language
 
         # Send verification email
@@ -228,6 +231,9 @@ class RequestPasswordReset(APIView):
     def post(self, request):
         email = request.data.get('email')
         language = request.data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
         request.session['language'] = language
         if not email:
             return Response({
