@@ -139,7 +139,7 @@ class AddWageForm(forms.ModelForm):
                     continue
                 header = file.read(5)
                 file.seek(0)
-                if header != b"%PDF-":
+                if len(header) < 5 or header != b"%PDF-":
                     self.add_error(file_field, self.payments_common_text.get("fileMustBePDF",
                                                                              "File must be a PDF document."))
 
