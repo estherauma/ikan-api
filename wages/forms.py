@@ -71,16 +71,16 @@ class AddWageForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs["style"] = "min-height: 45px; border-radius: 10px;\
                 border-width: 1px; min-width: 100px; max-width: 160px;padding: 0 10px; font-size: 1rem;"
+            
             if field in file_fields:
-                self.fields[field].widget.attrs["accept"] = ".pdf"  # ".pdf,.jpg,.jpeg,.png"
+                self.fields[field].widget.attrs["accept"] = ".pdf, application/pdf"
+                self.fields[field].widget.attrs["style"] += "max-width: 250px;"
             if field == "usd_amount":
                 self.fields[field].widget.attrs["step"] = "0.01"
                 self.fields[field].widget.attrs["min"] = "0"
                 self.fields[field].widget.attrs["placeholder"] = "0.00"
-
-        self.fields["user"].widget.attrs["style"] += "max-width: 250px;"
-        for field in file_fields:
-            self.fields[field].widget.attrs["style"] += "max-width: 250px;"
+            if field == "user":
+                self.fields[field].widget.attrs["style"] += "max-width: 250px;"
 
         beneficiary_relationship_options = generate_beneficiary_relationship_options(payments_common_text)
         self.fields["beneficiary_relationship"].choices = empty_select_choice + [(item["key"], item["label"]) for item
@@ -126,6 +126,22 @@ class AddWageForm(forms.ModelForm):
             #     self.add_error("beneficiary_contact",
             #                    self.payments_common_text.get("beneficiaryContactIsRequired",
             #                                                  "Beneficiary contact is required."))
+        
+        # Validate file fields to ensure they are PDFs by checking the file
+        # extension and magic bytes rather than the client-provided content_type,
+        # which can be spoofed or absent for valid PDFs.
+        for file_field in file_fields:
+            file = cleaned_data.get(file_field)
+            if file:
+                if not file.name.lower().endswith(".pdf"):
+                    self.add_error(file_field, self.payments_common_text.get("fileMustBePDF",
+                                                                             "File must be a PDF document."))
+                    continue
+                header = file.read(5)
+                file.seek(0)
+                if len(header) < 5 or header != b"%PDF-":
+                    self.add_error(file_field, self.payments_common_text.get("fileMustBePDF",
+                                                                             "File must be a PDF document."))
 
         existing_wage = Wage.objects.filter(
             user=user,
