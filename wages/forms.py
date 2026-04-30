@@ -126,6 +126,13 @@ class AddWageForm(forms.ModelForm):
             #     self.add_error("beneficiary_contact",
             #                    self.payments_common_text.get("beneficiaryContactIsRequired",
             #                                                  "Beneficiary contact is required."))
+        
+        # Validate file fields to ensure they are PDFs
+        for file_field in file_fields:
+            file = cleaned_data.get(file_field)
+            if file and file.content_type != "application/pdf":
+                self.add_error(file_field, self.payments_common_text.get("fileMustBePDF",
+                                                                         "File must be a PDF document."))
 
         existing_wage = Wage.objects.filter(
             user=user,
