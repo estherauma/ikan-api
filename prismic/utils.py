@@ -11,7 +11,6 @@ class PrismicUtils:
         self.all_aggregated_content = self.get_all_aggregated_content()
         self.content = self.get_content()  # for selected language
         self.common_text = self.get_common_text()
-        self.auth_common_text = self.get_page_text('auth-common-text')
 
     def get_all_aggregated_content(self):
         all_data = AggregatedContent.objects.all()

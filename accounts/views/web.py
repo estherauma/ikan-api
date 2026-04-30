@@ -54,7 +54,6 @@ def loggedin_user(request):
             'show_users_menu_item': show_users_menu_item,
             'selected_language': request.session.get('language', 'en-us'),
             'common_text': prismic_utils.common_text,
-            'auth_common_text': prismic_utils.get_page_text('auth-common-text'),
             'menu_labels': prismic_utils.get_menu_labels(),
         }
 
@@ -193,6 +192,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
                 #         'access_token': user.access_code,
                 #     },
                 #     template=EmailTemplate.ACCESS_TOKEN.value,
+                #     auth_common_text=auth_common_text,
                 # )
                 # if success:
                 #     messages.success(request, 'Worker created successfully.')
