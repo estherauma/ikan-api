@@ -227,7 +227,7 @@ class PrismicUtils:
         page_data = self.get_content_by_property_name(property_name)
 
         page_text = {}
-        if 'additional_text' in page_data and page_data['additional_text']:
+        if page_data and 'additional_text' in page_data and page_data['additional_text']:
             for item in page_data['additional_text']:
                 page_text[item['label']] = item['value']
         return page_text

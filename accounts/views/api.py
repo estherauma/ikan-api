@@ -10,6 +10,7 @@ from accounts.serializers import (
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
+from prismic.utils import PrismicUtils
 
 from decouple import config
 
@@ -165,6 +166,8 @@ class RegisterView(APIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
@@ -174,6 +177,7 @@ class RegisterView(APIView):
                 'verification_link': verification_link,
             },
             template=EmailTemplate.VERIFY_EMAIL.value,
+            auth_common_text=auth_common_text,
         )
 
         return Response(
@@ -237,6 +241,8 @@ class RequestPasswordReset(APIView):
             user.reset_password_token = password_reset_token
             user.save()
 
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
@@ -246,6 +252,7 @@ class RequestPasswordReset(APIView):
                     'password_reset_token': password_reset_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                auth_common_text=auth_common_text,
             )
 
         return Response(
@@ -436,6 +443,8 @@ class InviteUser(APIView):
             )
 
         user_exists = User.objects.filter(email=email).exists()
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
             serializer = RegisterSerializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -451,12 +460,12 @@ class InviteUser(APIView):
             group = Group.objects.get(name=data.get('role'))
             user.groups.add(group)
 
-            return send_email_invite(user)
+            return send_email_invite(user, auth_common_text=auth_common_text)
         else:
             user = User.objects.get(email=email)
 
             if not user.is_verified and not user.is_active:
-                return send_email_invite(user)
+                return send_email_invite(user, auth_common_text=auth_common_text)
             else:
                 return Response(
                     {

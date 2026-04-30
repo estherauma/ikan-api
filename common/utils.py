@@ -38,7 +38,7 @@ def generate_random_password(length=8):
     return password
 
 
-def send_email_invite(user):
+def send_email_invite(user, auth_common_text=None):
     email_helper = TunaEmailHelper()
     send_success = email_helper.tuna_send_email(
         to_emails=[user.email],
@@ -48,6 +48,7 @@ def send_email_invite(user):
             'access_token': user.access_code,
         },
         template=EmailTemplate.ACCESS_TOKEN.value,
+        auth_common_text=auth_common_text,
     )
     if send_success:
         return Response(

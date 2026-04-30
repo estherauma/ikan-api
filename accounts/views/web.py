@@ -228,6 +228,8 @@ def invite_user(request):
                 user.groups.add(group)
 
                 # Send verification email with access code
+                prismic_utils = PrismicUtils(request)
+                auth_common_text = prismic_utils.get_page_text('auth-common-text')
                 email = TunaEmailHelper()
                 success = email.tuna_send_email(
                     to_emails=[user.email],
@@ -237,6 +239,7 @@ def invite_user(request):
                         'access_token': user.access_code,
                     },
                     template=EmailTemplate.ACCESS_TOKEN.value,
+                    auth_common_text=auth_common_text,
                 )
                 if success:
                     messages.success(request, 'Your message was sent successfully.')
@@ -274,6 +277,8 @@ class ResendAcessCode(View):
             user.save()
 
             # Send verification email with access code
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
             email = TunaEmailHelper()
             success = email.tuna_send_email(
                 to_emails=[user.email],
@@ -283,6 +288,7 @@ class ResendAcessCode(View):
                     'access_token': user.access_code,
                 },
                 template=EmailTemplate.ACCESS_TOKEN.value,
+                auth_common_text=auth_common_text,
             )
             if success:
                 messages.success(request, 'The access code was resent successfully.')
@@ -349,6 +355,7 @@ class RegisterWebView(View):
                 'verification_link': verification_link,
             },
             template=EmailTemplate.VERIFY_EMAIL.value,
+            auth_common_text=auth_common_text,
         )
         messages.success(request, 'Account created successfully. Please check your email to verify your account.')
 
@@ -392,6 +399,7 @@ class RequestPasswordReset(View):
                     'password_reset_token': password_reset_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                auth_common_text=auth_common_text,
             )
             messages.success(request, auth_common_text.get(
                 'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
