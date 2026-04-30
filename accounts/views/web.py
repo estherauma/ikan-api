@@ -192,6 +192,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
                 #         'access_token': user.access_code,
                 #     },
                 #     template=EmailTemplate.ACCESS_TOKEN.value,
+                #     auth_common_text=auth_common_text,
                 # )
                 # if success:
                 #     messages.success(request, 'Worker created successfully.')
@@ -227,6 +228,8 @@ def invite_user(request):
                 user.groups.add(group)
 
                 # Send verification email with access code
+                prismic_utils = PrismicUtils(request)
+                auth_common_text = prismic_utils.get_page_text('auth-common-text')
                 email = TunaEmailHelper()
                 success = email.tuna_send_email(
                     to_emails=[user.email],
@@ -236,6 +239,7 @@ def invite_user(request):
                         'access_token': user.access_code,
                     },
                     template=EmailTemplate.ACCESS_TOKEN.value,
+                    auth_common_text=auth_common_text,
                 )
                 if success:
                     messages.success(request, 'Your message was sent successfully.')
@@ -273,6 +277,8 @@ class ResendAcessCode(View):
             user.save()
 
             # Send verification email with access code
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
             email = TunaEmailHelper()
             success = email.tuna_send_email(
                 to_emails=[user.email],
@@ -282,6 +288,7 @@ class ResendAcessCode(View):
                     'access_token': user.access_code,
                 },
                 template=EmailTemplate.ACCESS_TOKEN.value,
+                auth_common_text=auth_common_text,
             )
             if success:
                 messages.success(request, 'The access code was resent successfully.')
@@ -348,6 +355,7 @@ class RegisterWebView(View):
                 'verification_link': verification_link,
             },
             template=EmailTemplate.VERIFY_EMAIL.value,
+            auth_common_text=auth_common_text,
         )
         messages.success(request, 'Account created successfully. Please check your email to verify your account.')
 
@@ -378,8 +386,8 @@ class RequestPasswordReset(View):
 
         user = User.objects.get(email=form.cleaned_data.get('email'))
         if user:
-            password_rest_token = random.randrange(11111, 99999,)
-            user.reset_password_token = password_rest_token
+            password_reset_token = random.randrange(11111, 99999,)
+            user.reset_password_token = password_reset_token
             user.save()
 
             email_helper = TunaEmailHelper()
@@ -388,9 +396,10 @@ class RequestPasswordReset(View):
                 subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
                 body={
                     'first_name': user.first_name,
-                    'password_rest_token': password_rest_token,
+                    'password_reset_token': password_reset_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                auth_common_text=auth_common_text,
             )
             messages.success(request, auth_common_text.get(
                 'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
@@ -417,7 +426,7 @@ class ResetPassword(View):
     def post(self, request):
         context = self.get_context_data()
         auth_common_text = context.get('auth_common_text', {})
-        form = PasswordResetForm(data=request.POST, )
+        form = PasswordResetForm(data=request.POST, auth_common_text=auth_common_text)
         context['form'] = form
         if not form.is_valid():
             return render(request, template_name='password-reset/reset-password.html', context={'form': form})

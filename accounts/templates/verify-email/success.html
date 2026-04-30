@@ -2,10 +2,10 @@
 
 {% block content %}
 <div class="register-output-wrapper">
-    <h1>Verification Success</h1>
-    <p>Your email address has been verified.</p>
-    <!-- <p>An administrator has been notified and your account will be activated shortly.</p> -->
-    <p>Your account is now active and you can log in.</p>
-    <a href="{% url 'accounts:login' %}" class="btn btn-primary">Go to Login</a>
+    <h1>{{ auth_common_text.verificationSuccess }}</h1>
+    <p>{{ auth_common_text.emailVerified }}</p>
+    <!-- <p>{{ auth_common_text.adminNotifiedToActivateAccount }}</p> -->
+    <p>{{ auth_common_text.accountActiveLogin }}</p>
+    <a href="{% url 'accounts:login' %}" class="btn btn-primary">{{ auth_common_text.goToLogin }}</a>
 </div>
 {% endblock %}

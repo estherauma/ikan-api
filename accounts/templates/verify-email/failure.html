@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="register-output-wrapper">
-    <h1>Verification Failure</h1>
-    <p>Sorry, we couldn't verify your email address.</p>
+    <h1>{{ auth_common_text.verificationFailure }}</h1>
+    <p>{{ auth_common_text.emailNotVerified }}</p>
 </div>
 {% endblock %}

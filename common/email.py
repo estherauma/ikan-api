@@ -16,12 +16,18 @@ class EmailTemplate(Enum):
 class TunaEmailHelper:
 
     @classmethod
-    def tuna_send_email(cls, to_emails, subject, body, template=None, from_email=config("APPLICATION_FROM_EMAIL")):
+    def tuna_send_email(
+        cls, to_emails, subject, body, template=None,
+        from_email=config("APPLICATION_FROM_EMAIL"), auth_common_text=None
+    ):
         try:
             if template is None:
                 return send_mail(subject, body, from_email, to_emails)
 
-            html_message = render_to_string(f'emails/{template}', {"body": body})
+            context = {"body": body}
+            if auth_common_text:
+                context["auth_common_text"] = auth_common_text
+            html_message = render_to_string(f'emails/{template}', context)
             plain_message = strip_tags(html_message)
 
             # Wrap in try-catch and show error message

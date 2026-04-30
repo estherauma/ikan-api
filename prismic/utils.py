@@ -9,7 +9,7 @@ class PrismicUtils:
         selected_lang = request.session.get('language', None)
         self.language = selected_lang if selected_lang else 'en-us'
         self.all_aggregated_content = self.get_all_aggregated_content()
-        self.content = self.get_content()  # for selected land
+        self.content = self.get_content()  # for selected language
         self.common_text = self.get_common_text()
 
     def get_all_aggregated_content(self):
@@ -226,7 +226,7 @@ class PrismicUtils:
         page_data = self.get_content_by_property_name(property_name)
 
         page_text = {}
-        if 'additional_text' in page_data and page_data['additional_text']:
+        if page_data and 'additional_text' in page_data and page_data['additional_text']:
             for item in page_data['additional_text']:
                 page_text[item['label']] = item['value']
         return page_text

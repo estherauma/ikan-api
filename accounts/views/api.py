@@ -10,6 +10,7 @@ from accounts.serializers import (
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
+from prismic.utils import PrismicUtils
 
 from decouple import config
 
@@ -158,10 +159,18 @@ class RegisterView(APIView):
             Group.objects.filter(name=role).exists() else Group.objects.get_or_create(name='public')[0]
         user.groups.add(group)
 
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         # Send verification email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
@@ -171,6 +180,7 @@ class RegisterView(APIView):
                 'verification_link': verification_link,
             },
             template=EmailTemplate.VERIFY_EMAIL.value,
+            auth_common_text=auth_common_text,
         )
 
         return Response(
@@ -220,6 +230,11 @@ class RequestPasswordReset(APIView):
 
     def post(self, request):
         email = request.data.get('email')
+        language = request.data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
         if not email:
             return Response({
                 'status': 'FAIL',
@@ -228,19 +243,22 @@ class RequestPasswordReset(APIView):
 
         user = User.objects.filter(email=email).first()
         if user:
-            password_rest_token = random.randrange(11111, 99999,)
-            user.reset_password_token = password_rest_token
+            password_reset_token = random.randrange(11111, 99999,)
+            user.reset_password_token = password_reset_token
             user.save()
 
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
                 subject='Reset your IKAN password',
                 body={
                     'first_name': user.first_name,
-                    'password_rest_token': password_rest_token,
+                    'password_reset_token': password_reset_token,
                 },
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                auth_common_text=auth_common_text,
             )
 
         return Response(
@@ -431,6 +449,8 @@ class InviteUser(APIView):
             )
 
         user_exists = User.objects.filter(email=email).exists()
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
             serializer = RegisterSerializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -446,12 +466,12 @@ class InviteUser(APIView):
             group = Group.objects.get(name=data.get('role'))
             user.groups.add(group)
 
-            return send_email_invite(user)
+            return send_email_invite(user, auth_common_text=auth_common_text)
         else:
             user = User.objects.get(email=email)
 
             if not user.is_verified and not user.is_active:
-                return send_email_invite(user)
+                return send_email_invite(user, auth_common_text=auth_common_text)
             else:
                 return Response(
                     {

@@ -6,13 +6,13 @@
 
 {% block content %}
   <div class="section-wrapper">
-    <p class="welcome-text"><strong>Welcome to IKAN!</strong></p>
-    <p>Hello {{body.email}}, please find your access token below</p>
+    <p class="welcome-text"><strong>{{ auth_common_text.welcomeToIKAN }}</strong></p>
+    <p>{{ auth_common_text.hello }} {{body.email}}, {{ auth_common_text.pleaseFindYourAccessTokenBelow }}</p>
   </div>
   <div class="section-wrapper" style="display:block">
-      Access Token: {{body.access_token}}
+      {{ auth_common_text.accessToken }}: {{body.access_token}}
   </div>
   <div class="section-wrapper">
-    <p>If you didn't sign up for IKAN, you can safely ignore this email.</p>
+    <p>{{ auth_common_text.ignoreIfNotSignedUp }}</p>
   </div>
 {% endblock %}
