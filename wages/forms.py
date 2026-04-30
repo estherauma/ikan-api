@@ -73,7 +73,7 @@ class AddWageForm(forms.ModelForm):
                 border-width: 1px; min-width: 100px; max-width: 160px;padding: 0 10px; font-size: 1rem;"
             
             if field in file_fields:
-                self.fields[field].widget.attrs["accept"] = ".pdf, application/pdf"  # ".pdf,.jpg,.jpeg,.png"
+                self.fields[field].widget.attrs["accept"] = ".pdf, application/pdf"
                 self.fields[field].widget.attrs["style"] += "max-width: 250px;"
             if field == "usd_amount":
                 self.fields[field].widget.attrs["step"] = "0.01"
