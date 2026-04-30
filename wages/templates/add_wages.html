@@ -412,6 +412,25 @@
                             usdAmount.style.borderColor = 'rgb(118, 118, 118)';
                         }
                     });
+
+                    // Clear file upload errors
+                    [payslip, crewBankTransferReceipt, beneficiaryBankTransferReceipt].forEach(fileInput => {
+                        fileInput?.addEventListener("change", () => {
+                            if (fileInput.files.length > 0) {
+                                const file = fileInput.files[0];
+                                if (file.type === "application/pdf") {
+                                    fileInput.closest('.field').classList.remove("field-error");
+                                    const fileInputErr = fileInput.closest('.field').querySelector('.error-message');
+                                    if (fileInputErr) {
+                                        fileInputErr.innerHTML = '';
+                                    }
+                                    fileInput.style.borderColor = 'rgb(118, 118, 118)';
+                                } else {
+                                    fileInput.style.borderColor = 'red';
+                                }
+                            }
+                        });
+                    });
                 
                     beneficiaryRelationship?.addEventListener("change", () => {
                         if (beneficiaryRelationship.value && beneficiaryRelationship.value !== "self") {
