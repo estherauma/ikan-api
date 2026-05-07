@@ -317,6 +317,8 @@ class PrismicAPI():
                     if item['data']['welcome_audio'] else None,
                     'welcome_video': aggregate_media_data(item['data']['welcome_video'])
                     if item['data']['welcome_video'] else None,
+                    'welcome_video_for_public': aggregate_media_data(item['data']['welcome_video_for_public'])
+                    if item['data']['welcome_video_for_public'] else None,
                     'additional_text': additional_text,
                     'tutorials': tutorials,
                     'analyticsEventName': item['data']['analytics_event_name'],
