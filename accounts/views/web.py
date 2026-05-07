@@ -233,7 +233,7 @@ def invite_user(request):
                 email = TunaEmailHelper()
                 success = email.tuna_send_email(
                     to_emails=[user.email],
-                    subject='Your IKAN access token',
+                    subject=auth_common_text.get('yourIKANAccessToken', 'Your IKAN access token'),
                     body={
                         'email': user.email,
                         'access_token': user.access_code,
@@ -282,7 +282,7 @@ class ResendAcessCode(View):
             email = TunaEmailHelper()
             success = email.tuna_send_email(
                 to_emails=[user.email],
-                subject='Your IKAN access token',
+                subject=auth_common_text.get('yourIKANAccessToken', 'Your IKAN access token'),
                 body={
                     'email': user.email,
                     'access_token': user.access_code,

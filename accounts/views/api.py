@@ -174,7 +174,7 @@ class RegisterView(APIView):
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
-            subject='Verify your email to start using IKAN',
+            subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
             body={
                 'first_name': user.first_name,
                 'verification_link': verification_link,
@@ -218,11 +218,15 @@ def notify_admin(user):
 
 
 def verify_email_success(request):
-    return render(request, template_name='verify-email/success.html')
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    return render(request, template_name='verify-email/success.html', context={'auth_common_text': auth_common_text})
 
 
 def verify_email_failure(request):
-    return render(request, template_name='verify-email/failure.html')
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    return render(request, template_name='verify-email/failure.html', context={'auth_common_text': auth_common_text})
 
 
 class RequestPasswordReset(APIView):
@@ -252,7 +256,7 @@ class RequestPasswordReset(APIView):
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
-                subject='Reset your IKAN password',
+                subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
                 body={
                     'first_name': user.first_name,
                     'password_reset_token': password_reset_token,
