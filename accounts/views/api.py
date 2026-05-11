@@ -169,6 +169,8 @@ class RegisterView(APIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+        # add language query param to verification link
+        verification_link += f'?language={language}'
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         email_helper = TunaEmailHelper()
@@ -194,6 +196,13 @@ class RegisterView(APIView):
 
 def verify_email(request, uidb64, token):
     try:
+        # Set language from query param
+        language = request.GET.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+        
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):

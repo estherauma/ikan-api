@@ -346,6 +346,8 @@ class RegisterWebView(View):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+        # add language query param to verification link
+        verification_link += f'?language={request.session.get("language", "en-us")}'
         email_helper = TunaEmailHelper()
         email_helper.tuna_send_email(
             to_emails=[user.email],
