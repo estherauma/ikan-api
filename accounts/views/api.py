@@ -209,7 +209,7 @@ def verify_email(request, uidb64, token):
             user.is_verified = True
             user.is_active = True
             user.save()
-            notify_admin(user)
+            # notify_admin(user) ## Disabled as new users are automatically actived above, no need for admin activation
             return redirect('accounts-api:verify-email-success')
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         pass
@@ -382,7 +382,7 @@ class VerifyAndSetPassword(APIView):
                 user.set_password(data.get('password'))
                 user.access_code = None
                 user.save()
-                notify_admin(user)
+                # notify_admin(user) ## Disabled as new users are automatically actived above, no need for admin activation
                 return Response(
                     {
                         'status': 'OK',
