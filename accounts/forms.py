@@ -33,14 +33,16 @@ class RegistrationForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'id': 'email_or_phone',
-            'placeholder': 'Enter your email or phone number'
+            'placeholder': 'Enter your email or phone number',
+            'autocomplete': 'off'
         })
     )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'id': 'password1',
-            'placeholder': 'Enter your password'
+            'placeholder': 'Enter your password',
+            'autocomplete': 'new-password'
         })
     )
     password2 = forms.CharField(
@@ -288,7 +290,6 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(
             attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
     )
-
 
 class CreateWorkerForVOForm(forms.Form):
     """
