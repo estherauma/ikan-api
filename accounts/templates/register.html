@@ -8,25 +8,21 @@
                 <div class="card bg-pattern">
 
                     <div class="card-body p-4">
+
                         
-                        <div class="text-center w-75 m-auto">
-                            <div class="auth-brand">
-                                <a href="index.html" class="logo logo-dark text-center">
-                                    <span class="logo-lg">
-                                        <img src="static/themes/v1/assets/images/ikan_blue.svg" alt="" height="22">
-                                    </span>
-                                </a>
-            
-                                <a href="index.html" class="logo logo-light text-center">
-                                    <span class="logo-lg">
-                                        <img src="static/themes/v1/assets/images/ikan_blue.svg" alt="" height="22">
-                                    </span>
-                                </a>
-                            </div>
-                            <h4 class="mb-3 mt-3">{{ auth_common_text.createYourAccount }}</h4>
+                        <div class="text-center m-auto">
+                            {% include 'themes/v1/partials/ikan-logo.html' %}
+                            <h2 class="mb-3 mt-3 ikan-primary-color">{{ auth_common_text.createYourAccount }}</h2>
                         </div>
 
-                        <form role="form" method="post" action="#">
+                        <form
+                            role="form"
+                            method="post"
+                            action="#"
+                            class="ikan-form"
+                            autocomplete="off"
+                            autofill="off"
+                        >
                           {% csrf_token %}
 
                             {% if form.non_field_errors  %}
@@ -89,7 +85,7 @@
                             </div>
 
                             <div class="text-center d-grid">
-                                <button class="btn btn-primary" type="submit">{{ auth_common_text.register }}</button>
+                                <button class="ikan-primary-button" type="submit">{{ auth_common_text.register }}</button>
                             </div>
 
                         </form>
@@ -99,7 +95,7 @@
 
                 <div class="row mt-3">
                     <div class="col-12 text-center">
-                        <p class="text-white-50">{{ auth_common_text.alreadyHaveAnAccount }} <a href="/account/login" class="text-white ms-1"><b>{{ auth_common_text.login }}</b></a></p>
+                        <p class="text-black-50">{{ auth_common_text.alreadyHaveAnAccount }} <a href="/account/login" class="ikan-dark-blue-100 ms-1"><b>{{ auth_common_text.login }}</b></a></p>
                     </div> <!-- end col -->
                 </div>
                 <!-- end row -->
@@ -114,6 +110,38 @@
 <style>
     a {
         text-decoration: underline;
+    }
+    .card {
+        border-radius: 20px;
+        border: 0.1px solid #191970;
+        background: #eaedf6;
+        .logo-container {
+            width: fit-content;
+            height: fit-content;
+            background: white;
+            padding: 20px;
+            border-radius: 50%;
+            margin: 0 auto 30px auto;
+        }
+        form {
+            .input-group {
+                .form-control {
+                    border-top-right-radius: 0;
+                    border-bottom-right-radius: 0;
+                }
+                .input-group-text {
+                    background: white;
+                    border: 1px solid rgba(25, 25, 112, 0.3);
+                    border-left: none;
+                    border-top-right-radius: 10px;
+                    border-bottom-right-radius: 10px;
+                    cursor: pointer;
+                }
+            }
+            button {
+                margin: 20px 0;
+            }
+        }
     }
 </style>
 {% endblock %}
