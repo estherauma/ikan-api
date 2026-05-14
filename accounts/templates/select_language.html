@@ -18,6 +18,7 @@
 
             <div class="modal-header row m-0">
                 <div class="col text-center">
+                    {% include 'themes/v1/partials/ikan-logo.html' %}
                     <h4 class="modal-title">Select Your Language</h4>
                 </div>
             </div>
@@ -45,11 +46,12 @@
 </div>
 
 <style>
-    .authentication-bg {
-        background: #f5f6f8 !important;
-    }
-    .authentication-bg-pattern {
-        background-image: unset !important;
+    .logo-container {
+        padding: 10px;
+        margin: 0 auto 10px auto;
+        img {
+            height: 18px;
+        }
     }
     #select-language-modal {
         /* background: rgba(53,101,255,0.5) !important; */
