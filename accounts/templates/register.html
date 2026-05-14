@@ -34,13 +34,6 @@
                                 {{ form.non_field_errors }}
                             </div>
                             {% endif %}
-                            
-                            {% if form.errors  %}
-                            <div class="alert alert-danger">
-                                {{ form.errors }}
-                            </div>
-                            {% endif %}
-
     
                           <!-- TODO: add profile image field -->
 
@@ -55,8 +48,14 @@
                           </div>
 
                           <div class="mb-3">
-                              <label for="email" class="form-label">{{ auth_common_text.emailAddress }}</label>
-                              {{ form.email }}
+                            <!-- TODO: add translation here -->
+                            <label for="email_or_phone" class="form-label">{{ auth_common_text.emailOrPhoneNumber }}</label>
+                            {{ form.email_or_phone }}
+                            {% if form.email_or_phone.errors %}
+                            <div class="text-danger">
+                                {{ form.email_or_phone.errors }}
+                            </div>
+                            {% endif %}
                           </div>
 
                             <div class="mb-3">
@@ -67,6 +66,11 @@
                                         <span class="password-eye"></span>
                                     </div>
                                 </div>
+                                {% if form.password1.errors %}
+                                <div class="text-danger">
+                                    {{ form.password1.errors }}
+                                </div>
+                                {% endif %}
                             </div>
 
                             <div class="mb-3">
@@ -77,6 +81,11 @@
                                       <span class="password-eye"></span>
                                   </div>
                               </div>
+                              {% if form.password2.errors %}
+                              <div class="text-danger">
+                                  {{ form.password2.errors }}
+                              </div>
+                              {% endif %}
                             </div>
 
                             <div class="text-center d-grid">
