@@ -22,23 +22,15 @@
                         {% endif %}
                         
                         <div class="text-center w-75 m-auto">
-                            <div class="auth-brand">
-                                <a href="index.html" class="logo logo-dark text-center">
-                                    <span class="logo-lg">
-                                        <img src="static/themes/v1/assets/images/ikan_blue.svg" alt="" height="22">
-                                    </span>
-                                </a>
-            
-                                <a href="index.html" class="logo logo-light text-center">
-                                    <span class="logo-lg">
-                                        <img src="static/themes/v1/assets/images/ikan_blue.svg" alt="" height="22">
-                                    </span>
-                                </a>
-                            </div>
-                            <h4 class="mb-3 mt-3">{{ auth_common_text.enterEmailAndPasswordToYourAccount }}</h4>
+                            {% include 'themes/v1/partials/ikan-logo.html' %}
+                            <h2 class="mb-3 mt-3 ikan-primary-color">{{ auth_common_text.login }}</h2>
                         </div>
 
-                        <form action="/account/login" method="POST">
+                        <form
+                            action="/account/login"
+                            method="POST"
+                            class="ikan-form"
+                        >
                             {% csrf_token %}
                             {{ form.as_p }}
                             <!-- <div class="mb-3">
@@ -55,8 +47,8 @@
                                     </div>
                                 </div>
                             </div> -->
-                            <div class="text-center d-grid">
-                                <button class="btn btn-primary" type="submit">{{ auth_common_text.login }}</button>
+                            <div class="text-center d-grid my-4">
+                                <button class="ikan-primary-button" type="submit">{{ auth_common_text.login }}</button>
                             </div>
 
                         </form>
@@ -80,12 +72,18 @@
 </div>
 
 <style>
-    .form-control {
+    /* .form-control {
         margin-bottom: 20px;
         min-height: 45px;
-    }
+    } */
     a {
         text-decoration: underline;
+    }
+
+    .card {
+        border-radius: 20px;
+        border: 0.1px solid #191970;
+        background: #eaedf6;
     }
 </style>
 {% endblock %}
