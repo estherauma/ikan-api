@@ -20,7 +20,16 @@ class CustomUserAdmin(BaseUserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ('email', 'first_name', 'last_name', 'is_active', 'is_staff')
+    list_display = (
+        'email',
+        'first_name',
+        'last_name',
+        'created_at',
+        'updated_at',
+        'display_groups',
+        'is_active',
+        'is_staff'
+    )
     fieldsets = (
         (None, {
             'fields': (
@@ -40,8 +49,12 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('email', 'first_name', 'last_name', 'password1', 'password2'),
         }),
     )
-    search_fields = ('email', 'first_name', 'last_name',  'first_name', 'last_name',)
+    search_fields = ('email', 'first_name', 'last_name',  'first_name', 'last_name', 'groups__name')
     ordering = ('email',)
+
+    def display_groups(self, obj):
+        return ", ".join([group.name for group in obj.groups.all()])
+    display_groups.short_description = "Groups"
 
 
 # Register your models here.
