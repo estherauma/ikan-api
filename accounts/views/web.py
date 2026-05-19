@@ -328,10 +328,16 @@ class RegisterWebView(View):
         context['form'] = form
 
         if not form.is_valid():
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['form'] = form
             return render(request, 'register.html', context)
 
         user = User.objects.create_user(
             email=form.cleaned_data.get('email'),
+            mobile=form.cleaned_data.get('mobile'),
             password=form.cleaned_data.get('password1'),
             first_name=form.cleaned_data.get('first_name'),
             last_name=form.cleaned_data.get('last_name'),

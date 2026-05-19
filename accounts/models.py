@@ -16,8 +16,8 @@ class UserManager(BaseUserManager):
         Creates and saves a User with the given email and password.
         """
 
-        if not email:
-            raise ValueError('Email field must be set')
+        if not email and not extra_fields.get('mobile'):
+            raise ValueError('Email or phone number is required.')
 
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
