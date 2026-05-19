@@ -3,6 +3,7 @@ from accounts.models import User, UserBank, UserBeneficiaries
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
 from common.twilio import OTPVerification
+from django.db.models import Q
 
 
 class LoginSerializer(serializers.Serializer):
@@ -15,21 +16,42 @@ class LoginSerializer(serializers.Serializer):
 
 class RegisterSerializer(serializers.Serializer):
     '''Register user serializer '''
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     profile_image = serializers.URLField(required=False)
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        if value and User.objects.filter(email=value).exists():
+            # Add translation here
             raise serializers.ValidationError('Email already exists.')
 
-        try:
-            validate_email(value)
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
+        if value:
+            try:
+                validate_email(value)
+            except serializers.ValidationError:
+                # Add translation here
+                raise serializers.ValidationError('Invalid email format.')
 
+        return value
+    
+    def validate_phone_number(self, value):
+        if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
+            # Add translation here
+            raise serializers.ValidationError('Phone number already exists.')
+
+        if value and not value.startswith('+'):
+            # Add translation here
+            raise serializers.ValidationError(
+                "Phone number must start with a '+' sign and include the country code."
+            )
+        if value and not value[1:].isdigit():
+            # Add translation here
+            raise serializers.ValidationError(
+                "Phone number must contain only digits after the country code."
+            )
         return value
 
     def validate_password(self, value):
@@ -38,6 +60,16 @@ class RegisterSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(str(e))
         return value
+    
+    def validate(self, data):
+        email = data.get('email')
+        phone_number = data.get('mobile')
+
+        if not email and not phone_number:
+            # Add translation here
+            raise serializers.ValidationError('Either email or phone number is required.')
+
+        return data
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
