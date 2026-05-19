@@ -49,7 +49,8 @@ class RegistrationForm(UserCreationForm):
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'id': 'password2',
-            'placeholder': 'Confirm your password'
+            'placeholder': 'Confirm your password',
+            'autocomplete': 'new-password'
         })
     )
     # TODO: add profile image field
@@ -290,6 +291,22 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(
             attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
     )
+
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        super(LoginForm, self).__init__(*args, **kwargs)
+        if auth_common_text:
+            # TODO: add translation here
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmailOrPhoneNumber',
+                                                                                            'Enter your email address or phone number')
+            # TODO: add translation here
+            self.fields['password'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
+                                                                                        'Enter your password')
+            # TODO: add translation here
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
+            # TODO: add translation here
+            self.fields['password'].label = auth_common_text.get('password', 'Password')
+
 
 class CreateWorkerForVOForm(forms.Form):
     """
