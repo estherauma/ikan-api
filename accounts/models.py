@@ -51,7 +51,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(_('email address'), unique=True, null=True, blank=True)
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
     is_active = models.BooleanField(_('active'), default=True)
@@ -92,9 +92,9 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     def __str__(self):
         if self.name_on_contract:
-            return f'{self.name_on_contract} ({self.email})'
+            return f'{self.name_on_contract} ({self.email or self.mobile or self.telephone})'
 
-        return f'{self.first_name} {self.last_name} ({self.email})'
+        return f'{self.first_name} {self.last_name} ({self.email or self.mobile or self.telephone})'
 
     def clean(self):
         super().clean()
@@ -142,7 +142,7 @@ class LoginEvent(BaseModel):
         db_table = 'login_events'
 
     def __str__(self) -> str:
-        return f'{self.user.email}@{self.ip_address} logged in at {self.date_logged_in}'
+        return f'{self.user.email or self.user.mobile or self.user.telephone}@{self.ip_address} logged in at {self.date_logged_in}'
 
 
 class UserBank(AuditableModel):
@@ -174,4 +174,4 @@ class UserBeneficiaries(AuditableModel):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'Beneficiary for {self.user.email} is {self.f_name} with account {self.account_number}'
+        return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} is {self.f_name} with account {self.account_number}'
