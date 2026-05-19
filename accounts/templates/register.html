@@ -45,7 +45,7 @@
 
                           <div class="mb-3">
                             <!-- TODO: add translation here -->
-                            <label for="email_or_phone" class="form-label">{{ auth_common_text.emailOrPhoneNumber }}</label>
+                            <label for="email_or_phone" class="form-label">{{ auth_common_text.emailOrPhoneNumber }}<span class="text-danger">*</span></label>
                             {{ form.email_or_phone }}
                             {% if form.email_or_phone.errors %}
                             <div class="text-danger">
@@ -55,7 +55,7 @@
                           </div>
 
                             <div class="mb-3">
-                                <label for="password1" class="form-label">{{ auth_common_text.password }}</label>
+                                <label for="password1" class="form-label">{{ auth_common_text.password }}<span class="text-danger">*</span></label>
                                 <div class="input-group input-group-merge">
                                     {{ form.password1 }}
                                     <div class="input-group-text" data-password="false">
@@ -70,7 +70,7 @@
                             </div>
 
                             <div class="mb-3">
-                              <label for="password2" class="form-label">{{ auth_common_text.confirmPassword }}</label>
+                              <label for="password2" class="form-label">{{ auth_common_text.confirmPassword }}<span class="text-danger">*</span></label>
                               <div class="input-group input-group-merge">
                                   {{ form.password2 }}
                                   <div class="input-group-text" data-password="false">
@@ -110,6 +110,7 @@
 <style>
     a {
         text-decoration: underline;
+        font-size: 1rem;
     }
     .card {
         border-radius: 20px;
