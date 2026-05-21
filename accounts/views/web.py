@@ -352,26 +352,34 @@ class RegisterWebView(View):
         group, _ = Group.objects.get_or_create(name='public')
         user.groups.add(group)
 
-        # Send verification email
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
-        # add language query param to verification link
-        verification_link += f'?language={request.session.get("language", "en-us")}'
-        email_helper = TunaEmailHelper()
-        email_helper.tuna_send_email(
-            to_emails=[user.email],
-            subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
-            body={
-                'first_name': user.first_name,
-                'verification_link': verification_link,
-            },
-            template=EmailTemplate.VERIFY_EMAIL.value,
-            auth_common_text=auth_common_text,
-        )
-        messages.success(request, 'Account created successfully. Please check your email to verify your account.')
-
-        return redirect('/account/register-success')
+        if form.cleaned_data.get('has_email'):
+            # Send verification email
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+            # add language query param to verification link
+            verification_link += f'?language={request.session.get("language", "en-us")}'
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
+                body={
+                    'first_name': user.first_name,
+                    'verification_link': verification_link,
+                },
+                template=EmailTemplate.VERIFY_EMAIL.value,
+                auth_common_text=auth_common_text,
+            )
+            # TODO: Add translation here
+            messages.success(request, 'Account created successfully. Please check your email to verify your account.')
+            prismic_utils = PrismicUtils(request)
+            success_context = {
+                'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
+                }
+            return render(request, template_name="register-success.html", context=success_context)
+        
+        if form.cleaned_data.get('has_phone_number'):
+            pass
 
 
 class RequestPasswordReset(View):
