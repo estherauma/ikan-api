@@ -72,6 +72,8 @@ class RegisterSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
+        if not validated_data.get('mobile') and validated_data.get('phone_number'):
+            validated_data['mobile'] = validated_data['phone_number']
         return User.objects.create_user(**validated_data)
 
     class Meta:
