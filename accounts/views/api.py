@@ -1,3 +1,5 @@
+from pyexpat.errors import messages
+
 from accounts.models import LoginEvent, User, UserBank, UserBeneficiaries
 from accounts.serializers import (
     LoginSerializer, RegisterSerializer,
@@ -7,8 +9,10 @@ from accounts.serializers import (
     OTPGenerateSerializer, OTPVerifySerializer
 )
 
+from accounts.views.web import get_locale_from_request
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
+from common.twilio import OTPVerification
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
 from prismic.utils import PrismicUtils
 
@@ -200,8 +204,13 @@ class RegisterView(APIView):
                 auth_common_text=auth_common_text,
             )
         if data.get('phone_number'):
-            # Send verification SMS with OTP code (to be implemented)
-            pass
+            # Send verification otp code to phone number
+            try:
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+            except Exception as e:
+                pass
 
         return Response(
             {
