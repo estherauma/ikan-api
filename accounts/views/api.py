@@ -91,6 +91,7 @@ class LoginView(APIView):
                 # check if the phone number is verified
                 if (user.telephone == phone_number and not user.is_telephone_verified) or\
                         (user.mobile == phone_number and not user.is_mobile_verified):
+                    # TODO: Add translation here
                     raise AuthenticationFailed(
                         "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
         else:
@@ -120,12 +121,16 @@ class LoginView(APIView):
                         LoginEvent.objects.create(
                             user=user, ip_address=request.META['REMOTE_ADDR'])
                     else:
+                        # TODO: Add translation here
                         raise AuthenticationFailed('Authentication failed, contact admin', 401)
                 else:
+                    # TODO: Add translation here
                     raise AuthenticationFailed('Invalid password, please try again', 401)
             else:
+                # TODO: Add translation here
                 raise AuthenticationFailed('User account is not activated, contact admin', 401)
         else:
+            # TODO: Add translation here
             raise AuthenticationFailed('User does not exist', 401)
         return Response({
             'status': 'OK',
@@ -149,6 +154,15 @@ class RegisterView(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+        if not data.get('email') and not data.get('phone_number'):
+            # TODO: Add translation here
+            return Response({
+                'status': 'FAIL',
+                'message': 'Either email or phone number is required.'
+            }, status.HTTP_400_BAD_REQUEST)
+        if data.get('phone_number'):
+            data['mobile'] = data['phone_number']
+        
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save(is_active=False)
@@ -165,30 +179,35 @@ class RegisterView(APIView):
             language = 'en-us'
         request.session['language'] = language
 
-        # Send verification email
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
-        # add language query param to verification link
-        verification_link += f'?language={language}'
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
-        email_helper = TunaEmailHelper()
-        email_helper.tuna_send_email(
-            to_emails=[user.email],
-            subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
-            body={
-                'first_name': user.first_name,
-                'verification_link': verification_link,
-            },
-            template=EmailTemplate.VERIFY_EMAIL.value,
-            auth_common_text=auth_common_text,
-        )
+        if data.get('email'):
+            # Send verification email
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+            # add language query param to verification link
+            verification_link += f'?language={language}'
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
+                body={
+                    'first_name': user.first_name,
+                    'verification_link': verification_link,
+                },
+                template=EmailTemplate.VERIFY_EMAIL.value,
+                auth_common_text=auth_common_text,
+            )
+        if data.get('phone_number'):
+            # Send verification SMS with OTP code (to be implemented)
+            pass
 
         return Response(
             {
                 'status': 'OK',
-                'message': 'Account created successfully. Please check your email to verify your account.'
+                # 'message': 'Account created successfully. Please check your email to verify your account.'
+                'message': 'Account created successfully. Please verify your account.'
             },
             status.HTTP_201_CREATED
         )
