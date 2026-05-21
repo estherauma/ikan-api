@@ -63,10 +63,10 @@ class RegisterSerializer(serializers.Serializer):
     
     def validate(self, data):
         email = data.get('email')
-        phone_number = data.get('mobile')
+        phone_number = data.get('phone_number')
 
         if not email and not phone_number:
-            # Add translation here
+            # TODO: Add translation here
             raise serializers.ValidationError('Either email or phone number is required.')
 
         return data
