@@ -18,7 +18,7 @@
 		<link href="/static/themes/v1/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="app-style" />
 
 		<!-- App css -->
-		<link href="/static/themes/v1/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+		<!-- <link href="/static/themes/v1/assets/css/app.min.css" rel="stylesheet" type="text/css" /> -->
 		<link href="/static/themes/v1/assets/css/auth.css" rel="stylesheet" type="text/css" />
 
 		<!-- Icons css -->
@@ -29,14 +29,129 @@
        
        {% block content %} {% endblock %}
 
-        <footer class="footer footer-alt">
+        <footer class="footer footer-alt  text-center ikan-dark-blue-100">
             <script>document.write(new Date().getFullYear())  </script>
-            <a style="margin-left: 10px;" href="https://fiftyeight.io/" target="_blank"> FiftyEight</a>
+            <a
+                class="ikan-primary-color"
+                style="margin-left: 10px;"
+                href="https://fiftyeight.io/"
+                target="_blank"
+            >
+                FiftyEight
+            </a>
         </footer>
+        
         <!-- Jquery -->
         <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
         <!-- Authentication js -->
         <script src="/static/themes/v1/assets/js/pages/authentication.init.js"></script>
 
     </body>
+    <style>
+        .ikan-primary-color {
+            color: #3565ff;
+        }
+        .ikan-dark-blue-100 {
+            color: #191970 !important;
+        }
+        .ikan-dark-blue-90 {
+            color: #263CB1 !important;
+        }
+        .ikan-blue-100 {
+            color: #3565FF !important;
+        }
+        .ikan-blue-90 {
+            color: #5799FF !important;
+        }
+        .ikan-light-blue-100 {
+            color: #80D8FE !important;
+        }
+        .ikan-light-blue-90 {
+            color: #C0EFFF !important;
+        }
+        .ikan-gray-100 {
+            color: #EAEDF6 !important;
+        }
+        .ikan-light-gray {
+            color: #D3DAEE !important;
+        }
+        .ikan-deep-gray {
+            color: #A0ABCC !important;
+        }
+        .ikan-skyblue-100 {
+            color: #EAEDF6 !important;
+        }
+        .ikan-green-100 {
+            color: #74F080 !important;
+        }
+        .ikan-red-100 {
+            color: #F0525C !important;
+        }
+        .ikan-yellow-100 {
+            color: #F4992D !important;
+        }
+        .ikan-primary-color-bg-100 {
+            background-color: #3565ff !important;
+        }
+        .ikan-primary-button {
+            background-color: #3565ff;
+            color: white;
+            border-radius: 20px;
+            padding: 7px 20px;
+            font-size: 1rem;
+            border: none;
+            &:hover,
+            &:focus,
+            &:active {
+                background-color: #191970;
+            }
+        }
+        .ikan-form {
+            .form-label,
+            label {
+                font-weight: 300;
+                font-size: 1.1rem;
+                color: #3565ff;
+            }
+            .form-control {
+                background: white;
+                color: #191970;
+                border: 1px solid rgba(25, 25, 112, 0.3);
+                border-radius: 10px;
+                font-size: 1rem;
+                min-height: 45px;
+                box-shadow: none;
+                &:focus {
+                    box-shadow: none;
+                    border-color: #3565ff;
+                }
+                &::placeholder {
+                    color: black;
+                    opacity: 0.35;
+                }
+            }
+            select option[disabled],
+            select:invalid,
+            .empty-select {
+                color: gray !important;
+                font-style: italic;
+            }
+        }
+        
+        .authentication-bg {
+            background: rgba(234, 237, 246, 0.5);
+        }
+        footer {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            font-size: 1rem;
+        }
+    </style>
+
 </html>

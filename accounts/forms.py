@@ -1,8 +1,13 @@
 
+import re
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
 from accounts.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.db.models import Q
 
 
 class RegistrationForm(UserCreationForm):
@@ -24,38 +29,72 @@ class RegistrationForm(UserCreationForm):
         max_length=30,
         required=False,
     )
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
+    email_or_phone = forms.CharField(
+        widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'id': 'email',
-            'placeholder': 'Enter your email'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number',
+            'autocomplete': 'off'
         })
     )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'id': 'password1',
-            'placeholder': 'Enter your password'
+            'placeholder': 'Enter your password',
+            'autocomplete': 'new-password'
         })
     )
     password2 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'id': 'password2',
-            'placeholder': 'Confirm your password'
+            'placeholder': 'Confirm your password',
+            'autocomplete': 'new-password'
         })
     )
     # TODO: add profile image field
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('email', 'password1', 'password2', 'first_name', 'last_name', 'profile_image')
+        fields = ('email_or_phone', 'password1', 'password2', 'first_name', 'last_name', 'profile_image')
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError(self.auth_common_text.get('emailAlreadyExists', 'Email already exists.'))
-        return email
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone').strip()
+        is_email = False
+        is_phone = False
+
+        # Email validation
+        try:
+            validate_email(email_or_phone)
+            is_email = True
+        except ValidationError:
+            pass
+
+        # Phone number validation
+        phone_pattern = r"^\+?\d{9,15}$"
+        if re.match(phone_pattern, email_or_phone):
+            is_phone = True
+
+        if not is_email and not is_phone:
+            # TODO: add translation here
+            raise forms.ValidationError(self.auth_common_text.get('enterValidEmailOrPhoneNumber',
+                                                                  'Enter a valid email address or phone number.'))
+
+        if is_email:
+            if User.objects.filter(email=email_or_phone).exists():
+                # TODO: add translation here
+                raise forms.ValidationError(self.auth_common_text.get('emailAlreadyExists', 'Email already exists.'))
+            # add email to cleaned data for use in the view
+            self.cleaned_data['email'] = email_or_phone
+        else:
+            if User.objects.filter(Q(mobile=email_or_phone) | Q(telephone=email_or_phone)).exists():
+                # TODO: add translation here
+                raise forms.ValidationError(self.auth_common_text.get('phoneNumberAlreadyExists', 'Phone number already exists.'))
+            # add phone number to cleaned data for use in the view
+            self.cleaned_data['mobile'] = email_or_phone
+
+        return email_or_phone
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
@@ -74,13 +113,15 @@ class RegistrationForm(UserCreationForm):
                 'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
-            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
-                                                                                    'Enter your email')
+            # TODO: add translation here
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmailOrPhoneNumber',
+                                                                                            'Enter your email or phone number')
             self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
                                                                                         'Enter your password')
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
                                                                                         'Confirm your password')
-            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            # TODO: add translation here
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
             self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
             self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
             self.fields['password1'].label = auth_common_text.get('password', 'Password')
@@ -250,6 +291,21 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(
             attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
     )
+
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        super(LoginForm, self).__init__(*args, **kwargs)
+        if auth_common_text:
+            # TODO: add translation here
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmailOrPhoneNumber',
+                                                                                            'Enter your email address or phone number')
+            # TODO: add translation here
+            self.fields['password'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
+                                                                                        'Enter your password')
+            # TODO: add translation here
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
+            # TODO: add translation here
+            self.fields['password'].label = auth_common_text.get('password', 'Password')
 
 
 class CreateWorkerForVOForm(forms.Form):

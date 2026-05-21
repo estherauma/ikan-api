@@ -61,10 +61,10 @@ def loggedin_user(request):
 class LoginView(View):
     def get_context_data(self, **kwargs):
         context = kwargs
-        context['form'] = LoginForm()
 
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['form'] = LoginForm(auth_common_text=auth_common_text)
         context['auth_common_text'] = auth_common_text
         return context
 
@@ -74,8 +74,9 @@ class LoginView(View):
 
     def post(self, request):
         context = self.get_context_data()
-        form = LoginForm(data=request.POST)
-        context = {'form': form}
+        auth_common_text = context.get('auth_common_text', {})
+        form = LoginForm(data=request.POST, auth_common_text=auth_common_text)
+        context = { **context, 'form': form}
         if form.is_valid():
             email_or_phone = form.cleaned_data.get("email_or_phone")
             password = form.cleaned_data.get("password")
@@ -85,15 +86,18 @@ class LoginView(View):
                 login(request, user)
                 return redirect("/")
             else:
+                # Add translation here
                 unverified_number_err = getattr(request, 'unverified_number_err', None)
                 if unverified_number_err:
                     messages.error(request,  unverified_number_err)
                 else:
+                    # Add translation here
                     messages.error(request, "Can not log in with provided credentials!")
 
                 # go back to login page
                 return render(request, template_name='login.html', context=context)
         else:
+            # Add translation here
             messages.error(request, "Error validating form!")
             return render(request, template_name='login.html', context=context)
 
@@ -328,10 +332,16 @@ class RegisterWebView(View):
         context['form'] = form
 
         if not form.is_valid():
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['form'] = form
             return render(request, 'register.html', context)
 
         user = User.objects.create_user(
             email=form.cleaned_data.get('email'),
+            mobile=form.cleaned_data.get('mobile'),
             password=form.cleaned_data.get('password1'),
             first_name=form.cleaned_data.get('first_name'),
             last_name=form.cleaned_data.get('last_name'),
