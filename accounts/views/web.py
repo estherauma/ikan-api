@@ -19,6 +19,7 @@ from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
 from accounts.models import User
 from accounts.forms import LoginForm
+from common.twilio import OTPVerification
 
 
 @login_required(login_url='/account/login')
@@ -310,6 +311,15 @@ class RegisterSuccess(View):
             }
         return render(request, template_name="register-success.html", context=context)
 
+def get_locale_from_request(request):
+    lang = request.session.get('language', 'en-us')
+    if lang == 'en-us':
+        return 'en'
+    if lang == 'id-id':
+        return 'ms'
+    if lang == 'qm-zh':
+        return 'zh'
+    return 'en'
 
 class RegisterWebView(View):
     def get_context_data(self, **kwargs):
@@ -379,7 +389,65 @@ class RegisterWebView(View):
             return render(request, template_name="register-success.html", context=success_context)
         
         if form.cleaned_data.get('has_phone_number'):
-            pass
+            # TODO: Add translation here
+            messages.success(request, 'Account created successfully. Please verify your phone number to activate your account.')
+            try:
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+            except Exception as e:
+                # TODO: Add translation here
+                messages.error(request, 'An error occurred while sending OTP code.')
+            
+            request.session['user_id'] = user.id
+            # request.session['phone_number'] = user.mobile
+            # request.session['type'] = 'mobile'
+            return render(request, 'verify-phone/code.html', context={ 'auth_common_text': auth_common_text })
+
+
+class VerifyPhoneNumber(View):
+    def get(self, request):
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context = {
+            'auth_common_text': auth_common_text,
+        }
+        return render(request, template_name='verify-phone/code.html', context=context)
+
+    def post(self, request):
+        otp_code = request.POST.get('otp_code')
+        user_id = request.session.get('user_id')
+        if user_id and otp_code:
+            user = User.objects.get(id=user_id)
+            otp_service = OTPVerification()
+            verification_result = otp_service.check_otp(otp_code, user.mobile)
+            if verification_result == 'approved':
+                user.is_verified = True
+                user.is_mobile_verified = True
+                user.save()
+                # TODO: Add translation here
+                messages.success(request, 'Phone number verified successfully.')
+                return redirect('accounts:verify-phone-number-success')
+            else:
+                # TODO: Add translation here
+                messages.error(request, 'Phone number verification failed. Please try again.')
+                return redirect('accounts:verify-phone-number-failure')
+        
+        # TODO: Add translation here
+        messages.error(request, 'Missing OTP code or user information. Please try again.')
+        return render(request, template_name='verify-phone/code.html')
+    
+
+def verify_phone_number_success(request):
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    return render(request, template_name='verify-phone/success.html', context={'auth_common_text': auth_common_text})
+
+
+def verify_phone_number_failure(request):
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    return render(request, template_name='verify-phone/failure.html', context={'auth_common_text': auth_common_text})
 
 
 class RequestPasswordReset(View):
