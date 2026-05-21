@@ -450,6 +450,21 @@ def verify_phone_number_failure(request):
     return render(request, template_name='verify-phone/failure.html', context={'auth_common_text': auth_common_text})
 
 
+def resend_otp(request):
+    user_id = request.session.get('user_id')
+    if user_id:
+        user = User.objects.get(id=user_id)
+        otp_service = OTPVerification()
+        locale = get_locale_from_request(request)
+        otp_service.send_otp(user.mobile, locale=locale)
+        # TODO: Add translation here
+        messages.success(request, 'OTP code resent successfully.')
+    else:
+        # TODO: Add translation here
+        messages.error(request, 'Unable to resend OTP code.')
+    return redirect('accounts:verify-phone-number')
+
+
 class RequestPasswordReset(View):
     def get_context_data(self, **kwargs):
         context = kwargs
