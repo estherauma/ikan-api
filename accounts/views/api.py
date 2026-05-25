@@ -1,5 +1,3 @@
-from pyexpat.errors import messages
-
 from accounts.models import LoginEvent, User, UserBank, UserBeneficiaries
 from accounts.serializers import (
     LoginSerializer, RegisterSerializer,
@@ -166,7 +164,7 @@ class RegisterView(APIView):
             }, status.HTTP_400_BAD_REQUEST)
         if data.get('phone_number'):
             data['mobile'] = data['phone_number']
-        
+
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save(is_active=False)
@@ -195,7 +193,8 @@ class RegisterView(APIView):
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
-                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
+                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN',
+                                             'Verify your email to start using IKAN'),
                 body={
                     'first_name': user.first_name,
                     'verification_link': verification_link,
@@ -209,7 +208,7 @@ class RegisterView(APIView):
                 otp_service = OTPVerification()
                 locale = get_locale_from_request(request)
                 otp_service.send_otp(user.mobile, locale=locale)
-            except Exception as e:
+            except Exception:
                 pass
 
         return Response(
@@ -230,7 +229,7 @@ def verify_email(request, uidb64, token):
         if language not in supported_languages:
             language = 'en-us'
         request.session['language'] = language
-        
+
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
@@ -410,7 +409,8 @@ class VerifyAndSetPassword(APIView):
                 user.set_password(data.get('password'))
                 user.access_code = None
                 user.save()
-                # notify_admin(user) ## Disabled as new users are automatically actived above, no need for admin activation
+                # notify_admin(user) ## Disabled as new users are automatically actived above, \
+                # no need for admin activation
                 return Response(
                     {
                         'status': 'OK',
