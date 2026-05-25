@@ -90,6 +90,9 @@ class LoginView(View):
                 # Add translation here
                 unverified_number_err = getattr(request, 'unverified_number_err', None)
                 if unverified_number_err:
+                    user_id = getattr(request, 'user_id', None)
+                    context['show_verify_button'] = True
+                    request.session['user_id_from_login'] = user_id
                     messages.error(request,  unverified_number_err)
                 else:
                     # Add translation here
@@ -398,15 +401,27 @@ class RegisterWebView(View):
             except Exception as e:
                 # TODO: Add translation here
                 messages.error(request, 'An error occurred while sending OTP code.')
-            
+
             request.session['user_id'] = user.id
             # request.session['phone_number'] = user.mobile
             # request.session['type'] = 'mobile'
-            return render(request, 'verify-phone/code.html', context={ 'auth_common_text': auth_common_text })
+            return redirect('accounts:verify-phone-number')
 
 
 class VerifyPhoneNumber(View):
     def get(self, request):
+        user_id_from_login = request.session.get('user_id_from_login', None)
+        if user_id_from_login:
+            try:
+                user = User.objects.get(id=user_id_from_login)
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+                request.session['user_id'] = user.id
+            except Exception as e:
+                # TODO: Add translation here
+                messages.error(request, 'An error occurred while sending OTP code.')
+
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context = {
@@ -419,20 +434,25 @@ class VerifyPhoneNumber(View):
         user_id = request.session.get('user_id')
         if user_id and otp_code:
             user = User.objects.get(id=user_id)
-            otp_service = OTPVerification()
-            verification_result = otp_service.check_otp(otp_code, user.mobile)
-            if verification_result == 'approved':
-                user.is_verified = True
-                user.is_mobile_verified = True
-                user.save()
+            try:
+                otp_service = OTPVerification()
+                verification_result = otp_service.check_otp(otp_code, user.mobile)
+                if verification_result == 'approved':
+                    user.is_verified = True
+                    user.is_mobile_verified = True
+                    user.is_active = True
+                    user.save()
+                    # TODO: Add translation here
+                    messages.success(request, 'Phone number verified successfully.')
+                    return redirect('accounts:verify-phone-number-success')
+                else:
+                    # TODO: Add translation here
+                    messages.error(request, 'Phone number verification failed. Please try again.')
+                    return redirect('accounts:verify-phone-number-failure')
+            except Exception as e:
                 # TODO: Add translation here
-                messages.success(request, 'Phone number verified successfully.')
-                return redirect('accounts:verify-phone-number-success')
-            else:
-                # TODO: Add translation here
-                messages.error(request, 'Phone number verification failed. Please try again.')
-                return redirect('accounts:verify-phone-number-failure')
-        
+                messages.error(request, 'An error occurred while verifying OTP code.')
+
         # TODO: Add translation here
         messages.error(request, 'Missing OTP code or user information. Please try again.')
         return render(request, template_name='verify-phone/code.html')

@@ -53,6 +53,7 @@ class EmailOrPhoneNumberBackend(ModelBackend):
             except ValidationError as e:
                 if request is not None:
                     request.unverified_number_err = str(e)
+                    request.user_id = user.id if user else None
                 return None
 
             if user.check_password(password) and self.user_can_authenticate(user):
