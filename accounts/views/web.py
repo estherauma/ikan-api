@@ -77,7 +77,7 @@ class LoginView(View):
         context = self.get_context_data()
         auth_common_text = context.get('auth_common_text', {})
         form = LoginForm(data=request.POST, auth_common_text=auth_common_text)
-        context = { **context, 'form': form}
+        context = {**context, 'form': form}
         if form.is_valid():
             email_or_phone = form.cleaned_data.get("email_or_phone")
             password = form.cleaned_data.get("password")
@@ -314,6 +314,7 @@ class RegisterSuccess(View):
             }
         return render(request, template_name="register-success.html", context=context)
 
+
 def get_locale_from_request(request):
     lang = request.session.get('language', 'en-us')
     if lang == 'en-us':
@@ -323,6 +324,7 @@ def get_locale_from_request(request):
     if lang == 'qm-zh':
         return 'zh'
     return 'en'
+
 
 class RegisterWebView(View):
     def get_context_data(self, **kwargs):
@@ -375,7 +377,8 @@ class RegisterWebView(View):
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
-                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
+                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN',
+                                             'Verify your email to start using IKAN'),
                 body={
                     'first_name': user.first_name,
                     'verification_link': verification_link,
@@ -390,15 +393,16 @@ class RegisterWebView(View):
                 'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
                 }
             return render(request, template_name="register-success.html", context=success_context)
-        
+
         if form.cleaned_data.get('has_phone_number'):
             # TODO: Add translation here
-            messages.success(request, 'Account created successfully. Please verify your phone number to activate your account.')
+            messages.success(request, 'Account created successfully. \
+                             Please verify your phone number to activate your account.')
             try:
                 otp_service = OTPVerification()
                 locale = get_locale_from_request(request)
                 otp_service.send_otp(user.mobile, locale=locale)
-            except Exception as e:
+            except Exception:
                 # TODO: Add translation here
                 messages.error(request, 'An error occurred while sending OTP code.')
 
@@ -418,7 +422,7 @@ class VerifyPhoneNumber(View):
                 locale = get_locale_from_request(request)
                 otp_service.send_otp(user.mobile, locale=locale)
                 request.session['user_id'] = user.id
-            except Exception as e:
+            except Exception:
                 # TODO: Add translation here
                 messages.error(request, 'An error occurred while sending OTP code.')
 
@@ -449,14 +453,14 @@ class VerifyPhoneNumber(View):
                     # TODO: Add translation here
                     messages.error(request, 'Phone number verification failed. Please try again.')
                     return redirect('accounts:verify-phone-number-failure')
-            except Exception as e:
+            except Exception:
                 # TODO: Add translation here
                 messages.error(request, 'An error occurred while verifying OTP code.')
 
         # TODO: Add translation here
         messages.error(request, 'Missing OTP code or user information. Please try again.')
         return render(request, template_name='verify-phone/code.html')
-    
+
 
 def verify_phone_number_success(request):
     prismic_utils = PrismicUtils(request)
