@@ -170,8 +170,22 @@ class RequestPasswordResetForm(forms.Form):
         })
     )
 
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone').strip()
+        validation_result = validate_email_or_phone(email_or_phone, self.auth_common_text)
+
+        if validation_result['is_email']:
+            self.cleaned_data['email'] = email_or_phone
+        if validation_result['is_phone']:
+            self.cleaned_data['mobile'] = email_or_phone
+
+        self.cleaned_data['has_phone'] = validation_result['is_phone']
+        self.cleaned_data['has_email'] = validation_result['is_email']
+        return email_or_phone
+
     def __init__(self, *args, **kwargs):
         auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
         super().__init__(*args, **kwargs)
         if auth_common_text:
             # TODO: add translation here
@@ -194,7 +208,8 @@ class PasswordResetForm(forms.Form):
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'id': 'password1',
-            'placeholder': 'Enter your new password'
+            'placeholder': 'Enter your new password',
+            'autocomplete': 'new-password'
         })
     )
     password2 = forms.CharField(
@@ -210,7 +225,7 @@ class PasswordResetForm(forms.Form):
             'id': 'reset_password_token',
             'placeholder': 'Enter your password reset token'
         }),
-        max_length=5,
+        max_length=6,
     )
 
     def clean_email_or_phone(self):
