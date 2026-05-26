@@ -10,6 +10,35 @@ from django.core.validators import validate_email
 from django.db.models import Q
 
 
+def validate_email_or_phone(value, auth_common_text=None):
+    value = value.strip()
+    is_email = False
+    is_phone = False
+
+    # Email validation
+    try:
+        validate_email(value)
+        is_email = True
+    except ValidationError:
+        pass
+
+    # Phone number validation
+    phone_pattern = r"^\+?\d{9,15}$"
+    if re.match(phone_pattern, value):
+        is_phone = True
+
+    if not is_email and not is_phone:
+        # TODO: add translation here
+        raise forms.ValidationError(auth_common_text.get('enterValidEmailOrPhoneNumber',
+                                                         'Enter a valid email address or phone number.'))
+
+    return {
+        'value': value,
+        'is_email': is_email,
+        'is_phone': is_phone
+    }
+
+
 class RegistrationForm(UserCreationForm):
     first_name = forms.CharField(
         widget=forms.TextInput(attrs={
