@@ -8,6 +8,7 @@ from accounts.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Q
+from common.twilio import check_verification_code
 
 
 def validate_email_or_phone(value, auth_common_text=None):
@@ -179,7 +180,7 @@ class RequestPasswordResetForm(forms.Form):
         if validation_result['is_phone']:
             self.cleaned_data['mobile'] = email_or_phone
 
-        self.cleaned_data['has_phone'] = validation_result['is_phone']
+        self.cleaned_data['has_phone_number'] = validation_result['is_phone']
         self.cleaned_data['has_email'] = validation_result['is_email']
         return email_or_phone
 
@@ -230,6 +231,15 @@ class PasswordResetForm(forms.Form):
 
     def clean_email_or_phone(self):
         email_or_phone = self.cleaned_data.get('email_or_phone')
+
+        validation_result = validate_email_or_phone(email_or_phone, self.auth_common_text)
+        if validation_result['is_email']:
+            self.cleaned_data['email'] = email_or_phone
+        if validation_result['is_phone']:
+            self.cleaned_data['mobile'] = email_or_phone
+        self.cleaned_data['has_phone_number'] = validation_result['is_phone']
+        self.cleaned_data['has_email'] = validation_result['is_email']
+
         if not User.objects.filter(Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone)
                                    ).exists():
             raise forms.ValidationError(self.auth_common_text.get('userDoesNotExist', 'User does not exist.'))
@@ -238,10 +248,13 @@ class PasswordResetForm(forms.Form):
     def clean_reset_password_token(self):
         email_or_phone = self.cleaned_data.get('email_or_phone')
         reset_password_token = self.cleaned_data.get('reset_password_token')
-        if not User.objects.filter(
-            Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone),
-            reset_password_token=reset_password_token
-        ).exists():
+
+        if (self.cleaned_data.get('has_phone_number') and
+            not check_verification_code(self.request, email_or_phone, reset_password_token, self.auth_common_text)) or \
+                (self.cleaned_data.get('has_email') and not User.objects.filter(
+                    Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone),
+                    reset_password_token=reset_password_token
+                ).exists()):
             raise forms.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
                                                                   'Invalid reset password token.'))
         return reset_password_token
@@ -256,7 +269,9 @@ class PasswordResetForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         auth_common_text = kwargs.pop('auth_common_text', {})
+        request = kwargs.pop('request', None)
         self.auth_common_text = auth_common_text
+        self.request = request
         super().__init__(*args, **kwargs)
         if auth_common_text:
             self.fields['email_or_phone'].widget.attrs['placeholder'] = \
