@@ -531,29 +531,41 @@ class RequestPasswordReset(View):
         if not form.is_valid():
             return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
-        user = User.objects.get(email=form.cleaned_data.get('email'))
-        if user:
-            password_reset_token = random.randrange(11111, 99999,)
-            user.reset_password_token = password_reset_token
-            user.save()
+        if form.cleaned_data.get('has_phone_number'):
+            user = User.objects.get(mobile=form.cleaned_data.get('mobile'))
+            if user:
+                send_verification_code(request, user, auth_common_text)
+                # TODO: Add translation here
+                messages.success(request, auth_common_text.get(
+                    'passwordResetOTPRequestSentMessage',
+                    'Please check your phone for the OTP code to reset your password.')
+                )
+                return redirect('accounts:verify-phone-number')
+        if form.cleaned_data.get('has_email'):
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+            if user:
+                password_reset_token = random.randrange(111111, 999999)
+                user.reset_password_token = password_reset_token
+                user.save()
 
-            email_helper = TunaEmailHelper()
-            email_helper.tuna_send_email(
-                to_emails=[user.email],
-                subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
-                body={
-                    'first_name': user.first_name,
-                    'password_reset_token': password_reset_token,
-                },
-                template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
-                auth_common_text=auth_common_text,
-            )
-            messages.success(request, auth_common_text.get(
-                'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
-            return redirect('reset-password')
-        else:
-            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
-            return render(request, template_name='password-reset/request-password-reset.html', context=context)
+                email_helper = TunaEmailHelper()
+                email_helper.tuna_send_email(
+                    to_emails=[user.email],
+                    subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
+                    body={
+                        'first_name': user.first_name,
+                        'password_reset_token': password_reset_token,
+                    },
+                    template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                    auth_common_text=auth_common_text,
+                )
+                messages.success(request, auth_common_text.get(
+                    'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
+                return redirect('reset-password')
+        # TODO: Add translation here
+        messages.error(request,
+                       auth_common_text.get('errorRequestingPasswordReset', 'Error requesting password reset.'))
+        return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
 
 class ResetPassword(View):
