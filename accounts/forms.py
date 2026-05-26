@@ -133,11 +133,11 @@ class RegistrationForm(UserCreationForm):
 
 
 class RequestPasswordResetForm(forms.Form):
-    email = forms.EmailField(
+    email_or_phone = forms.EmailField(
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'id': 'email',
-            'placeholder': 'Enter your email'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number'
         })
     )
 
@@ -145,9 +145,12 @@ class RequestPasswordResetForm(forms.Form):
         auth_common_text = kwargs.pop('auth_common_text', {})
         super().__init__(*args, **kwargs)
         if auth_common_text:
-            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
-                                                                                    'Enter your email')
-            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            # TODO: add translation here
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = \
+                auth_common_text.get('enterYourEmailOrPhoneNumber',
+                                     'Enter your email or phone number')
+            # TODO: add translation here
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
 
 
 class PasswordResetForm(forms.Form):
