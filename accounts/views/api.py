@@ -270,20 +270,21 @@ class RequestPasswordReset(APIView):
 
     def post(self, request):
         email = request.data.get('email')
+        phone_number = request.data.get('phone_number')
         language = request.data.get('language', 'en-us')
         supported_languages = ['en-us', 'id-id', 'qm-zh']
         if language not in supported_languages:
             language = 'en-us'
         request.session['language'] = language
-        if not email:
+        if not email and not phone_number:
             return Response({
                 'status': 'FAIL',
-                'message': 'Email is required',
+                'message': 'Email or phone number is required',
             }, status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.filter(email=email).first()
-        if user:
-            password_reset_token = random.randrange(11111, 99999,)
+        user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
+        if user and email:
+            password_reset_token = random.randrange(111111, 999999)
             user.reset_password_token = password_reset_token
             user.save()
 
@@ -300,13 +301,36 @@ class RequestPasswordReset(APIView):
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
                 auth_common_text=auth_common_text,
             )
+            return Response(
+                {
+                    'status': 'OK',
+                    'message': 'Password reset request was successful. \
+                        Please check your email for the password reset code.'
+                },
+                status.HTTP_200_OK
+            )
+        elif user and phone_number:
+            try:
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+                return Response(
+                    {
+                        'status': 'OK',
+                        'message': 'Password reset request was successful. \
+                            Please check your phone for the password reset code.'
+                    },
+                    status.HTTP_200_OK
+                )
+            except Exception:
+                pass
 
         return Response(
             {
-                'status': 'OK',
-                'message': 'Password reset request was successful. Please check your email for the password reset code.'
+                'status': 'FAIL',
+                'message': 'Password reset request was unsuccessful.'
             },
-            status.HTTP_200_OK
+            status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -316,7 +340,7 @@ class PasswordResetCheckToken(APIView):
     def post(self, request):
         try:
             data = request.data
-            serializer = PasswordResetCheckTokenSerializer(data=data)
+            serializer = PasswordResetCheckTokenSerializer(data=data, context={'request': request})
             serializer.is_valid(raise_exception=True)
 
             return Response(
@@ -347,8 +371,9 @@ class ResetPassword(APIView):
             serializer.is_valid(raise_exception=True)
 
             email = request.data.get('email')
+            phone_number = request.data.get('phone_number')
             password = request.data.get('password')
-            user = User.objects.filter(email=email).first()
+            user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
             if user:
                 user.set_password(password)
                 user.reset_password_token = None
@@ -364,7 +389,7 @@ class ResetPassword(APIView):
                 return Response(
                     {
                         'status': 'ERROR',
-                        'error': 'User does not exist'
+                        'message': 'User does not exist'
                     },
                     status.HTTP_400_BAD_REQUEST
                 )
