@@ -1,9 +1,10 @@
 from django.urls import path
-from accounts.views.web import invite_user, logout_user
-from accounts.views.web import \
+from accounts.views.web import invite_user, logout_user, \
     UserListView, RegisterWebView, RegisterSuccess, \
     RequestPasswordReset, ResetPassword, LoginView, \
-    ResendAcessCode, UserDetailView, WorkersListView, change_language
+    ResendAcessCode, UserDetailView, WorkersListView, change_language, \
+    VerifyPhoneNumber, verify_phone_number_success, verify_phone_number_failure, \
+    resend_otp
 
 app_name = 'accounts'
 
@@ -20,5 +21,9 @@ urlpatterns = [
     path("logout", logout_user, name="logout"),
     path("profile/<pk>/", UserDetailView.as_view(), name="profile"),
     path('workers', WorkersListView.as_view(), name='workers'),
-    path('change-language', change_language, name='change-language')
+    path('change-language', change_language, name='change-language'),
+    path('verify-phone-number', VerifyPhoneNumber.as_view(), name='verify-phone-number'),
+    path('verify-phone-number/success', verify_phone_number_success, name='verify-phone-number-success'),
+    path('verify-phone-number/failure', verify_phone_number_failure, name='verify-phone-number-failure'),
+    path('verify-phone-number/resend-otp', resend_otp, name='resend-otp'),
 ]

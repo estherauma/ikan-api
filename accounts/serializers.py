@@ -63,15 +63,17 @@ class RegisterSerializer(serializers.Serializer):
     
     def validate(self, data):
         email = data.get('email')
-        phone_number = data.get('mobile')
+        phone_number = data.get('phone_number')
 
         if not email and not phone_number:
-            # Add translation here
+            # TODO: Add translation here
             raise serializers.ValidationError('Either email or phone number is required.')
 
         return data
 
     def create(self, validated_data):
+        if not validated_data.get('mobile') and validated_data.get('phone_number'):
+            validated_data['mobile'] = validated_data['phone_number']
         return User.objects.create_user(**validated_data)
 
     class Meta:

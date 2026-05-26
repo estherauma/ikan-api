@@ -94,6 +94,10 @@ class RegistrationForm(UserCreationForm):
             # add phone number to cleaned data for use in the view
             self.cleaned_data['mobile'] = email_or_phone
 
+        # Add flags to cleaned data to indicate whether email or phone number was provided
+        self.cleaned_data['has_email'] = is_email
+        self.cleaned_data['has_phone_number'] = is_phone
+
         return email_or_phone
 
     def clean_password2(self):
