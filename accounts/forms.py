@@ -8,6 +8,36 @@ from accounts.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Q
+from common.twilio import check_verification_code
+
+
+def validate_email_or_phone(value, auth_common_text=None):
+    value = value.strip()
+    is_email = False
+    is_phone = False
+
+    # Email validation
+    try:
+        validate_email(value)
+        is_email = True
+    except ValidationError:
+        pass
+
+    # Phone number validation
+    phone_pattern = r"^\+?\d{9,15}$"
+    if re.match(phone_pattern, value):
+        is_phone = True
+
+    if not is_email and not is_phone:
+        # TODO: add translation here
+        raise forms.ValidationError(auth_common_text.get('enterValidEmailOrPhoneNumber',
+                                                         'Enter a valid email address or phone number.'))
+
+    return {
+        'value': value,
+        'is_email': is_email,
+        'is_phone': is_phone
+    }
 
 
 class RegistrationForm(UserCreationForm):
@@ -90,7 +120,8 @@ class RegistrationForm(UserCreationForm):
         else:
             if User.objects.filter(Q(mobile=email_or_phone) | Q(telephone=email_or_phone)).exists():
                 # TODO: add translation here
-                raise forms.ValidationError(self.auth_common_text.get('phoneNumberAlreadyExists', 'Phone number already exists.'))
+                raise forms.ValidationError(self.auth_common_text.get('phoneNumberAlreadyExists',
+                                                                      'Phone number already exists.'))
             # add phone number to cleaned data for use in the view
             self.cleaned_data['mobile'] = email_or_phone
 
@@ -118,8 +149,8 @@ class RegistrationForm(UserCreationForm):
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
             # TODO: add translation here
-            self.fields['email_or_phone'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmailOrPhoneNumber',
-                                                                                            'Enter your email or phone number')
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = \
+                auth_common_text.get('enterYourEmailOrPhoneNumber', 'Enter your email or phone number')
             self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
                                                                                         'Enter your password')
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
@@ -133,36 +164,54 @@ class RegistrationForm(UserCreationForm):
 
 
 class RequestPasswordResetForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
+    email_or_phone = forms.CharField(
+        widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'id': 'email',
-            'placeholder': 'Enter your email'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number'
         })
     )
 
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone').strip()
+        validation_result = validate_email_or_phone(email_or_phone, self.auth_common_text)
+
+        if validation_result['is_email']:
+            self.cleaned_data['email'] = email_or_phone
+        if validation_result['is_phone']:
+            self.cleaned_data['mobile'] = email_or_phone
+
+        self.cleaned_data['has_phone_number'] = validation_result['is_phone']
+        self.cleaned_data['has_email'] = validation_result['is_email']
+        return email_or_phone
+
     def __init__(self, *args, **kwargs):
         auth_common_text = kwargs.pop('auth_common_text', {})
+        self.auth_common_text = auth_common_text
         super().__init__(*args, **kwargs)
         if auth_common_text:
-            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
-                                                                                    'Enter your email')
-            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            # TODO: add translation here
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = \
+                auth_common_text.get('enterYourEmailOrPhoneNumber',
+                                     'Enter your email or phone number')
+            # TODO: add translation here
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
 
 
 class PasswordResetForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
+    email_or_phone = forms.CharField(
+        widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'id': 'email',
-            'placeholder': 'Enter your email'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number'
         })
     )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
             'id': 'password1',
-            'placeholder': 'Enter your new password'
+            'placeholder': 'Enter your new password',
+            'autocomplete': 'new-password'
         })
     )
     password2 = forms.CharField(
@@ -178,19 +227,35 @@ class PasswordResetForm(forms.Form):
             'id': 'reset_password_token',
             'placeholder': 'Enter your password reset token'
         }),
-        max_length=5,
+        max_length=6,
     )
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if not User.objects.filter(email=email).exists():
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone')
+
+        validation_result = validate_email_or_phone(email_or_phone, self.auth_common_text)
+        if validation_result['is_email']:
+            self.cleaned_data['email'] = email_or_phone
+        if validation_result['is_phone']:
+            self.cleaned_data['mobile'] = email_or_phone
+        self.cleaned_data['has_phone_number'] = validation_result['is_phone']
+        self.cleaned_data['has_email'] = validation_result['is_email']
+
+        if not User.objects.filter(Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone)
+                                   ).exists():
             raise forms.ValidationError(self.auth_common_text.get('userDoesNotExist', 'User does not exist.'))
-        return email
+        return email_or_phone
 
     def clean_reset_password_token(self):
-        email = self.cleaned_data.get('email')
+        email_or_phone = self.cleaned_data.get('email_or_phone')
         reset_password_token = self.cleaned_data.get('reset_password_token')
-        if not User.objects.filter(email=email, reset_password_token=reset_password_token).exists():
+
+        if (self.cleaned_data.get('has_phone_number') and
+            not check_verification_code(self.request, email_or_phone, reset_password_token, self.auth_common_text)) or \
+                (self.cleaned_data.get('has_email') and not User.objects.filter(
+                    Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone),
+                    reset_password_token=reset_password_token
+                ).exists()):
             raise forms.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
                                                                   'Invalid reset password token.'))
         return reset_password_token
@@ -205,18 +270,20 @@ class PasswordResetForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         auth_common_text = kwargs.pop('auth_common_text', {})
+        request = kwargs.pop('request', None)
         self.auth_common_text = auth_common_text
+        self.request = request
         super().__init__(*args, **kwargs)
         if auth_common_text:
-            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
-                                                                                    'Enter your email')
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = \
+                auth_common_text.get('enterYourEmailOrPhone', 'Enter your email or phone number')
             self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourNewPassword',
                                                                                         'Enter your new password')
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
                                                                                         'Confirm your password')
             self.fields['reset_password_token'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourPasswordResetToken', 'Enter your password reset token')
-            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
             self.fields['password1'].label = auth_common_text.get('newPassword', 'New Password')
             self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
             self.fields['reset_password_token'].label = auth_common_text.get('resetPasswordToken',
@@ -301,11 +368,11 @@ class LoginForm(forms.Form):
         super(LoginForm, self).__init__(*args, **kwargs)
         if auth_common_text:
             # TODO: add translation here
-            self.fields['email_or_phone'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmailOrPhoneNumber',
-                                                                                            'Enter your email address or phone number')
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = \
+                auth_common_text.get('enterYourEmailOrPhoneNumber', 'Enter your email address or phone number')
             # TODO: add translation here
             self.fields['password'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
-                                                                                        'Enter your password')
+                                                                                       'Enter your password')
             # TODO: add translation here
             self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
             # TODO: add translation here

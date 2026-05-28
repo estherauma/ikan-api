@@ -16,6 +16,7 @@ from decouple import config
 import json
 from google.oauth2 import service_account
 from dotenv import load_dotenv
+from django.contrib.messages import constants as message_constants
 
 load_dotenv()
 
@@ -227,3 +228,7 @@ else:
 DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
 GS_DEFAULT_ACL = None
+
+MESSAGE_TAGS = {
+    message_constants.ERROR: "danger",
+}

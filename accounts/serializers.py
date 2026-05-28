@@ -2,7 +2,7 @@ from rest_framework import serializers
 from accounts.models import User, UserBank, UserBeneficiaries
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import validate_email
-from common.twilio import OTPVerification
+from common.twilio import OTPVerification, check_verification_code
 from django.db.models import Q
 
 
@@ -36,7 +36,7 @@ class RegisterSerializer(serializers.Serializer):
                 raise serializers.ValidationError('Invalid email format.')
 
         return value
-    
+
     def validate_phone_number(self, value):
         if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
             # Add translation here
@@ -60,7 +60,7 @@ class RegisterSerializer(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(str(e))
         return value
-    
+
     def validate(self, data):
         email = data.get('email')
         phone_number = data.get('phone_number')
@@ -82,34 +82,118 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class PasswordResetCheckTokenSerializer(serializers.Serializer):
-    email = serializers.CharField(write_only=True)
+    email = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    phone_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
     reset_password_token = serializers.CharField(write_only=True)
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            # Add translation here
+            raise serializers.ValidationError('Email already exists.')
+
+        if value:
+            try:
+                validate_email(value)
+            except serializers.ValidationError:
+                # Add translation here
+                raise serializers.ValidationError('Invalid email format.')
+
+        return value
+
+    def validate_phone_number(self, value):
+        if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
+            # Add translation here
+            raise serializers.ValidationError('Phone number already exists.')
+
+        if value and not value.startswith('+'):
+            # Add translation here
+            raise serializers.ValidationError(
+                "Phone number must start with a '+' sign and include the country code."
+            )
+        if value and not value[1:].isdigit():
+            # Add translation here
+            raise serializers.ValidationError(
+                "Phone number must contain only digits after the country code."
+            )
+        return value
 
     def validate(self, data):
         email = data.get('email')
+        phone_number = data.get('phone_number')
         reset_password_token = data.get('reset_password_token')
-        try:
+
+        if not email and not phone_number:
+            raise serializers.ValidationError('Either email or phone number is required.')
+
+        if email:
             user = User.objects.get(email=email)
             if user.reset_password_token != reset_password_token:
                 raise serializers.ValidationError("Invalid reset password token.")
-        except User.DoesNotExist:
+        elif phone_number:
+            # user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
+            res = check_verification_code(self.context.get('request'), phone_number, reset_password_token)
+            if not res:
+                raise serializers.ValidationError("Invalid reset password token.")
+        else:
             raise serializers.ValidationError("User does not exist.")
         return data
 
 
 class PasswordResetSerializer(serializers.Serializer):
-    email = serializers.CharField(write_only=True)
+    email = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    phone_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
     reset_password_token = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
 
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            # Add translation here
+            raise serializers.ValidationError('Email already exists.')
+
+        if value:
+            try:
+                validate_email(value)
+            except serializers.ValidationError:
+                # Add translation here
+                raise serializers.ValidationError('Invalid email format.')
+
+        return value
+
+    def validate_phone_number(self, value):
+        if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
+            # Add translation here
+            raise serializers.ValidationError('Phone number already exists.')
+
+        if value and not value.startswith('+'):
+            # Add translation here
+            raise serializers.ValidationError(
+                "Phone number must start with a '+' sign and include the country code."
+            )
+        if value and not value[1:].isdigit():
+            # Add translation here
+            raise serializers.ValidationError(
+                "Phone number must contain only digits after the country code."
+            )
+        return value
+
     def validate(self, data):
         email = data.get('email')
+        phone_number = data.get('phone_number')
         reset_password_token = data.get('reset_password_token')
-        try:
+
+        if not email and not phone_number:
+            raise serializers.ValidationError('Either email or phone number is required.')
+
+        if email:
             user = User.objects.get(email=email)
             if user.reset_password_token != reset_password_token:
                 raise serializers.ValidationError("Invalid reset password token.")
-        except User.DoesNotExist:
+        elif phone_number:
+            # user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
+            res = check_verification_code(self.context.get('request'), phone_number, reset_password_token)
+            if not res:
+                raise serializers.ValidationError("Invalid reset password token.")
+        else:
             raise serializers.ValidationError("User does not exist.")
         return data
 

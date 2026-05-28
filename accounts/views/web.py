@@ -19,7 +19,7 @@ from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
 from accounts.models import User
 from accounts.forms import LoginForm
-from common.twilio import OTPVerification
+from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
 
 
 @login_required(login_url='/account/login')
@@ -315,17 +315,6 @@ class RegisterSuccess(View):
         return render(request, template_name="register-success.html", context=context)
 
 
-def get_locale_from_request(request):
-    lang = request.session.get('language', 'en-us')
-    if lang == 'en-us':
-        return 'en'
-    if lang == 'id-id':
-        return 'ms'
-    if lang == 'qm-zh':
-        return 'zh'
-    return 'en'
-
-
 class RegisterWebView(View):
     def get_context_data(self, **kwargs):
         context = kwargs
@@ -511,29 +500,41 @@ class RequestPasswordReset(View):
         if not form.is_valid():
             return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
-        user = User.objects.get(email=form.cleaned_data.get('email'))
-        if user:
-            password_reset_token = random.randrange(11111, 99999,)
-            user.reset_password_token = password_reset_token
-            user.save()
+        if form.cleaned_data.get('has_phone_number'):
+            user = User.objects.get(mobile=form.cleaned_data.get('mobile'))
+            if user:
+                send_verification_code(request, user, auth_common_text)
+                # TODO: Add translation here
+                messages.success(request, auth_common_text.get(
+                    'passwordResetOTPRequestSentMessage',
+                    'Please check your phone for the OTP code to reset your password.')
+                )
+                return redirect('accounts:reset-password')
+        if form.cleaned_data.get('has_email'):
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+            if user:
+                password_reset_token = random.randrange(111111, 999999)
+                user.reset_password_token = password_reset_token
+                user.save()
 
-            email_helper = TunaEmailHelper()
-            email_helper.tuna_send_email(
-                to_emails=[user.email],
-                subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
-                body={
-                    'first_name': user.first_name,
-                    'password_reset_token': password_reset_token,
-                },
-                template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
-                auth_common_text=auth_common_text,
-            )
-            messages.success(request, auth_common_text.get(
-                'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
-            return redirect('reset-password')
-        else:
-            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
-            return render(request, template_name='password-reset/request-password-reset.html', context=context)
+                email_helper = TunaEmailHelper()
+                email_helper.tuna_send_email(
+                    to_emails=[user.email],
+                    subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
+                    body={
+                        'first_name': user.first_name,
+                        'password_reset_token': password_reset_token,
+                    },
+                    template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                    auth_common_text=auth_common_text,
+                )
+                messages.success(request, auth_common_text.get(
+                    'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
+                return redirect('accounts:reset-password')
+        # TODO: Add translation here
+        messages.error(request,
+                       auth_common_text.get('errorRequestingPasswordReset', 'Error requesting password reset.'))
+        return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
 
 class ResetPassword(View):
@@ -543,7 +544,7 @@ class ResetPassword(View):
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
-        context['form'] = PasswordResetForm(auth_common_text=auth_common_text)
+        context['form'] = PasswordResetForm(auth_common_text=auth_common_text, request=self.request)
         return context
 
     def get(self, request):
@@ -553,12 +554,22 @@ class ResetPassword(View):
     def post(self, request):
         context = self.get_context_data()
         auth_common_text = context.get('auth_common_text', {})
-        form = PasswordResetForm(data=request.POST, auth_common_text=auth_common_text)
+        form = PasswordResetForm(data=request.POST, auth_common_text=auth_common_text, request=request)
         context['form'] = form
         if not form.is_valid():
-            return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['form'] = form
+            return render(request, template_name='password-reset/reset-password.html', context=context)
 
-        user = User.objects.get(email=form.cleaned_data.get('email'))
+        if form.cleaned_data.get('has_phone_number'):
+            user = User.objects.get(mobile=form.cleaned_data.get('email_or_phone'))
+        elif form.cleaned_data.get('has_email'):
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+        else:
+            user = None
         if user:
             user.set_password(form.cleaned_data.get('password1'))
             user.reset_password_token = None
@@ -567,8 +578,10 @@ class ResetPassword(View):
                 'passwordResetSuccessMessage', 'Password reset successfully. Please login with your new password.'))
             return redirect('login')
         else:
-            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
-            return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+            # TODO: Add translation here
+            messages.error(request, auth_common_text.get('passwordResetFailure',
+                                                         'Error resetting password. Please try again.'))
+            return render(request, template_name='password-reset/reset-password.html', context=context)
 
 
 @login_required
