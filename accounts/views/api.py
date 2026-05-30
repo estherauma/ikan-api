@@ -496,12 +496,13 @@ class InviteUser(APIView):
         '''
         data = request.data
         email = data.get('email')
+        mobile = data.get('mobile', data.get('phone_number'))
         role = data.get('role')
-        if email is None:
+        if email is None and mobile is None:
             return Response(
                 {
                     'status': 'FAIL',
-                    'message': 'Email is required.'
+                    'message': 'Either email or phone number is required.'
                 },
                 status.HTTP_400_BAD_REQUEST
             )
@@ -514,7 +515,7 @@ class InviteUser(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        user_exists = User.objects.filter(email=email).exists()
+        user_exists = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).exists()
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
@@ -522,6 +523,7 @@ class InviteUser(APIView):
             serializer.is_valid(raise_exception=True)
             user = User.objects.create_user(
                 email=email,
+                mobile=mobile,
                 first_name=data.get('first_name'),
                 last_name=data.get('last_name'),
                 access_code=get_access_code(),
@@ -534,10 +536,14 @@ class InviteUser(APIView):
 
             return send_email_invite(user, auth_common_text=auth_common_text)
         else:
-            user = User.objects.get(email=email)
+            user = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).first()
 
-            if not user.is_verified and not user.is_active:
+            if user.email is not None and not user.is_verified and not user.is_active:
                 return send_email_invite(user, auth_common_text=auth_common_text)
+            # if user.mobile is not None and ((user.mobile == mobile and not user.is_mobile_verified) or
+            #                                 (user.telephone == mobile and not user.is_mobile_verified)):
+            #     # TODO: check is this logic is required
+            #     pass
             else:
                 return Response(
                     {
