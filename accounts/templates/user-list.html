@@ -122,7 +122,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <form  action="{% url 'accounts:invite-user' %}" method="POST">
+                    <form id="invite-user-form" class="ikan-form" action="{% url 'accounts:invite-user' %}" method="POST">
                         {% csrf_token %}
                         {{invite_user_form}}
 
@@ -136,7 +136,6 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -154,4 +153,32 @@
     <script src="/static/themes/v1/assets/libs/pdfmake/build/pdfmake.min.js"></script>
     <script src="/static/themes/v1/assets/libs/pdfmake/build/vfs_fonts.js"></script>
     <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script>
+    {% if show_invite_modal %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                console.log("Show invite modal flag is set, showing invite user modal...");
+                const modal = new bootstrap.Modal(
+                    document.getElementById("invite-user-modal")
+                );
+
+                modal.show();
+            });
+        </script>
+    {% endif %}
+    <style>
+        #invite-user-form {
+            label:has(+ input:required)::after,
+            label:has(+ select:required)::after {
+                content: "*";
+                color: #f1556c;
+                font-weight: bold;
+            }
+            .errorlist {
+                color: #f1556c;
+                list-style-type: none;
+                padding-left: 0;
+                margin: 5px;
+            }
+        }
+    </style>
 {% endblock %}
