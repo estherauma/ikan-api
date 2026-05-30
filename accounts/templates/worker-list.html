@@ -180,20 +180,25 @@
                                 {% if field.help_text %}
                                     <span class="fst-italic ms-1" style="color: var(--ct-gray);">{{ field.help_text }}</span>
                                 {% endif %}
+
+                                {% if field.errors %}
+                                    <div class="text-danger">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
                                 
                                 {{ field }}
                                 
                                 {% if field.name == "vessel_owner" %}
                                     <hr class="my-4 ikan-dark-blue-100" />
                                 {% endif %}
-
-                                {{ field.errors }}
                             </div>
                         {% endfor %}
-
-                        {% if create_worker_for_vo_form.errors %}
-                            <div class="alert alert-danger">{{ create_worker_for_vo_form.errors }}</div>
-                        {% endif %}
+                        {% if create_worker_for_vo_form.non_field_errors  %}
+                            <div class="alert alert-danger">
+                                {{ create_worker_for_vo_form.non_field_errors }}
+                            </div>
+                            {% endif %}
 
                         <div class="mb-3 mt-3 text-center">
                             <button
@@ -230,7 +235,6 @@
     {% if show_invite_modal %}
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-                console.log("Show invite modal flag is set, showing invite user modal...");
                 const modal = new bootstrap.Modal(
                     document.getElementById("invite-user-modal")
                 );
@@ -239,6 +243,19 @@
             });
         </script>
     {% endif %}
+
+    {% if show_create_worker_for_VO_modal %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("add-worker-vo-modal")
+                );
+
+                modal.show();
+            });
+        </script>
+    {% endif %}
+    
     <style>
         #invite-worker-form {
             label:has(+ input:required)::after,
@@ -247,12 +264,15 @@
                 color: #f1556c;
                 font-weight: bold;
             }
-            .errorlist {
-                color: #f1556c;
-                list-style-type: none;
-                padding-left: 0;
-                margin: 5px;
-            }
+        }
+        .errorlist {
+            color: #f1556c;
+            list-style-type: none;
+            padding-left: 0;
+            margin: 5px;
+        }
+        .nonfield {
+            margin-bottom: 20px;
         }
     </style>
 {% endblock %}
