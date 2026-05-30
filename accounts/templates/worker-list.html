@@ -120,9 +120,12 @@
                 </div>
 
                 <div class="modal-body">
-                    <form  action="{% url 'accounts:invite-user' %}" method="POST">
+                    <form id="invite-worker-form" class="ikan-form" action="{% url 'accounts:invite-user' %}" method="POST">
                         {% csrf_token %}
                         {{invite_user_form}}
+
+                        <!-- Pass origin of the form submission, since same form/logic is used in both workerslist and userslist -->
+                        <input type="hidden" name="form-origin" value="worker-list">
 
                         <div class="mb-3 text-center">
                             <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.inviteWorker }}</button>
@@ -171,7 +174,8 @@
                         {% for field in create_worker_for_vo_form %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">
-                                {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                                 </label>
                                 {% if field.help_text %}
                                     <span class="fst-italic ms-1" style="color: var(--ct-gray);">{{ field.help_text }}</span>
@@ -206,11 +210,10 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
-    <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <!-- <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="/static/themes/v1/assets/libs/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
     <script src="/static/themes/v1/assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
     <script src="/static/themes/v1/assets/libs/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
@@ -223,5 +226,33 @@
     <script src="/static/themes/v1/assets/libs/datatables.net-select/js/dataTables.select.min.js"></script>
     <script src="/static/themes/v1/assets/libs/pdfmake/build/pdfmake.min.js"></script>
     <script src="/static/themes/v1/assets/libs/pdfmake/build/vfs_fonts.js"></script>
-    <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script>
+    <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script> -->
+    {% if show_invite_modal %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                console.log("Show invite modal flag is set, showing invite user modal...");
+                const modal = new bootstrap.Modal(
+                    document.getElementById("invite-user-modal")
+                );
+
+                modal.show();
+            });
+        </script>
+    {% endif %}
+    <style>
+        #invite-worker-form {
+            label:has(+ input:required)::after,
+            label:has(+ select:required)::after {
+                content: "*";
+                color: #f1556c;
+                font-weight: bold;
+            }
+            .errorlist {
+                color: #f1556c;
+                list-style-type: none;
+                padding-left: 0;
+                margin: 5px;
+            }
+        }
+    </style>
 {% endblock %}
