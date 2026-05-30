@@ -443,12 +443,11 @@ class CreateWorkerForVOForm(forms.Form):
         help_text="Select a vessel owner to attach to this worker.",
         required=True
     )
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
+    email_or_phone = forms.CharField(
+        widget=forms.TextInput(attrs={
             'class': 'form-control mb-3',
-            'id': 'email',
-            'placeholder': 'Enter worker email',
-            'autocomplete': 'off'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number'
         }),
         required=True
     )
@@ -488,6 +487,25 @@ class CreateWorkerForVOForm(forms.Form):
             'autocomplete': 'off'
         })
     )
+
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone').strip()
+        validation_result = validate_email_or_phone(email_or_phone, self.auth_common_text)
+
+        if validation_result['is_email']:
+            self.cleaned_data['email'] = email_or_phone
+        if validation_result['is_phone']:
+            self.cleaned_data['mobile'] = email_or_phone
+
+        self.cleaned_data['has_phone_number'] = validation_result['is_phone']
+        self.cleaned_data['has_email'] = validation_result['is_email']
+
+        if User.objects.filter(Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone)
+                               ).exists():
+            raise forms.ValidationError(
+                self.auth_common_text.get('userWithEmailOrPhoneAlreadyExists',
+                                          'User with this email or phone number already exists.'))
+        return email_or_phone
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
