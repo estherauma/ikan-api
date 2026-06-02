@@ -47,6 +47,8 @@
                         <th>{{ auth_common_text.firstName }}</th>
                         <th>{{ auth_common_text.lastName }}</th>
                         <th>{{ auth_common_text.email }}</th>
+                        <!-- TODO: add translation here -->
+                        <th>{{ auth_common_text.mobile }}</th>
                         <th>{{ common_text.actions }}</th>
                     </tr>
                 </thead>
@@ -57,14 +59,15 @@
                         <td>{{user.first_name}}</td>
                         <td>{{user.last_name}}</td>
                         <td>{{user.email}}</td>
+                        <td>{{user.mobile | default:"N/A"}}</td>
                         <td>
                             <!-- View Profile Button -->
-                            <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">{{ auth_common_text.viewProfile }}</a>
+                            <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-sm ikan-primary-button m-1 view-btn">{{ auth_common_text.viewProfile }}</a>
                             <!-- Resend Code button -->
                             {% if user.access_code %}
                             <button
                                 id="btn-resend-code"
-                                class="btn btn-blue btn-sm mb-1"
+                                class="ikan-secondary-button btn btn-sm mb-1"
                                 data-bs-toggle="modal"
                                 data-bs-target="#resend-code-modal-{{user.id}}"
                                 data-user-id="{{ user.pk }}"
@@ -95,7 +98,6 @@
                                                     <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.resendCode }}</button>
                                                 </div>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>
@@ -218,7 +220,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <!-- <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="/static/themes/v1/assets/libs/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
     <script src="/static/themes/v1/assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
     <script src="/static/themes/v1/assets/libs/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
@@ -231,7 +233,7 @@
     <script src="/static/themes/v1/assets/libs/datatables.net-select/js/dataTables.select.min.js"></script>
     <script src="/static/themes/v1/assets/libs/pdfmake/build/pdfmake.min.js"></script>
     <script src="/static/themes/v1/assets/libs/pdfmake/build/vfs_fonts.js"></script>
-    <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script> -->
+    <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script>
     {% if show_invite_modal %}
         <script>
             document.addEventListener("DOMContentLoaded", function () {
@@ -273,6 +275,26 @@
         }
         .nonfield {
             margin-bottom: 20px;
+        }
+        .card-body {
+            overflow: auto;
+        }
+        table {
+            th, td {
+                /* vertical-align: middle !important; */
+                font-size: 1rem;
+                min-width: 80px;
+            }
+            th {
+                color: #676d72;
+                font-weight: 600;
+                font-size: 1.1rem;
+                padding: 0.85rem !important;
+            }
+            .view-btn,
+            button {
+                white-space: nowrap;
+            }
         }
     </style>
 {% endblock %}
