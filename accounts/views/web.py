@@ -165,6 +165,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
+        context['show_create_worker_for_VO_modal'] = False
         return context
 
     # Method creates workers only. Should be modified for other roles
@@ -174,67 +175,97 @@ class WorkersListView(LoginRequiredMixin, ListView):
         context = self.get_context_data()
         context['create_worker_for_vo_form'] = form
         if form.is_valid():
-            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
-            if not user_exists:
-                user = User.objects.create_user(
-                    email=form.cleaned_data.get('email'),
-                    password=form.cleaned_data.get('password1'),
-                    first_name=form.cleaned_data.get('first_name'),
-                    last_name=form.cleaned_data.get('last_name'),
-                    is_active=True,
-                    created_by=form.cleaned_data.get('vessel_owner', request.user),
-                    updated_by=form.cleaned_data.get('vessel_owner', request.user),
-                )
-                # Save user group/role
-                group = Group.objects.get(name='worker')
-                user.groups.add(group)
+            user = User.objects.create_user(
+                email=form.cleaned_data.get('email'),
+                mobile=form.cleaned_data.get('mobile'),
+                password=form.cleaned_data.get('password1'),
+                first_name=form.cleaned_data.get('first_name'),
+                last_name=form.cleaned_data.get('last_name'),
+                is_active=True,
+                created_by=form.cleaned_data.get('vessel_owner', request.user.id),
+                updated_by=form.cleaned_data.get('vessel_owner', request.user.id),
+            )
+            # Save user group/role
+            group = Group.objects.get(name='worker')
+            user.groups.add(group)
 
-                # Sending verification email is disabled for workers created by superusers for VOs
-                # # Send verification email with access code
-                # email = TunaEmailHelper()
-                # success = email.tuna_send_email(
-                #     to_emails=[user.email],
-                #     subject='Your IKAN access token',
-                #     body={
-                #         'email': user.email,
-                #         'access_token': user.access_code,
-                #     },
-                #     template=EmailTemplate.ACCESS_TOKEN.value,
-                #     auth_common_text=auth_common_text,
-                # )
-                # if success:
-                #     messages.success(request, 'Worker created successfully.')
-                # else:
-                #     messages.error(request, 'An error occurred while sending the user an email.')
-                messages.success(request, 'Worker created successfully.')
-            else:
-                messages.info(request, 'User already exists.')
-                return render(request, 'worker-list.html', context)
+            # if form.cleaned_data.get('has_email'):
+            #     # Sending verification email is disabled for workers created by superusers for VOs
+            #     # Send verification email with access code
+            #     email = TunaEmailHelper()
+            #     success = email.tuna_send_email(
+            #         to_emails=[user.email],
+            #         subject='Your IKAN access token',
+            #         body={
+            #             'email': user.email,
+            #             'access_token': user.access_code,
+            #         },
+            #         template=EmailTemplate.ACCESS_TOKEN.value,
+            #         auth_common_text=auth_common_text,
+            #     )
+            #     if not success:
+            #         messages.error(request, 'User created but an error occurred while sending the email. \
+            #                        Please contact support.')
+            if form.cleaned_data.get('has_phone_number'):
+                # TODO: Add translation here
+                messages.success(request, 'Account created successfully. \
+                                Please verify your phone number to activate your account.')
+                try:
+                    otp_service = OTPVerification()
+                    locale = get_locale_from_request(request)
+                    otp_service.send_otp(user.mobile, locale=locale)
+                except Exception:
+                    # TODO: Add translation here
+                    messages.error(request, 'An error occurred while sending OTP code.')
 
+            messages.success(request, 'Worker created successfully.')
             return redirect('accounts:workers')
         else:
-            messages.error(request, 'Error validating form!')
+            context['show_create_worker_for_VO_modal'] = True
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['create_worker_for_vo_form'] = form
             return render(request, 'worker-list.html', context)
 
 
 @login_required(login_url='/account/login')
 def invite_user(request):
+    context = {}
+    context['invite_user_form'] = InviteUser()
+    context['resend_token_form'] = ResendTokenForm()
+    context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=request.user)
+
+    super_user = request.user.is_superuser
+    users = User.objects.all() if super_user else User.objects.filter(created_by=request.user.id)
+    workers = users.filter(groups__name='worker', created_by=request.user.id)
+
+    context['workers'] = workers
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    context['auth_common_text'] = auth_common_text
+    context['show_invite_modal'] = False
+
+    form_origin = request.POST.get("form-origin", "")
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
-            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
-            if not user_exists:
-                user = User.objects.create_user(
-                    email=form.cleaned_data.get('email'),
-                    first_name=form.cleaned_data.get('first_name'),
-                    last_name=form.cleaned_data.get('last_name'),
-                    is_active=False,
-                    access_code=get_access_code()
-                )
-                # Save user group/role
-                group = Group.objects.get(name=form.cleaned_data.get('role'))
-                user.groups.add(group)
+            user = User.objects.create_user(
+                email=form.cleaned_data.get('email'),
+                mobile=form.cleaned_data.get('mobile'),
+                first_name=form.cleaned_data.get('first_name'),
+                last_name=form.cleaned_data.get('last_name'),
+                is_active=False,
+                access_code=get_access_code(),
+                created_by=request.user.id,
+                updated_by=request.user.id,
+            )
+            # Save user group/role
+            group = Group.objects.get(name=form.cleaned_data.get('role'))
+            user.groups.add(group)
 
+            if form.cleaned_data.get('has_email'):
                 # Send verification email with access code
                 prismic_utils = PrismicUtils(request)
                 auth_common_text = prismic_utils.get_page_text('auth-common-text')
@@ -249,18 +280,43 @@ def invite_user(request):
                     template=EmailTemplate.ACCESS_TOKEN.value,
                     auth_common_text=auth_common_text,
                 )
-                if success:
-                    messages.success(request, 'Your message was sent successfully.')
-                else:
-                    messages.error(request, 'An error occurred while sending the user an email.')
-            else:
-                user = User.objects.get(email=form.cleaned_data.get('email'))
-                if not user.is_active:
-                    messages.info(request, 'User already exists. Please resend invite token.')
-                else:
-                    messages.info(request, 'User already exists.')
+                if not success:
+                    # TODO: Add translation here
+                    messages.error(request, 'User created but an error occurred while sending the email. \
+                                   Please contact support.')
+            # TODO: to be worked on with api/mobile changes
+            # if form.cleaned_data.get('has_phone_number'):
+            #     try:
+            #         otp_service = OTPVerification()
+            #         # locale = get_locale_from_request(request)
+            #         # otp_service.send_otp(user.mobile, locale=locale)
+            #         # add message asking user to verify their phone number and to set password using the mobile app
+            #         message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
+            #                                        Please download the IKAN mobile app to verify your phone number and \
+            #                                        set your password. Your access code is: ') + user.access_code
+            #         otp_service.send_sms(user.mobile, message)
+            #     except Exception:
+            #         # TODO: Add translation here
+            #         messages.error(request, 'User created but an error occurred while sending the SMS. \
+            #                        Please contact support.')
 
-            return redirect('/account/users')
+            if form_origin == 'worker-list':
+                return redirect('accounts:workers')
+            return redirect('accounts:users')
+        else:
+            context['show_invite_modal'] = True
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['invite_user_form'] = form
+
+    if form_origin == 'worker-list':
+        messages.error(request, 'Error validating form!')
+        return render(request, 'worker-list.html', context)
+    else:
+        messages.error(request, 'Error validating form!')
+        return render(request, 'user-list.html', context)
 
 
 class ResendAcessCode(View):
@@ -301,7 +357,7 @@ class ResendAcessCode(View):
             if success:
                 messages.success(request, 'The access code was resent successfully.')
             else:
-                messages.error(request, 'An error occurred while resending the user acess code.')
+                messages.error(request, 'An error occurred while resending the user access code.')
 
             return redirect('/account/users')
 
@@ -570,13 +626,14 @@ class ResetPassword(View):
             user = User.objects.get(email=form.cleaned_data.get('email'))
         else:
             user = None
+
         if user:
             user.set_password(form.cleaned_data.get('password1'))
             user.reset_password_token = None
             user.save()
             messages.success(request, auth_common_text.get(
                 'passwordResetSuccessMessage', 'Password reset successfully. Please login with your new password.'))
-            return redirect('login')
+            return redirect('accounts:login')
         else:
             # TODO: Add translation here
             messages.error(request, auth_common_text.get('passwordResetFailure',

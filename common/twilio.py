@@ -22,6 +22,15 @@ class OTPVerification:
             .create(to=phone_number, code=otp_code)
         return verification_check.status
 
+    def send_sms(self, phone_number, message):
+        # TODO: set up a dedicated phone number for sending SMS and use it here
+        message = self.client.messages.create(
+            body=message,
+            from_=config('TWILIO_PHONE_NUMBER'),
+            to=phone_number
+        )
+        return message.sid
+
 
 def send_verification_code(request, user, auth_common_text=None):
     try:

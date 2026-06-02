@@ -179,13 +179,16 @@
                 }
             }
             .ikan-form {
-                .form-label {
-                    font-size: 1rem;
+                .form-label,
+                label {
+                    font-weight: 300;
+                    font-size: 1.1rem;
+                    color: #3565ff;
                 }
                 .form-control {
-                    background: #eaedf6;
+                    background: white;
                     color: #191970;
-                    border: none;
+                    border: 1px solid rgba(25, 25, 112, 0.3);
                     border-radius: 10px;
                     font-size: 1rem;
                     min-height: 45px;
@@ -193,6 +196,10 @@
                     &:focus {
                         box-shadow: none;
                         border-color: #3565ff;
+                    }
+                    &::placeholder {
+                        color: black;
+                        opacity: 0.35;
                     }
                 }
                 select option[disabled],

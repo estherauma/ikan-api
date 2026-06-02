@@ -291,11 +291,11 @@ class PasswordResetForm(forms.Form):
 
 
 class InviteUser(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
+    email_or_phone = forms.CharField(
+        widget=forms.TextInput(attrs={
             'class': 'form-control mb-3',
-            'id': 'email',
-            'placeholder': 'Enter your email'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number'
         }),
         required=True
     )
@@ -318,6 +318,56 @@ class InviteUser(forms.Form):
         required=False,
     )
 
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone').strip()
+        is_email = False
+        is_phone = False
+
+        # Email validation
+        try:
+            validate_email(email_or_phone)
+            is_email = True
+        except ValidationError:
+            pass
+
+        # Phone number validation
+        phone_pattern = r"^\+?\d{9,15}$"
+        if re.match(phone_pattern, email_or_phone):
+            is_phone = True
+
+        if not is_email and not is_phone:
+            # TODO: add translation here
+            raise forms.ValidationError(self.auth_common_text.get('enterValidEmailOrPhoneNumber',
+                                                                  'Enter a valid email address or phone number.'))
+
+        if is_email:
+            if User.objects.filter(email=email_or_phone).exists():
+                # check is user is inactive then resend token
+                user = User.objects.get(email=email_or_phone)
+                if not user.is_active:
+                    # TODO: add translation here
+                    raise forms.ValidationError(self.auth_common_text.get('resendInviteToken',
+                                                                          'User already exists. \
+                                                                            Please resend invite token.'))
+                # TODO: add translation here
+                raise forms.ValidationError(self.auth_common_text.get('userWithEmailAlreadyExists',
+                                                                      'User with this email address already exists.'))
+            # add email to cleaned data for use in the view
+            self.cleaned_data['email'] = email_or_phone
+        else:
+            if User.objects.filter(Q(mobile=email_or_phone) | Q(telephone=email_or_phone)).exists():
+                # TODO: add translation here
+                raise forms.ValidationError(self.auth_common_text.get('userWithPhoneNumberAlreadyExists',
+                                                                      'User with this phone number already exists.'))
+            # add phone number to cleaned data for use in the view
+            self.cleaned_data['mobile'] = email_or_phone
+
+        # Add flags to cleaned data to indicate whether email or phone number was provided
+        self.cleaned_data['has_email'] = is_email
+        self.cleaned_data['has_phone_number'] = is_phone
+
+        return email_or_phone
+
     def __init__(self, *args, **kwargs):
         auth_common_text = kwargs.pop('auth_common_text', {})
         self.auth_common_text = auth_common_text
@@ -336,13 +386,15 @@ class InviteUser(forms.Form):
         )
 
         if auth_common_text:
-            self.fields['email'].widget.attrs['placeholder'] = auth_common_text.get('enterYourEmail',
-                                                                                    'Enter your email')
+            # TODO: add translation here
+            self.fields['email_or_phone'].widget.attrs['placeholder'] = \
+                auth_common_text.get('enterYourEmailOrPhone', 'Enter your email or phone number')
             self.fields['first_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
-            self.fields['email'].label = auth_common_text.get('email', 'Email')
+            # TODO: add translation here
+            self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
             self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
             self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
             self.fields['role'].label = auth_common_text.get('role', 'Role')
@@ -388,14 +440,14 @@ class CreateWorkerForVOForm(forms.Form):
     vessel_owner = forms.ModelChoiceField(
         queryset=User.objects.filter(groups__name='vessel_owner'),
         widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
-        help_text="Select a vessel owner to attach to this worker."
+        help_text="Select a vessel owner to attach to this worker.",
+        required=True
     )
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={
+    email_or_phone = forms.CharField(
+        widget=forms.TextInput(attrs={
             'class': 'form-control mb-3',
-            'id': 'email',
-            'placeholder': 'Enter worker email',
-            'autocomplete': 'off'
+            'id': 'email_or_phone',
+            'placeholder': 'Enter your email or phone number'
         }),
         required=True
     )
@@ -435,6 +487,25 @@ class CreateWorkerForVOForm(forms.Form):
             'autocomplete': 'off'
         })
     )
+
+    def clean_email_or_phone(self):
+        email_or_phone = self.cleaned_data.get('email_or_phone').strip()
+        validation_result = validate_email_or_phone(email_or_phone, self.auth_common_text)
+
+        if validation_result['is_email']:
+            self.cleaned_data['email'] = email_or_phone
+        if validation_result['is_phone']:
+            self.cleaned_data['mobile'] = email_or_phone
+
+        self.cleaned_data['has_phone_number'] = validation_result['is_phone']
+        self.cleaned_data['has_email'] = validation_result['is_email']
+
+        if User.objects.filter(Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone)
+                               ).exists():
+            raise forms.ValidationError(
+                self.auth_common_text.get('userWithEmailOrPhoneAlreadyExists',
+                                          'User with this email or phone number already exists.'))
+        return email_or_phone
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
