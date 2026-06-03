@@ -167,15 +167,30 @@
             .ikan-primary-color-bg-100 {
                 background-color: #3565ff !important;
             }
-            .ikan-primary-button {
-                background-color: #3565ff;
+            .ikan-button,
+            .ikan-primary-button,
+            .ikan-secondary-button {
                 color: white;
                 border-radius: 20px;
                 padding: 7px 20px;
                 font-size: 1rem;
                 border: none;
+                /* add disabled property */
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
+            }
+            .ikan-primary-button {
+                background-color: #3565ff;
                 &:hover {
                     background-color: #191970;
+                }
+            }
+            .ikan-secondary-button {
+                background-color: #191970;
+                &:hover {
+                    background-color: #263CB1;
                 }
             }
             .ikan-form {
