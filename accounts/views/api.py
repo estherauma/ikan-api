@@ -79,6 +79,12 @@ class LoginView(APIView):
         phone_number = data.get('phone_number')
         password = data.get('password')
 
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         user = None
         if email is not None:
             if User.objects.filter(email=email).exists():
@@ -94,6 +100,7 @@ class LoginView(APIView):
                 if (user.telephone == phone_number and not user.is_telephone_verified) or\
                         (user.mobile == phone_number and not user.is_mobile_verified):
                     # TODO: Add translation here
+                    # TODO: don't translate, exact message is needed for client side to trigger resend otp flow
                     raise AuthenticationFailed(
                         "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
         else:
@@ -129,6 +136,9 @@ class LoginView(APIView):
                     # TODO: Add translation here
                     raise AuthenticationFailed('Invalid password, please try again', 401)
             else:
+                if user.is_verified is False:
+                    # TODO: Add translation here
+                    raise AuthenticationFailed('User account is not verified, please verify your account', 401)
                 # TODO: Add translation here
                 raise AuthenticationFailed('User account is not activated, contact admin', 401)
         else:
@@ -156,6 +166,13 @@ class RegisterView(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         if not data.get('email') and not data.get('phone_number'):
             # TODO: Add translation here
             return Response({
@@ -174,12 +191,6 @@ class RegisterView(APIView):
         group = Group.objects.get(name=role) if \
             Group.objects.filter(name=role).exists() else Group.objects.get_or_create(name='public')[0]
         user.groups.add(group)
-
-        language = data.get('language', 'en-us')
-        supported_languages = ['en-us', 'id-id', 'qm-zh']
-        if language not in supported_languages:
-            language = 'en-us'
-        request.session['language'] = language
 
         if data.get('email'):
             # Send verification email
@@ -340,6 +351,13 @@ class PasswordResetCheckToken(APIView):
     def post(self, request):
         try:
             data = request.data
+
+            language = data.get('language', 'en-us')
+            supported_languages = ['en-us', 'id-id', 'qm-zh']
+            if language not in supported_languages:
+                language = 'en-us'
+            request.session['language'] = language
+
             serializer = PasswordResetCheckTokenSerializer(data=data, context={'request': request})
             serializer.is_valid(raise_exception=True)
 
@@ -367,6 +385,13 @@ class ResetPassword(APIView):
     def post(self, request):
         try:
             data = request.data
+
+            language = data.get('language', 'en-us')
+            supported_languages = ['en-us', 'id-id', 'qm-zh']
+            if language not in supported_languages:
+                language = 'en-us'
+            request.session['language'] = language
+
             serializer = PasswordResetSerializer(data=data)
             serializer.is_valid(raise_exception=True)
 
@@ -412,6 +437,13 @@ class VerifyAndSetPassword(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         access_code = data.get('access_code')
         '''
             access code field on the db can be blank or null.
@@ -495,6 +527,13 @@ class InviteUser(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         email = data.get('email')
         mobile = data.get('mobile', data.get('phone_number'))
         role = data.get('role')
