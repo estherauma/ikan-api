@@ -115,7 +115,8 @@ class LoginView(APIView):
                     identity_manager = JwtManager()
                     if user.groups.exists():
                         payload = {
-                            'email': user.email,
+                            'email': user.email if user.email else '',
+                            'mobile': user.mobile if user.mobile else '',
                             'id': user.pk,
                             'firstName': user.first_name,
                             'lastName': user.last_name,
