@@ -7,8 +7,10 @@ from accounts.serializers import (
     OTPGenerateSerializer, OTPVerifySerializer
 )
 
+from accounts.views.web import get_locale_from_request
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
+from common.twilio import OTPVerification
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
 from prismic.utils import PrismicUtils
 
@@ -77,6 +79,12 @@ class LoginView(APIView):
         phone_number = data.get('phone_number')
         password = data.get('password')
 
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         user = None
         if email is not None:
             if User.objects.filter(email=email).exists():
@@ -91,6 +99,8 @@ class LoginView(APIView):
                 # check if the phone number is verified
                 if (user.telephone == phone_number and not user.is_telephone_verified) or\
                         (user.mobile == phone_number and not user.is_mobile_verified):
+                    # TODO: Add translation here
+                    # TODO: don't translate, exact message is needed for client side to trigger resend otp flow
                     raise AuthenticationFailed(
                         "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
         else:
@@ -105,7 +115,8 @@ class LoginView(APIView):
                     identity_manager = JwtManager()
                     if user.groups.exists():
                         payload = {
-                            'email': user.email,
+                            'email': user.email if user.email else '',
+                            'mobile': user.mobile if user.mobile else '',
                             'id': user.pk,
                             'firstName': user.first_name,
                             'lastName': user.last_name,
@@ -120,12 +131,19 @@ class LoginView(APIView):
                         LoginEvent.objects.create(
                             user=user, ip_address=request.META['REMOTE_ADDR'])
                     else:
+                        # TODO: Add translation here
                         raise AuthenticationFailed('Authentication failed, contact admin', 401)
                 else:
+                    # TODO: Add translation here
                     raise AuthenticationFailed('Invalid password, please try again', 401)
             else:
+                if user.is_verified is False:
+                    # TODO: Add translation here
+                    raise AuthenticationFailed('User account is not verified, please verify your account', 401)
+                # TODO: Add translation here
                 raise AuthenticationFailed('User account is not activated, contact admin', 401)
         else:
+            # TODO: Add translation here
             raise AuthenticationFailed('User does not exist', 401)
         return Response({
             'status': 'OK',
@@ -149,6 +167,22 @@ class RegisterView(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
+        if not data.get('email') and not data.get('phone_number'):
+            # TODO: Add translation here
+            return Response({
+                'status': 'FAIL',
+                'message': 'Either email or phone number is required.'
+            }, status.HTTP_400_BAD_REQUEST)
+        if data.get('phone_number'):
+            data['mobile'] = data['phone_number']
+
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save(is_active=False)
@@ -159,36 +193,41 @@ class RegisterView(APIView):
             Group.objects.filter(name=role).exists() else Group.objects.get_or_create(name='public')[0]
         user.groups.add(group)
 
-        language = data.get('language', 'en-us')
-        supported_languages = ['en-us', 'id-id', 'qm-zh']
-        if language not in supported_languages:
-            language = 'en-us'
-        request.session['language'] = language
-
-        # Send verification email
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
-        # add language query param to verification link
-        verification_link += f'?language={language}'
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
-        email_helper = TunaEmailHelper()
-        email_helper.tuna_send_email(
-            to_emails=[user.email],
-            subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
-            body={
-                'first_name': user.first_name,
-                'verification_link': verification_link,
-            },
-            template=EmailTemplate.VERIFY_EMAIL.value,
-            auth_common_text=auth_common_text,
-        )
+        if data.get('email'):
+            # Send verification email
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+            # add language query param to verification link
+            verification_link += f'?language={language}'
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN',
+                                             'Verify your email to start using IKAN'),
+                body={
+                    'first_name': user.first_name,
+                    'verification_link': verification_link,
+                },
+                template=EmailTemplate.VERIFY_EMAIL.value,
+                auth_common_text=auth_common_text,
+            )
+        if data.get('phone_number'):
+            # Send verification otp code to phone number
+            try:
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+            except Exception:
+                pass
 
         return Response(
             {
                 'status': 'OK',
-                'message': 'Account created successfully. Please check your email to verify your account.'
+                # 'message': 'Account created successfully. Please check your email to verify your account.'
+                'message': 'Account created successfully. Please verify your account.'
             },
             status.HTTP_201_CREATED
         )
@@ -202,7 +241,7 @@ def verify_email(request, uidb64, token):
         if language not in supported_languages:
             language = 'en-us'
         request.session['language'] = language
-        
+
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
         if default_token_generator.check_token(user, token):
@@ -243,20 +282,21 @@ class RequestPasswordReset(APIView):
 
     def post(self, request):
         email = request.data.get('email')
+        phone_number = request.data.get('phone_number')
         language = request.data.get('language', 'en-us')
         supported_languages = ['en-us', 'id-id', 'qm-zh']
         if language not in supported_languages:
             language = 'en-us'
         request.session['language'] = language
-        if not email:
+        if not email and not phone_number:
             return Response({
                 'status': 'FAIL',
-                'message': 'Email is required',
+                'message': 'Email or phone number is required',
             }, status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.filter(email=email).first()
-        if user:
-            password_reset_token = random.randrange(11111, 99999,)
+        user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
+        if user and email:
+            password_reset_token = random.randrange(111111, 999999)
             user.reset_password_token = password_reset_token
             user.save()
 
@@ -273,13 +313,36 @@ class RequestPasswordReset(APIView):
                 template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
                 auth_common_text=auth_common_text,
             )
+            return Response(
+                {
+                    'status': 'OK',
+                    'message': 'Password reset request was successful. \
+                        Please check your email for the password reset code.'
+                },
+                status.HTTP_200_OK
+            )
+        elif user and phone_number:
+            try:
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+                return Response(
+                    {
+                        'status': 'OK',
+                        'message': 'Password reset request was successful. \
+                            Please check your phone for the password reset code.'
+                    },
+                    status.HTTP_200_OK
+                )
+            except Exception:
+                pass
 
         return Response(
             {
-                'status': 'OK',
-                'message': 'Password reset request was successful. Please check your email for the password reset code.'
+                'status': 'FAIL',
+                'message': 'Password reset request was unsuccessful.'
             },
-            status.HTTP_200_OK
+            status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -289,7 +352,14 @@ class PasswordResetCheckToken(APIView):
     def post(self, request):
         try:
             data = request.data
-            serializer = PasswordResetCheckTokenSerializer(data=data)
+
+            language = data.get('language', 'en-us')
+            supported_languages = ['en-us', 'id-id', 'qm-zh']
+            if language not in supported_languages:
+                language = 'en-us'
+            request.session['language'] = language
+
+            serializer = PasswordResetCheckTokenSerializer(data=data, context={'request': request})
             serializer.is_valid(raise_exception=True)
 
             return Response(
@@ -316,12 +386,20 @@ class ResetPassword(APIView):
     def post(self, request):
         try:
             data = request.data
+
+            language = data.get('language', 'en-us')
+            supported_languages = ['en-us', 'id-id', 'qm-zh']
+            if language not in supported_languages:
+                language = 'en-us'
+            request.session['language'] = language
+
             serializer = PasswordResetSerializer(data=data)
             serializer.is_valid(raise_exception=True)
 
             email = request.data.get('email')
+            phone_number = request.data.get('phone_number')
             password = request.data.get('password')
-            user = User.objects.filter(email=email).first()
+            user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
             if user:
                 user.set_password(password)
                 user.reset_password_token = None
@@ -337,7 +415,7 @@ class ResetPassword(APIView):
                 return Response(
                     {
                         'status': 'ERROR',
-                        'error': 'User does not exist'
+                        'message': 'User does not exist'
                     },
                     status.HTTP_400_BAD_REQUEST
                 )
@@ -360,6 +438,13 @@ class VerifyAndSetPassword(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         access_code = data.get('access_code')
         '''
             access code field on the db can be blank or null.
@@ -382,7 +467,8 @@ class VerifyAndSetPassword(APIView):
                 user.set_password(data.get('password'))
                 user.access_code = None
                 user.save()
-                # notify_admin(user) ## Disabled as new users are automatically actived above, no need for admin activation
+                # notify_admin(user) ## Disabled as new users are automatically actived above, \
+                # no need for admin activation
                 return Response(
                     {
                         'status': 'OK',
@@ -442,13 +528,21 @@ class InviteUser(APIView):
             request(Request): HTTP request
         '''
         data = request.data
+
+        language = data.get('language', 'en-us')
+        supported_languages = ['en-us', 'id-id', 'qm-zh']
+        if language not in supported_languages:
+            language = 'en-us'
+        request.session['language'] = language
+
         email = data.get('email')
+        mobile = data.get('mobile', data.get('phone_number'))
         role = data.get('role')
-        if email is None:
+        if email is None and mobile is None:
             return Response(
                 {
                     'status': 'FAIL',
-                    'message': 'Email is required.'
+                    'message': 'Either email or phone number is required.'
                 },
                 status.HTTP_400_BAD_REQUEST
             )
@@ -461,7 +555,7 @@ class InviteUser(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        user_exists = User.objects.filter(email=email).exists()
+        user_exists = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).exists()
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
@@ -469,6 +563,7 @@ class InviteUser(APIView):
             serializer.is_valid(raise_exception=True)
             user = User.objects.create_user(
                 email=email,
+                mobile=mobile,
                 first_name=data.get('first_name'),
                 last_name=data.get('last_name'),
                 access_code=get_access_code(),
@@ -481,10 +576,14 @@ class InviteUser(APIView):
 
             return send_email_invite(user, auth_common_text=auth_common_text)
         else:
-            user = User.objects.get(email=email)
+            user = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).first()
 
-            if not user.is_verified and not user.is_active:
+            if user.email is not None and not user.is_verified and not user.is_active:
                 return send_email_invite(user, auth_common_text=auth_common_text)
+            # if user.mobile is not None and ((user.mobile == mobile and not user.is_mobile_verified) or
+            #                                 (user.telephone == mobile and not user.is_mobile_verified)):
+            #     # TODO: check is this logic is required
+            #     pass
             else:
                 return Response(
                     {

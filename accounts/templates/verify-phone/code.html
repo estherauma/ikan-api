@@ -1,0 +1,88 @@
+{% extends "themes/v1/auth-base.html" %}
+
+{% block content %}
+<div class="verify-phone-wrapper mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-4">
+            <div class="row mt-1">
+                <div class="col">
+                    {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <li
+                            {% if message.tags %}
+                                class="alert alert-{{ message.tags }}"
+                            {% endif %}
+                        >
+                            {{ message }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card bg-pattern">
+                <div class="card-body p-4">
+                    <div class="text-center m-auto">
+                        {% include 'themes/v1/partials/ikan-logo.html' %}
+                        <h2 class="mb-3 mt-3 ikan-primary-color">{{ auth_common_text.verifyPhoneNumber | default:'Verify Phone Number' }}</h2>
+                    </div>
+
+                    <form method="post" class="ikan-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="otp_code" class="form-label">{{ auth_common_text.enterOTP | default:'Enter OTP' }}</label>
+                            <input
+                                type="text"
+                                name="otp_code"
+                                id="otp_code"
+                                class="form-control text-center"
+                                placeholder="_ _ _ _"
+                                maxlength="6"
+                                required
+                            />
+
+                        </div>
+                        <div class="mb-3 text-center">
+                            <div class=" text-center">
+                                <a href="{% url 'accounts:resend-otp' %}" class="ikan-dark-blue-100 ms-1">{{ auth_common_text.resendCode | default:'Resend Code' }}</a>
+                            </div>
+                            <button type="submit" class="ikan-primary-button w-75">{{ common_text.verify }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    a {
+        text-decoration: underline;
+        font-size: 1rem;
+    }
+    .card {
+        border-radius: 20px;
+        border: 0.1px solid #191970;
+        background: #eaedf6;
+        /* .logo-container {
+            width: fit-content;
+            height: fit-content;
+            background: white;
+            padding: 20px;
+            border-radius: 50%;
+            margin: 0 auto 30px auto;
+        } */
+        form {
+            input {
+                font-size: 1.5rem;
+                letter-spacing: 10px;
+                padding: 10px;
+            }
+            button {
+                margin: 15px 0;
+            }
+        }
+    }
+</style>
+{% endblock %}

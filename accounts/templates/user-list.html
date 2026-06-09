@@ -37,9 +37,10 @@
                         <thead>
                             <tr>
                                 <th>{{ auth_common_text.email }}</th>
+                                <th>{{ auth_common_text.mobileNumber }}</th>
                                 <th>{{ auth_common_text.firstName }}</th>
                                 <th>{{ auth_common_text.lastName }}</th>
-                                <th>{{ auth_common_text.token }}</th>
+                                <th>{{ auth_common_text.accessCode }}</th>
                                 <th>{{ auth_common_text.isActive }}?</th>
                                 <th>{{ auth_common_text.isStaff }}?</th>
                                 <th>{{ common_text.actions }}</th>
@@ -50,21 +51,22 @@
                             {% for user in users %}
                             <tr>
                                 <td>{{user.email}}</td>
+                                <td>{{user.mobile | default:"N/A"}}</td>
                                 <td>{{user.first_name}}</td>
                                 <td>{{user.last_name}}</td>
-                                <td>{{user.access_code}}</td>
+                                <td>{{user.access_code | default:"N/A"}}</td>
                                 <td>{{user.is_active}}</td>
                                 <td>{{user.is_staff}}</td>
                                 <td>
                                     <!-- View Profile Button -->
-                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn btn-primary btn-sm mb-1">{{ auth_common_text.viewProfile }}</a>
-                                    <!-- Delete Button -->
-                                    <button class="btn btn-danger btn-sm mb-1">{{ common_text.delete }}</button>
+                                    <a href="{% url 'accounts:user-details' pk=user.id %}" class="btn ikan-primary-button btn-sm mb-1 view-btn">{{ auth_common_text.viewProfile }}</a>
+                                    <!-- Delete Button
+                                    <button class="btn btn-danger btn-sm ikan-button  mb-1">{{ common_text.delete }}</button> -->
                                     <!-- Resend Code button -->
                                     {% if user.access_code %}
                                     <button
                                         id="btn-resend-code"
-                                        class="btn btn-blue btn-sm mb-1"
+                                        class="ikan-secondary-button btn btn-sm mb-1"
                                         data-bs-toggle="modal"
                                         data-bs-target="#resend-code-modal-{{user.id}}"
                                         data-user-id="{{ user.pk }}"
@@ -122,7 +124,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <form  action="{% url 'accounts:invite-user' %}" method="POST">
+                    <form id="invite-user-form" class="ikan-form" action="{% url 'accounts:invite-user' %}" method="POST">
                         {% csrf_token %}
                         {{invite_user_form}}
 
@@ -136,7 +138,6 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -154,4 +155,52 @@
     <script src="/static/themes/v1/assets/libs/pdfmake/build/pdfmake.min.js"></script>
     <script src="/static/themes/v1/assets/libs/pdfmake/build/vfs_fonts.js"></script>
     <script src="/static/themes/v1/assets/js/pages/datatables.init.js"></script>
+    {% if show_invite_modal %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                console.log("Show invite modal flag is set, showing invite user modal...");
+                const modal = new bootstrap.Modal(
+                    document.getElementById("invite-user-modal")
+                );
+
+                modal.show();
+            });
+        </script>
+    {% endif %}
+    <style>
+        #invite-user-form {
+            label:has(+ input:required)::after,
+            label:has(+ select:required)::after {
+                content: "*";
+                color: #f1556c;
+                font-weight: bold;
+            }
+            .errorlist {
+                color: #f1556c;
+                list-style-type: none;
+                padding-left: 0;
+                margin: 5px;
+            }
+        }
+        .card-body {
+            overflow: auto;
+        }
+        table {
+            th, td {
+                /* vertical-align: middle !important; */
+                font-size: 1rem;
+                min-width: 80px;
+            }
+            th {
+                color: #676d72;
+                font-weight: 600;
+                font-size: 1.1rem;
+                padding: 0.85rem !important;
+            }
+            .view-btn,
+            button {
+                white-space: nowrap;
+            }
+        }
+    </style>
 {% endblock %}

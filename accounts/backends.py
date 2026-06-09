@@ -47,12 +47,15 @@ class EmailOrPhoneNumberBackend(ModelBackend):
                     # Phone number should be verified
                     if (user.telephone == email_or_phone and not user.is_telephone_verified) or\
                             (user.mobile == email_or_phone and not user.is_mobile_verified):
-                        raise ValidationError("Your phone number is not verified. Please verify it before logging in. OR log in with email")
+                        raise ValidationError(
+                            "Your phone number is not verified. Please verify it before logging in. \
+                                OR log in with email")
             except User.DoesNotExist:
                 return None
             except ValidationError as e:
                 if request is not None:
                     request.unverified_number_err = str(e)
+                    request.user_id = user.id if user else None
                 return None
 
             if user.check_password(password) and self.user_can_authenticate(user):

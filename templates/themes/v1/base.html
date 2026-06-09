@@ -167,25 +167,43 @@
             .ikan-primary-color-bg-100 {
                 background-color: #3565ff !important;
             }
-            .ikan-primary-button {
-                background-color: #3565ff;
+            .ikan-button,
+            .ikan-primary-button,
+            .ikan-secondary-button {
                 color: white;
                 border-radius: 20px;
                 padding: 7px 20px;
                 font-size: 1rem;
                 border: none;
+                /* add disabled property */
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
+            }
+            .ikan-primary-button {
+                background-color: #3565ff;
                 &:hover {
                     background-color: #191970;
                 }
             }
+            .ikan-secondary-button {
+                background-color: #191970;
+                &:hover {
+                    background-color: #263CB1;
+                }
+            }
             .ikan-form {
-                .form-label {
-                    font-size: 1rem;
+                .form-label,
+                label {
+                    font-weight: 300;
+                    font-size: 1.1rem;
+                    color: #3565ff;
                 }
                 .form-control {
-                    background: #eaedf6;
+                    background: white;
                     color: #191970;
-                    border: none;
+                    border: 1px solid rgba(25, 25, 112, 0.3);
                     border-radius: 10px;
                     font-size: 1rem;
                     min-height: 45px;
@@ -193,6 +211,10 @@
                     &:focus {
                         box-shadow: none;
                         border-color: #3565ff;
+                    }
+                    &::placeholder {
+                        color: black;
+                        opacity: 0.35;
                     }
                 }
                 select option[disabled],

@@ -1,8 +1,42 @@
 {% extends "themes/v1/auth-base.html" %}
 
 {% block content %}
-<div class="register-output-wrapper">
-    <h1>{{ auth_common_text.verificationFailure }}</h1>
-    <p>{{ auth_common_text.emailNotVerified }}</p>
+<div class="mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card bg-pattern">
+                <div class="card-body p-4 text-center">
+                    <div class="text-center m-auto">
+                        {% include 'themes/v1/partials/ikan-logo.html' %}
+                    </div>
+                    
+                    <h1 class="mb-3 mt-3 ikan-primary-color">{{ auth_common_text.verificationFailure | default:'Verification Failure' }}</h1>
+                    <p>{{ auth_common_text.emailNotVerified | default:"Your email could not be verified." }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<style>
+    a {
+        text-decoration: underline;
+        font-size: 1rem;
+    }
+    .link {
+        text-decoration: none !important;
+        padding: 10px 20px !important;
+    }
+    p {
+        font-size: 1.1rem;
+        color: #191970;
+    }
+    .card {
+        border-radius: 20px;
+        border: 0.1px solid #191970;
+        background: white;
+        .logo-container {
+            background: #eaedf6;
+        }
+    }
+</style>
 {% endblock %}

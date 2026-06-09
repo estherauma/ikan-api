@@ -1,5 +1,6 @@
 from twilio.rest import Client
 from decouple import config
+from django.contrib import messages
 
 
 class OTPVerification:
@@ -20,3 +21,43 @@ class OTPVerification:
             .verification_checks \
             .create(to=phone_number, code=otp_code)
         return verification_check.status
+
+    def send_sms(self, phone_number, message):
+        # TODO: set up a dedicated phone number for sending SMS and use it here
+        message = self.client.messages.create(
+            body=message,
+            from_=config('TWILIO_PHONE_NUMBER'),
+            to=phone_number
+        )
+        return message.sid
+
+
+def send_verification_code(request, user, auth_common_text=None):
+    try:
+        otp_service = OTPVerification()
+        locale = get_locale_from_request(request)
+        otp_service.send_otp(user.mobile, locale=locale)
+    except Exception:
+        messages.error(request,
+                       auth_common_text.get('errorSendingVerificationCode', 'Error sending verification code.'))
+
+
+def check_verification_code(request, phone_number, otp_code, auth_common_text=None):
+    try:
+        otp_service = OTPVerification()
+        verification_result = otp_service.check_otp(otp_code, phone_number)
+        return verification_result == 'approved'
+    except Exception:
+        messages.error(request, auth_common_text.get('errorVerifyingCode', 'Error verifying code.'))
+        return False
+
+
+def get_locale_from_request(request):
+    lang = request.session.get('language', 'en-us')
+    if lang == 'en-us':
+        return 'en'
+    if lang == 'id-id':
+        return 'ms'
+    if lang == 'qm-zh':
+        return 'zh'
+    return 'en'

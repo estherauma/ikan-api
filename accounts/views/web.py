@@ -19,6 +19,7 @@ from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
 from accounts.models import User
 from accounts.forms import LoginForm
+from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
 
 
 @login_required(login_url='/account/login')
@@ -61,10 +62,10 @@ def loggedin_user(request):
 class LoginView(View):
     def get_context_data(self, **kwargs):
         context = kwargs
-        context['form'] = LoginForm()
 
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['form'] = LoginForm(auth_common_text=auth_common_text)
         context['auth_common_text'] = auth_common_text
         return context
 
@@ -74,8 +75,9 @@ class LoginView(View):
 
     def post(self, request):
         context = self.get_context_data()
-        form = LoginForm(data=request.POST)
-        context = {'form': form}
+        auth_common_text = context.get('auth_common_text', {})
+        form = LoginForm(data=request.POST, auth_common_text=auth_common_text)
+        context = {**context, 'form': form}
         if form.is_valid():
             email_or_phone = form.cleaned_data.get("email_or_phone")
             password = form.cleaned_data.get("password")
@@ -85,15 +87,21 @@ class LoginView(View):
                 login(request, user)
                 return redirect("/")
             else:
+                # Add translation here
                 unverified_number_err = getattr(request, 'unverified_number_err', None)
                 if unverified_number_err:
+                    user_id = getattr(request, 'user_id', None)
+                    context['show_verify_button'] = True
+                    request.session['user_id_from_login'] = user_id
                     messages.error(request,  unverified_number_err)
                 else:
+                    # Add translation here
                     messages.error(request, "Can not log in with provided credentials!")
 
                 # go back to login page
                 return render(request, template_name='login.html', context=context)
         else:
+            # Add translation here
             messages.error(request, "Error validating form!")
             return render(request, template_name='login.html', context=context)
 
@@ -157,6 +165,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
+        context['show_create_worker_for_VO_modal'] = False
         return context
 
     # Method creates workers only. Should be modified for other roles
@@ -164,69 +173,101 @@ class WorkersListView(LoginRequiredMixin, ListView):
         self.object_list = self.get_queryset()
         form = CreateWorkerForVOForm(data=request.POST, user=request.user)
         context = self.get_context_data()
+        auth_common_text = context.get('auth_common_text', {})
         context['create_worker_for_vo_form'] = form
         if form.is_valid():
-            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
-            if not user_exists:
-                user = User.objects.create_user(
-                    email=form.cleaned_data.get('email'),
-                    password=form.cleaned_data.get('password1'),
-                    first_name=form.cleaned_data.get('first_name'),
-                    last_name=form.cleaned_data.get('last_name'),
-                    is_active=True,
-                    created_by=form.cleaned_data.get('vessel_owner', request.user),
-                    updated_by=form.cleaned_data.get('vessel_owner', request.user),
-                )
-                # Save user group/role
-                group = Group.objects.get(name='worker')
-                user.groups.add(group)
+            user = User.objects.create_user(
+                email=form.cleaned_data.get('email'),
+                mobile=form.cleaned_data.get('mobile'),
+                password=form.cleaned_data.get('password1'),
+                first_name=form.cleaned_data.get('first_name'),
+                last_name=form.cleaned_data.get('last_name'),
+                is_active=True,
+                created_by=form.cleaned_data.get('vessel_owner', request.user.id),
+                updated_by=form.cleaned_data.get('vessel_owner', request.user.id),
+            )
+            # Save user group/role
+            group = Group.objects.get(name='worker')
+            user.groups.add(group)
 
-                # Sending verification email is disabled for workers created by superusers for VOs
-                # # Send verification email with access code
-                # email = TunaEmailHelper()
-                # success = email.tuna_send_email(
-                #     to_emails=[user.email],
-                #     subject='Your IKAN access token',
-                #     body={
-                #         'email': user.email,
-                #         'access_token': user.access_code,
-                #     },
-                #     template=EmailTemplate.ACCESS_TOKEN.value,
-                #     auth_common_text=auth_common_text,
-                # )
-                # if success:
-                #     messages.success(request, 'Worker created successfully.')
-                # else:
-                #     messages.error(request, 'An error occurred while sending the user an email.')
-                messages.success(request, 'Worker created successfully.')
-            else:
-                messages.info(request, 'User already exists.')
-                return render(request, 'worker-list.html', context)
+            # if form.cleaned_data.get('has_email'):
+            #     # Sending verification email is disabled for workers created by superusers for VOs
+            #     # Send verification email with access code
+            #     email = TunaEmailHelper()
+            #     success = email.tuna_send_email(
+            #         to_emails=[user.email],
+            #         subject='Your IKAN access token',
+            #         body={
+            #             'email': user.email,
+            #             'access_token': user.access_code,
+            #         },
+            #         template=EmailTemplate.ACCESS_TOKEN.value,
+            #         auth_common_text=auth_common_text,
+            #     )
+            #     if not success:
+            #         messages.error(request, 'User created but an error occurred while sending the email. \
+            #                        Please contact support.')
+            if form.cleaned_data.get('has_phone_number'):
+                messages.success(request,
+                                 auth_common_text.get('accountCreatedVerifyPhoneNumber',
+                                                      'Account created successfully. \
+                                                        Please verify your phone number to activate your account.'))
+                try:
+                    otp_service = OTPVerification()
+                    locale = get_locale_from_request(request)
+                    otp_service.send_otp(user.mobile, locale=locale)
+                except Exception:
+                    messages.error(request, auth_common_text.get('otpCodeSendError',
+                                                                 'An error occurred while sending OTP code.'))
 
+            messages.success(request, 'Worker created successfully.')
             return redirect('accounts:workers')
         else:
-            messages.error(request, 'Error validating form!')
+            context['show_create_worker_for_VO_modal'] = True
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['create_worker_for_vo_form'] = form
             return render(request, 'worker-list.html', context)
 
 
 @login_required(login_url='/account/login')
 def invite_user(request):
+    context = {}
+    context['invite_user_form'] = InviteUser()
+    context['resend_token_form'] = ResendTokenForm()
+    context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=request.user)
+
+    super_user = request.user.is_superuser
+    users = User.objects.all() if super_user else User.objects.filter(created_by=request.user.id)
+    workers = users.filter(groups__name='worker', created_by=request.user.id)
+
+    context['workers'] = workers
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    context['auth_common_text'] = auth_common_text
+    context['show_invite_modal'] = False
+
+    form_origin = request.POST.get("form-origin", "")
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
-            user_exists = User.objects.filter(email=form.cleaned_data.get('email')).exists()
-            if not user_exists:
-                user = User.objects.create_user(
-                    email=form.cleaned_data.get('email'),
-                    first_name=form.cleaned_data.get('first_name'),
-                    last_name=form.cleaned_data.get('last_name'),
-                    is_active=False,
-                    access_code=get_access_code()
-                )
-                # Save user group/role
-                group = Group.objects.get(name=form.cleaned_data.get('role'))
-                user.groups.add(group)
+            user = User.objects.create_user(
+                email=form.cleaned_data.get('email'),
+                mobile=form.cleaned_data.get('mobile'),
+                first_name=form.cleaned_data.get('first_name'),
+                last_name=form.cleaned_data.get('last_name'),
+                is_active=False,
+                access_code=get_access_code(),
+                created_by=request.user.id,
+                updated_by=request.user.id,
+            )
+            # Save user group/role
+            group = Group.objects.get(name=form.cleaned_data.get('role'))
+            user.groups.add(group)
 
+            if form.cleaned_data.get('has_email'):
                 # Send verification email with access code
                 prismic_utils = PrismicUtils(request)
                 auth_common_text = prismic_utils.get_page_text('auth-common-text')
@@ -241,18 +282,45 @@ def invite_user(request):
                     template=EmailTemplate.ACCESS_TOKEN.value,
                     auth_common_text=auth_common_text,
                 )
-                if success:
-                    messages.success(request, 'Your message was sent successfully.')
-                else:
-                    messages.error(request, 'An error occurred while sending the user an email.')
-            else:
-                user = User.objects.get(email=form.cleaned_data.get('email'))
-                if not user.is_active:
-                    messages.info(request, 'User already exists. Please resend invite token.')
-                else:
-                    messages.info(request, 'User already exists.')
+                if not success:
+                    messages.error(request,
+                                   auth_common_text.get('userCreatedErrorSendingEmail',
+                                                        'User created but an error occurred while sending the email. \
+                                                            Please contact support.'))
+            # TODO: to be worked on with api/mobile changes
+            # if form.cleaned_data.get('has_phone_number'):
+            #     try:
+            #         otp_service = OTPVerification()
+            #         # locale = get_locale_from_request(request)
+            #         # otp_service.send_otp(user.mobile, locale=locale)
+            #         # add message asking user to verify their phone number and to set password using the mobile app
+            #         message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
+            #                                        Please download the IKAN mobile app to verify your phone number \
+            #                                        and set your password. Your access code is: ') + user.access_code
+            #         otp_service.send_sms(user.mobile, message)
+            #     except Exception:
+            #         messages.error(request,
+            #                        auth_common_text.get('userCreatedErrorSendingSMS',
+            #                                             'User created but an error occurred while sending the SMS. \
+            #                                               Please contact support.'))
 
-            return redirect('/account/users')
+            if form_origin == 'worker-list':
+                return redirect('accounts:workers')
+            return redirect('accounts:users')
+        else:
+            context['show_invite_modal'] = True
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['invite_user_form'] = form
+
+    if form_origin == 'worker-list':
+        messages.error(request, 'Error validating form!')
+        return render(request, 'worker-list.html', context)
+    else:
+        messages.error(request, 'Error validating form!')
+        return render(request, 'user-list.html', context)
 
 
 class ResendAcessCode(View):
@@ -293,7 +361,7 @@ class ResendAcessCode(View):
             if success:
                 messages.success(request, 'The access code was resent successfully.')
             else:
-                messages.error(request, 'An error occurred while resending the user acess code.')
+                messages.error(request, 'An error occurred while resending the user access code.')
 
             return redirect('/account/users')
 
@@ -328,10 +396,16 @@ class RegisterWebView(View):
         context['form'] = form
 
         if not form.is_valid():
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['form'] = form
             return render(request, 'register.html', context)
 
         user = User.objects.create_user(
             email=form.cleaned_data.get('email'),
+            mobile=form.cleaned_data.get('mobile'),
             password=form.cleaned_data.get('password1'),
             first_name=form.cleaned_data.get('first_name'),
             last_name=form.cleaned_data.get('last_name'),
@@ -342,26 +416,130 @@ class RegisterWebView(View):
         group, _ = Group.objects.get_or_create(name='public')
         user.groups.add(group)
 
-        # Send verification email
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
-        # add language query param to verification link
-        verification_link += f'?language={request.session.get("language", "en-us")}'
-        email_helper = TunaEmailHelper()
-        email_helper.tuna_send_email(
-            to_emails=[user.email],
-            subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN', 'Verify your email to start using IKAN'),
-            body={
-                'first_name': user.first_name,
-                'verification_link': verification_link,
-            },
-            template=EmailTemplate.VERIFY_EMAIL.value,
-            auth_common_text=auth_common_text,
-        )
-        messages.success(request, 'Account created successfully. Please check your email to verify your account.')
+        if form.cleaned_data.get('has_email'):
+            # Send verification email
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
+            # add language query param to verification link
+            verification_link += f'?language={request.session.get("language", "en-us")}'
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject=auth_common_text.get('verifyYourEmailToStartUsingIKAN',
+                                             'Verify your email to start using IKAN'),
+                body={
+                    'first_name': user.first_name,
+                    'verification_link': verification_link,
+                },
+                template=EmailTemplate.VERIFY_EMAIL.value,
+                auth_common_text=auth_common_text,
+            )
+            messages.success(request,
+                             auth_common_text.get('accountCreatedCheckEmail',
+                                                  'Account created successfully. \
+                                                    Please check your email to verify your account.'))
+            prismic_utils = PrismicUtils(request)
+            success_context = {
+                'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
+                }
+            return render(request, template_name="register-success.html", context=success_context)
 
-        return redirect('/account/register-success')
+        if form.cleaned_data.get('has_phone_number'):
+            messages.success(request,
+                             auth_common_text.get('accountCreatedVerifyPhoneNumber',
+                                                  'Account created successfully. \
+                                                    Please verify your phone number to activate your account.'))
+            try:
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+            except Exception:
+                messages.error(request, auth_common_text.get('otpCodeSendError',
+                                                             'An error occurred while sending OTP code.'))
+
+            request.session['user_id'] = user.id
+            # request.session['phone_number'] = user.mobile
+            # request.session['type'] = 'mobile'
+            return redirect('accounts:verify-phone-number')
+
+
+class VerifyPhoneNumber(View):
+    def get(self, request):
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        user_id_from_login = request.session.get('user_id_from_login', None)
+        if user_id_from_login:
+            try:
+                user = User.objects.get(id=user_id_from_login)
+                otp_service = OTPVerification()
+                locale = get_locale_from_request(request)
+                otp_service.send_otp(user.mobile, locale=locale)
+                request.session['user_id'] = user.id
+            except Exception:
+                messages.error(request, auth_common_text.get('otpCodeSendError',
+                                                             'An error occurred while sending OTP code.'))
+
+        context = {
+            'auth_common_text': auth_common_text,
+        }
+        return render(request, template_name='verify-phone/code.html', context=context)
+
+    def post(self, request):
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        otp_code = request.POST.get('otp_code')
+        user_id = request.session.get('user_id')
+        if user_id and otp_code:
+            user = User.objects.get(id=user_id)
+            try:
+                otp_service = OTPVerification()
+                verification_result = otp_service.check_otp(otp_code, user.mobile)
+                if verification_result == 'approved':
+                    user.is_verified = True
+                    user.is_mobile_verified = True
+                    user.is_active = True
+                    user.save()
+                    messages.success(request, auth_common_text.get('phoneNumberVerifySuccess',
+                                                                   'Phone number verified successfully.'))
+                    return redirect('accounts:verify-phone-number-success')
+                else:
+                    messages.error(request, auth_common_text.get('phoneNumberVerifyFailure',
+                                                                 'Phone number verification failed. Please try again.'))
+                    return redirect('accounts:verify-phone-number-failure')
+            except Exception:
+                messages.error(request, auth_common_text.get('otpVerificationError',
+                                                             'An error occurred while verifying OTP code.'))
+
+        messages.error(request, auth_common_text.get('missingOTPOrUserInfo',
+                                                     'Missing OTP code or user information. Please try again.'))
+        return render(request, template_name='verify-phone/code.html', context={'auth_common_text': auth_common_text})
+
+
+def verify_phone_number_success(request):
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    return render(request, template_name='verify-phone/success.html', context={'auth_common_text': auth_common_text})
+
+
+def verify_phone_number_failure(request):
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    return render(request, template_name='verify-phone/failure.html', context={'auth_common_text': auth_common_text})
+
+
+def resend_otp(request):
+    auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
+    user_id = request.session.get('user_id')
+    if user_id:
+        user = User.objects.get(id=user_id)
+        otp_service = OTPVerification()
+        locale = get_locale_from_request(request)
+        otp_service.send_otp(user.mobile, locale=locale)
+        messages.success(request, auth_common_text.get('otpCodeResentSuccessfully', 'OTP code resent successfully.'))
+    else:
+        messages.error(request, auth_common_text.get('unableToResendOTP', 'Unable to resend OTP code.'))
+    return redirect('accounts:verify-phone-number')
 
 
 class RequestPasswordReset(View):
@@ -386,9 +564,61 @@ class RequestPasswordReset(View):
         if not form.is_valid():
             return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
-        user = User.objects.get(email=form.cleaned_data.get('email'))
+        if form.cleaned_data.get('has_phone_number'):
+            user = User.objects.get(mobile=form.cleaned_data.get('mobile'))
+            if user:
+                send_verification_code(request, user, auth_common_text)
+                messages.success(request, auth_common_text.get(
+                    'passwordResetOTPRequestSentMessage',
+                    'Please check your phone for the OTP code to reset your password.')
+                )
+                return redirect('accounts:reset-password')
+        if form.cleaned_data.get('has_email'):
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+            if user:
+                password_reset_token = random.randrange(111111, 999999)
+                user.reset_password_token = password_reset_token
+                user.save()
+
+                email_helper = TunaEmailHelper()
+                email_helper.tuna_send_email(
+                    to_emails=[user.email],
+                    subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
+                    body={
+                        'first_name': user.first_name,
+                        'password_reset_token': password_reset_token,
+                    },
+                    template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                    auth_common_text=auth_common_text,
+                )
+                messages.success(request, auth_common_text.get(
+                    'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
+                return redirect('accounts:reset-password')
+        messages.error(request,
+                       auth_common_text.get('errorRequestingPasswordReset', 'Error requesting password reset.'))
+        return render(request, template_name='password-reset/request-password-reset.html', context=context)
+
+
+def resend_password_reset_token(request):
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    email = request.session.get('reset_email', None)
+    mobile = request.session.get('reset_mobile', None)
+    user = None
+
+    if mobile:
+        user = User.objects.filter(mobile=mobile).first()
         if user:
-            password_reset_token = random.randrange(11111, 99999,)
+            send_verification_code(request, user, auth_common_text)
+            messages.success(request, auth_common_text.get(
+                'passwordResetOTPRequestSentMessage',
+                'Please check your phone for the OTP code to reset your password.')
+            )
+
+    if email:
+        user = User.objects.filter(email=email).first()
+        if user:
+            password_reset_token = random.randrange(111111, 999999)
             user.reset_password_token = password_reset_token
             user.save()
 
@@ -405,10 +635,12 @@ class RequestPasswordReset(View):
             )
             messages.success(request, auth_common_text.get(
                 'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
-            return redirect('reset-password')
-        else:
-            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
-            return render(request, template_name='password-reset/request-password-reset.html', context=context)
+
+    if (not email and not mobile) or not user:
+        messages.error(request, auth_common_text.get(
+            'errorResendingPasswordResetToken', 'Error resending password reset token.'))
+
+    return redirect('accounts:reset-password')
 
 
 class ResetPassword(View):
@@ -418,7 +650,8 @@ class ResetPassword(View):
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
-        context['form'] = PasswordResetForm(auth_common_text=auth_common_text)
+        context['form'] = PasswordResetForm(auth_common_text=auth_common_text, request=self.request)
+        context['show_resend_token_button'] = False
         return context
 
     def get(self, request):
@@ -428,22 +661,36 @@ class ResetPassword(View):
     def post(self, request):
         context = self.get_context_data()
         auth_common_text = context.get('auth_common_text', {})
-        form = PasswordResetForm(data=request.POST, auth_common_text=auth_common_text)
+        form = PasswordResetForm(data=request.POST, auth_common_text=auth_common_text, request=request)
         context['form'] = form
         if not form.is_valid():
-            return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+            # prefill form with submitted data
+            for field in form.fields:
+                if field in form.data:
+                    form.fields[field].widget.attrs['value'] = form.data[field]
+            context['form'] = form
+            return render(request, template_name='password-reset/reset-password.html', context=context)
 
-        user = User.objects.get(email=form.cleaned_data.get('email'))
+        if form.cleaned_data.get('has_phone_number'):
+            user = User.objects.get(mobile=form.cleaned_data.get('mobile'))
+            request.session['reset_mobile'] = form.cleaned_data.get('mobile')
+        elif form.cleaned_data.get('has_email'):
+            user = User.objects.get(email=form.cleaned_data.get('email'))
+            request.session['reset_email'] = form.cleaned_data.get('email')
+        else:
+            user = None
+
         if user:
             user.set_password(form.cleaned_data.get('password1'))
             user.reset_password_token = None
             user.save()
             messages.success(request, auth_common_text.get(
                 'passwordResetSuccessMessage', 'Password reset successfully. Please login with your new password.'))
-            return redirect('login')
+            return redirect('accounts:login')
         else:
-            messages.error(request, auth_common_text.get('invalidEmailAddress', 'Invalid email address.'))
-            return render(request, template_name='password-reset/reset-password.html', context={'form': form})
+            messages.error(request, auth_common_text.get('passwordResetFailure',
+                                                         'Error resetting password. Please try again.'))
+            return render(request, template_name='password-reset/reset-password.html', context=context)
 
 
 @login_required
