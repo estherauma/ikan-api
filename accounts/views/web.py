@@ -173,6 +173,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
         self.object_list = self.get_queryset()
         form = CreateWorkerForVOForm(data=request.POST, user=request.user)
         context = self.get_context_data()
+        auth_common_text = context.get('auth_common_text', {})
         context['create_worker_for_vo_form'] = form
         if form.is_valid():
             user = User.objects.create_user(
@@ -207,16 +208,17 @@ class WorkersListView(LoginRequiredMixin, ListView):
             #         messages.error(request, 'User created but an error occurred while sending the email. \
             #                        Please contact support.')
             if form.cleaned_data.get('has_phone_number'):
-                # TODO: Add translation here
-                messages.success(request, 'Account created successfully. \
-                                Please verify your phone number to activate your account.')
+                messages.success(request,
+                                 auth_common_text.get('accountCreatedVerifyPhoneNumber',
+                                                      'Account created successfully. \
+                                                        Please verify your phone number to activate your account.'))
                 try:
                     otp_service = OTPVerification()
                     locale = get_locale_from_request(request)
                     otp_service.send_otp(user.mobile, locale=locale)
                 except Exception:
-                    # TODO: Add translation here
-                    messages.error(request, 'An error occurred while sending OTP code.')
+                    messages.error(request, auth_common_text.get('otpCodeSendError',
+                                                                 'An error occurred while sending OTP code.'))
 
             messages.success(request, 'Worker created successfully.')
             return redirect('accounts:workers')
@@ -281,9 +283,10 @@ def invite_user(request):
                     auth_common_text=auth_common_text,
                 )
                 if not success:
-                    # TODO: Add translation here
-                    messages.error(request, 'User created but an error occurred while sending the email. \
-                                   Please contact support.')
+                    messages.error(request,
+                                   auth_common_text.get('userCreatedErrorSendingEmail',
+                                                        'User created but an error occurred while sending the email. \
+                                                            Please contact support.'))
             # TODO: to be worked on with api/mobile changes
             # if form.cleaned_data.get('has_phone_number'):
             #     try:
@@ -292,13 +295,14 @@ def invite_user(request):
             #         # otp_service.send_otp(user.mobile, locale=locale)
             #         # add message asking user to verify their phone number and to set password using the mobile app
             #         message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
-            #                                        Please download the IKAN mobile app to verify your phone number and \
-            #                                        set your password. Your access code is: ') + user.access_code
+            #                                        Please download the IKAN mobile app to verify your phone number \
+            #                                        and set your password. Your access code is: ') + user.access_code
             #         otp_service.send_sms(user.mobile, message)
             #     except Exception:
-            #         # TODO: Add translation here
-            #         messages.error(request, 'User created but an error occurred while sending the SMS. \
-            #                        Please contact support.')
+            #         messages.error(request,
+            #                        auth_common_text.get('userCreatedErrorSendingSMS',
+            #                                             'User created but an error occurred while sending the SMS. \
+            #                                               Please contact support.'))
 
             if form_origin == 'worker-list':
                 return redirect('accounts:workers')
@@ -431,8 +435,10 @@ class RegisterWebView(View):
                 template=EmailTemplate.VERIFY_EMAIL.value,
                 auth_common_text=auth_common_text,
             )
-            # TODO: Add translation here
-            messages.success(request, 'Account created successfully. Please check your email to verify your account.')
+            messages.success(request,
+                             auth_common_text.get('accountCreatedCheckEmail',
+                                                  'Account created successfully. \
+                                                    Please check your email to verify your account.'))
             prismic_utils = PrismicUtils(request)
             success_context = {
                 'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
@@ -440,16 +446,17 @@ class RegisterWebView(View):
             return render(request, template_name="register-success.html", context=success_context)
 
         if form.cleaned_data.get('has_phone_number'):
-            # TODO: Add translation here
-            messages.success(request, 'Account created successfully. \
-                             Please verify your phone number to activate your account.')
+            messages.success(request,
+                             auth_common_text.get('accountCreatedVerifyPhoneNumber',
+                                                  'Account created successfully. \
+                                                    Please verify your phone number to activate your account.'))
             try:
                 otp_service = OTPVerification()
                 locale = get_locale_from_request(request)
                 otp_service.send_otp(user.mobile, locale=locale)
             except Exception:
-                # TODO: Add translation here
-                messages.error(request, 'An error occurred while sending OTP code.')
+                messages.error(request, auth_common_text.get('otpCodeSendError',
+                                                             'An error occurred while sending OTP code.'))
 
             request.session['user_id'] = user.id
             # request.session['phone_number'] = user.mobile
@@ -459,6 +466,8 @@ class RegisterWebView(View):
 
 class VerifyPhoneNumber(View):
     def get(self, request):
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         user_id_from_login = request.session.get('user_id_from_login', None)
         if user_id_from_login:
             try:
@@ -468,17 +477,17 @@ class VerifyPhoneNumber(View):
                 otp_service.send_otp(user.mobile, locale=locale)
                 request.session['user_id'] = user.id
             except Exception:
-                # TODO: Add translation here
-                messages.error(request, 'An error occurred while sending OTP code.')
+                messages.error(request, auth_common_text.get('otpCodeSendError',
+                                                             'An error occurred while sending OTP code.'))
 
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context = {
             'auth_common_text': auth_common_text,
         }
         return render(request, template_name='verify-phone/code.html', context=context)
 
     def post(self, request):
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
         otp_code = request.POST.get('otp_code')
         user_id = request.session.get('user_id')
         if user_id and otp_code:
@@ -491,20 +500,20 @@ class VerifyPhoneNumber(View):
                     user.is_mobile_verified = True
                     user.is_active = True
                     user.save()
-                    # TODO: Add translation here
-                    messages.success(request, 'Phone number verified successfully.')
+                    messages.success(request, auth_common_text.get('phoneNumberVerifySuccess',
+                                                                   'Phone number verified successfully.'))
                     return redirect('accounts:verify-phone-number-success')
                 else:
-                    # TODO: Add translation here
-                    messages.error(request, 'Phone number verification failed. Please try again.')
+                    messages.error(request, auth_common_text.get('phoneNumberVerifyFailure',
+                                                                 'Phone number verification failed. Please try again.'))
                     return redirect('accounts:verify-phone-number-failure')
             except Exception:
-                # TODO: Add translation here
-                messages.error(request, 'An error occurred while verifying OTP code.')
+                messages.error(request, auth_common_text.get('otpVerificationError',
+                                                             'An error occurred while verifying OTP code.'))
 
-        # TODO: Add translation here
-        messages.error(request, 'Missing OTP code or user information. Please try again.')
-        return render(request, template_name='verify-phone/code.html')
+        messages.error(request, auth_common_text.get('missingOTPOrUserInfo',
+                                                     'Missing OTP code or user information. Please try again.'))
+        return render(request, template_name='verify-phone/code.html', context={'auth_common_text': auth_common_text})
 
 
 def verify_phone_number_success(request):
@@ -520,17 +529,16 @@ def verify_phone_number_failure(request):
 
 
 def resend_otp(request):
+    auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
     user_id = request.session.get('user_id')
     if user_id:
         user = User.objects.get(id=user_id)
         otp_service = OTPVerification()
         locale = get_locale_from_request(request)
         otp_service.send_otp(user.mobile, locale=locale)
-        # TODO: Add translation here
-        messages.success(request, 'OTP code resent successfully.')
+        messages.success(request, auth_common_text.get('otpCodeResentSuccessfully', 'OTP code resent successfully.'))
     else:
-        # TODO: Add translation here
-        messages.error(request, 'Unable to resend OTP code.')
+        messages.error(request, auth_common_text.get('unableToResendOTP', 'Unable to resend OTP code.'))
     return redirect('accounts:verify-phone-number')
 
 
@@ -560,7 +568,6 @@ class RequestPasswordReset(View):
             user = User.objects.get(mobile=form.cleaned_data.get('mobile'))
             if user:
                 send_verification_code(request, user, auth_common_text)
-                # TODO: Add translation here
                 messages.success(request, auth_common_text.get(
                     'passwordResetOTPRequestSentMessage',
                     'Please check your phone for the OTP code to reset your password.')
@@ -587,7 +594,6 @@ class RequestPasswordReset(View):
                 messages.success(request, auth_common_text.get(
                     'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
                 return redirect('accounts:reset-password')
-        # TODO: Add translation here
         messages.error(request,
                        auth_common_text.get('errorRequestingPasswordReset', 'Error requesting password reset.'))
         return render(request, template_name='password-reset/request-password-reset.html', context=context)
@@ -635,7 +641,6 @@ class ResetPassword(View):
                 'passwordResetSuccessMessage', 'Password reset successfully. Please login with your new password.'))
             return redirect('accounts:login')
         else:
-            # TODO: Add translation here
             messages.error(request, auth_common_text.get('passwordResetFailure',
                                                          'Error resetting password. Please try again.'))
             return render(request, template_name='password-reset/reset-password.html', context=context)

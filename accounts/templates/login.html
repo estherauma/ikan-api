@@ -50,7 +50,6 @@
                             
                             {% if show_verify_button %}
                                 <div class="text-center my-4">
-                                    <!-- TODO: Add translation here -->
                                     <a href="{% url 'accounts:verify-phone-number' %}" class="ikan-dark-blue-100 ms-1">{{ auth_common_text.verifyPhoneNumber | default:'Verify phone number' }}</a>
                                 </div>
                             {% endif %}

@@ -29,7 +29,6 @@ def validate_email_or_phone(value, auth_common_text=None):
         is_phone = True
 
     if not is_email and not is_phone:
-        # TODO: add translation here
         raise forms.ValidationError(auth_common_text.get('enterValidEmailOrPhoneNumber',
                                                          'Enter a valid email address or phone number.'))
 
@@ -107,19 +106,16 @@ class RegistrationForm(UserCreationForm):
             is_phone = True
 
         if not is_email and not is_phone:
-            # TODO: add translation here
             raise forms.ValidationError(self.auth_common_text.get('enterValidEmailOrPhoneNumber',
                                                                   'Enter a valid email address or phone number.'))
 
         if is_email:
             if User.objects.filter(email=email_or_phone).exists():
-                # TODO: add translation here
                 raise forms.ValidationError(self.auth_common_text.get('emailAlreadyExists', 'Email already exists.'))
             # add email to cleaned data for use in the view
             self.cleaned_data['email'] = email_or_phone
         else:
             if User.objects.filter(Q(mobile=email_or_phone) | Q(telephone=email_or_phone)).exists():
-                # TODO: add translation here
                 raise forms.ValidationError(self.auth_common_text.get('phoneNumberAlreadyExists',
                                                                       'Phone number already exists.'))
             # add phone number to cleaned data for use in the view
@@ -148,14 +144,12 @@ class RegistrationForm(UserCreationForm):
                 'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
-            # TODO: add translation here
             self.fields['email_or_phone'].widget.attrs['placeholder'] = \
                 auth_common_text.get('enterYourEmailOrPhoneNumber', 'Enter your email or phone number')
             self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
                                                                                         'Enter your password')
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
                                                                                         'Confirm your password')
-            # TODO: add translation here
             self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
             self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
             self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
@@ -190,11 +184,9 @@ class RequestPasswordResetForm(forms.Form):
         self.auth_common_text = auth_common_text
         super().__init__(*args, **kwargs)
         if auth_common_text:
-            # TODO: add translation here
             self.fields['email_or_phone'].widget.attrs['placeholder'] = \
                 auth_common_text.get('enterYourEmailOrPhoneNumber',
                                      'Enter your email or phone number')
-            # TODO: add translation here
             self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
 
 
@@ -276,7 +268,7 @@ class PasswordResetForm(forms.Form):
         super().__init__(*args, **kwargs)
         if auth_common_text:
             self.fields['email_or_phone'].widget.attrs['placeholder'] = \
-                auth_common_text.get('enterYourEmailOrPhone', 'Enter your email or phone number')
+                auth_common_text.get('enterYourEmailOrPhoneNumber', 'Enter your email or phone number')
             self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourNewPassword',
                                                                                         'Enter your new password')
             self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
@@ -336,7 +328,6 @@ class InviteUser(forms.Form):
             is_phone = True
 
         if not is_email and not is_phone:
-            # TODO: add translation here
             raise forms.ValidationError(self.auth_common_text.get('enterValidEmailOrPhoneNumber',
                                                                   'Enter a valid email address or phone number.'))
 
@@ -345,18 +336,15 @@ class InviteUser(forms.Form):
                 # check is user is inactive then resend token
                 user = User.objects.get(email=email_or_phone)
                 if not user.is_active:
-                    # TODO: add translation here
                     raise forms.ValidationError(self.auth_common_text.get('resendInviteToken',
                                                                           'User already exists. \
                                                                             Please resend invite token.'))
-                # TODO: add translation here
                 raise forms.ValidationError(self.auth_common_text.get('userWithEmailAlreadyExists',
                                                                       'User with this email address already exists.'))
             # add email to cleaned data for use in the view
             self.cleaned_data['email'] = email_or_phone
         else:
             if User.objects.filter(Q(mobile=email_or_phone) | Q(telephone=email_or_phone)).exists():
-                # TODO: add translation here
                 raise forms.ValidationError(self.auth_common_text.get('userWithPhoneNumberAlreadyExists',
                                                                       'User with this phone number already exists.'))
             # add phone number to cleaned data for use in the view
@@ -386,14 +374,12 @@ class InviteUser(forms.Form):
         )
 
         if auth_common_text:
-            # TODO: add translation here
             self.fields['email_or_phone'].widget.attrs['placeholder'] = \
-                auth_common_text.get('enterYourEmailOrPhone', 'Enter your email or phone number')
+                auth_common_text.get('enterYourEmailOrPhoneNumber', 'Enter your email or phone number')
             self.fields['first_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourFirstName', 'Enter your first name') + f' ({auth_common_text.get("optional", "Optional")})'
             self.fields['last_name'].widget.attrs['placeholder'] = auth_common_text.get(
                 'enterYourLastName', 'Enter your last name') + f' ({auth_common_text.get("optional", "Optional")})'
-            # TODO: add translation here
             self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
             self.fields['first_name'].label = auth_common_text.get('firstName', 'First Name')
             self.fields['last_name'].label = auth_common_text.get('lastName', 'Last Name')
@@ -419,15 +405,11 @@ class LoginForm(forms.Form):
         auth_common_text = kwargs.pop('auth_common_text', {})
         super(LoginForm, self).__init__(*args, **kwargs)
         if auth_common_text:
-            # TODO: add translation here
             self.fields['email_or_phone'].widget.attrs['placeholder'] = \
                 auth_common_text.get('enterYourEmailOrPhoneNumber', 'Enter your email address or phone number')
-            # TODO: add translation here
             self.fields['password'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
                                                                                        'Enter your password')
-            # TODO: add translation here
             self.fields['email_or_phone'].label = auth_common_text.get('emailOrPhoneNumber', 'Email or Phone Number')
-            # TODO: add translation here
             self.fields['password'].label = auth_common_text.get('password', 'Password')
 
 

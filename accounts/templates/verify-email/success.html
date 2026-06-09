@@ -8,11 +8,9 @@
                 <div class="card-body p-4 text-center">
                     <div class="text-center m-auto">
                         {% include 'themes/v1/partials/ikan-logo.html' %}
-                        <!-- TODO: Add translation here -->
                     </div>
                     
                     <h1 class="mb-3 mt-3 ikan-primary-color">{{ auth_common_text.verificationSuccess | default:'Verification Success' }}</h1>
-                    <!-- TODO: Add translation here -->
                     <p>{{ auth_common_text.emailVerified | default:"Your email has been successfully verified." }}</p>
                     <!-- <p>{{ auth_common_text.adminNotifiedToActivateAccount }}</p> -->
                     <p class="mb-4">{{ auth_common_text.accountActiveLogin }}</p>
