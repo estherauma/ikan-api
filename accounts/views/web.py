@@ -599,6 +599,50 @@ class RequestPasswordReset(View):
         return render(request, template_name='password-reset/request-password-reset.html', context=context)
 
 
+def resend_password_reset_token(request):
+    prismic_utils = PrismicUtils(request)
+    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    email = request.session.get('reset_email', None)
+    mobile = request.session.get('reset_mobile', None)
+    user = None
+
+    if mobile:
+        user = User.objects.filter(mobile=mobile).first()
+        if user:
+            send_verification_code(request, user, auth_common_text)
+            messages.success(request, auth_common_text.get(
+                'passwordResetOTPRequestSentMessage',
+                'Please check your phone for the OTP code to reset your password.')
+            )
+
+    if email:
+        user = User.objects.filter(email=email).first()
+        if user:
+            password_reset_token = random.randrange(111111, 999999)
+            user.reset_password_token = password_reset_token
+            user.save()
+
+            email_helper = TunaEmailHelper()
+            email_helper.tuna_send_email(
+                to_emails=[user.email],
+                subject=auth_common_text.get('resetYourPassword', 'Reset your IKAN password'),
+                body={
+                    'first_name': user.first_name,
+                    'password_reset_token': password_reset_token,
+                },
+                template=EmailTemplate.PASSWORD_RESET_REQUEST.value,
+                auth_common_text=auth_common_text,
+            )
+            messages.success(request, auth_common_text.get(
+                'passwordResetRequestSentMessage', 'Please check your email for the password reset code.'))
+
+    if (not email and not mobile) or not user:
+        messages.error(request, auth_common_text.get(
+            'errorResendingPasswordResetToken', 'Error resending password reset token.'))
+
+    return redirect('accounts:reset-password')
+
+
 class ResetPassword(View):
     def get_context_data(self, **kwargs):
         context = kwargs
@@ -607,6 +651,7 @@ class ResetPassword(View):
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         context['form'] = PasswordResetForm(auth_common_text=auth_common_text, request=self.request)
+        context['show_resend_token_button'] = False
         return context
 
     def get(self, request):
@@ -627,9 +672,11 @@ class ResetPassword(View):
             return render(request, template_name='password-reset/reset-password.html', context=context)
 
         if form.cleaned_data.get('has_phone_number'):
-            user = User.objects.get(mobile=form.cleaned_data.get('email_or_phone'))
+            user = User.objects.get(mobile=form.cleaned_data.get('mobile'))
+            request.session['reset_mobile'] = form.cleaned_data.get('mobile')
         elif form.cleaned_data.get('has_email'):
             user = User.objects.get(email=form.cleaned_data.get('email'))
+            request.session['reset_email'] = form.cleaned_data.get('email')
         else:
             user = None
 
