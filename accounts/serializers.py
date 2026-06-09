@@ -182,16 +182,19 @@ class PasswordResetSerializer(serializers.Serializer):
         reset_password_token = data.get('reset_password_token')
 
         if not email and not phone_number:
+            # TODO: Add translation here
             raise serializers.ValidationError('Either email or phone number is required.')
 
         if email:
             user = User.objects.get(email=email)
             if user.reset_password_token != reset_password_token:
+                # TODO: Add translation here
                 raise serializers.ValidationError("Invalid reset password token.")
         elif phone_number:
             # user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
             res = check_verification_code(self.context.get('request'), phone_number, reset_password_token)
             if not res:
+                # TODO: Add translation here
                 raise serializers.ValidationError("Invalid reset password token.")
         else:
             raise serializers.ValidationError("User does not exist.")

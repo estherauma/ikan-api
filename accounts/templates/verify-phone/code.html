@@ -26,14 +26,12 @@
                 <div class="card-body p-4">
                     <div class="text-center m-auto">
                         {% include 'themes/v1/partials/ikan-logo.html' %}
-                        <!-- TODO: Add translation here -->
                         <h2 class="mb-3 mt-3 ikan-primary-color">{{ auth_common_text.verifyPhoneNumber | default:'Verify Phone Number' }}</h2>
                     </div>
 
                     <form method="post" class="ikan-form">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <!-- TODO: Add translation here -->
                             <label for="otp_code" class="form-label">{{ auth_common_text.enterOTP | default:'Enter OTP' }}</label>
                             <input
                                 type="text"
@@ -48,7 +46,6 @@
                         </div>
                         <div class="mb-3 text-center">
                             <div class=" text-center">
-                                <!-- TODO: Add translation here -->
                                 <a href="{% url 'accounts:resend-otp' %}" class="ikan-dark-blue-100 ms-1">{{ auth_common_text.resendCode | default:'Resend Code' }}</a>
                             </div>
                             <button type="submit" class="ikan-primary-button w-75">{{ common_text.verify }}</button>
