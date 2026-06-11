@@ -22,6 +22,10 @@
             <div class="email-wrapper">
                 <p>{{ loggedin_user.email }}</p>
             </div>
+        {% elif loggedin_user.mobile %}
+            <div class="email-wrapper">
+                <p>{{ loggedin_user.mobile }}</p>
+            </div>
         {% endif %}
     </div>
 
