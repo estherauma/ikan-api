@@ -23,35 +23,36 @@ class RegisterSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=False, allow_blank=True)
     profile_image = serializers.URLField(required=False)
 
+    def __init__(self, *args, **kwargs):
+        self.auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
+
     def validate_email(self, value):
         if value and User.objects.filter(email=value).exists():
-            # Add translation here
-            raise serializers.ValidationError('Email already exists.')
+            raise serializers.ValidationError(self.auth_common_text.get('emailAlreadyExists', 'Email already exists.'))
 
         if value:
             try:
                 validate_email(value)
             except serializers.ValidationError:
-                # Add translation here
-                raise serializers.ValidationError('Invalid email format.')
+                raise serializers.ValidationError(self.auth_common_text.get('invalidEmailAddress',
+                                                                            'Invalid email address.'))
 
         return value
 
     def validate_phone_number(self, value):
         if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
-            # Add translation here
-            raise serializers.ValidationError('Phone number already exists.')
+            raise serializers.ValidationError(self.auth_common_text.get('phoneNumberAlreadyExists',
+                                                                        'Phone number already exists.'))
 
         if value and not value.startswith('+'):
-            # Add translation here
             raise serializers.ValidationError(
-                "Phone number must start with a '+' sign and include the country code."
-            )
+                self.auth_common_text.get('phoneNumberMustStartWithCode',
+                                          'Phone number must start with a \'+\' sign and include the country code.'))
         if value and not value[1:].isdigit():
-            # Add translation here
             raise serializers.ValidationError(
-                "Phone number must contain only digits after the country code."
-            )
+                self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
+                                          'Phone number must contain only digits after the country code.'))
         return value
 
     def validate_password(self, value):
@@ -66,14 +67,16 @@ class RegisterSerializer(serializers.Serializer):
         phone_number = data.get('phone_number')
 
         if not email and not phone_number:
-            # TODO: Add translation here
-            raise serializers.ValidationError('Either email or phone number is required.')
+            raise serializers.ValidationError(self.auth_common_text.get('emailOrPhoneNumberRequired',
+                                                                        'Either email or phone number is required.'))
 
         return data
 
     def create(self, validated_data):
         if not validated_data.get('mobile') and validated_data.get('phone_number'):
             validated_data['mobile'] = validated_data['phone_number']
+        if validated_data.get('phone_number'):
+            del validated_data['phone_number']
         return User.objects.create_user(**validated_data)
 
     class Meta:
@@ -86,34 +89,30 @@ class PasswordResetCheckTokenSerializer(serializers.Serializer):
     phone_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
     reset_password_token = serializers.CharField(write_only=True)
 
-    def validate_email(self, value):
-        if value and User.objects.filter(email=value).exists():
-            # Add translation here
-            raise serializers.ValidationError('Email already exists.')
+    def __init__(self, *args, **kwargs):
+        self.auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
 
+    def validate_email(self, value):
         if value:
             try:
                 validate_email(value)
             except serializers.ValidationError:
-                # Add translation here
-                raise serializers.ValidationError('Invalid email format.')
+                raise serializers.ValidationError(self.auth_common_text.get('invalidEmailAddress',
+                                                                            'Invalid email address.'))
 
         return value
 
     def validate_phone_number(self, value):
-        if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
-            # Add translation here
-            raise serializers.ValidationError('Phone number already exists.')
-
         if value and not value.startswith('+'):
-            # Add translation here
             raise serializers.ValidationError(
-                "Phone number must start with a '+' sign and include the country code."
+                self.auth_common_text.get('phoneNumberMustStartWithCode',
+                                          "Phone number must start with a '+' sign and include the country code.")
             )
         if value and not value[1:].isdigit():
-            # Add translation here
             raise serializers.ValidationError(
-                "Phone number must contain only digits after the country code."
+                self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
+                                          "Phone number must contain only digits after the country code.")
             )
         return value
 
@@ -123,19 +122,23 @@ class PasswordResetCheckTokenSerializer(serializers.Serializer):
         reset_password_token = data.get('reset_password_token')
 
         if not email and not phone_number:
-            raise serializers.ValidationError('Either email or phone number is required.')
+            raise serializers.ValidationError(self.auth_common_text.get('emailOrPhoneNumberRequired',
+                                                                        'Either email or phone number is required.'))
 
         if email:
             user = User.objects.get(email=email)
             if user.reset_password_token != reset_password_token:
-                raise serializers.ValidationError("Invalid reset password token.")
+                raise serializers.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
+                                                                            'Invalid reset password token.'))
         elif phone_number:
             # user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
             res = check_verification_code(self.context.get('request'), phone_number, reset_password_token)
             if not res:
-                raise serializers.ValidationError("Invalid reset password token.")
+                raise serializers.ValidationError(self.auth_common_text.get('invalidResetPasswordCode',
+                                                                            'Invalid reset password code.'))
         else:
-            raise serializers.ValidationError("User does not exist.")
+            raise serializers.ValidationError(self.auth_common_text.get('userDoesNotExist',
+                                                                        'User does not exist.'))
         return data
 
 
@@ -145,35 +148,29 @@ class PasswordResetSerializer(serializers.Serializer):
     reset_password_token = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
 
-    def validate_email(self, value):
-        if value and User.objects.filter(email=value).exists():
-            # Add translation here
-            raise serializers.ValidationError('Email already exists.')
+    def __init__(self, *args, **kwargs):
+        self.auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
 
+    def validate_email(self, value):
         if value:
             try:
                 validate_email(value)
             except serializers.ValidationError:
-                # Add translation here
-                raise serializers.ValidationError('Invalid email format.')
+                raise serializers.ValidationError(self.auth_common_text.get('invalidEmailAddress',
+                                                                            'Invalid email address.'))
 
         return value
 
     def validate_phone_number(self, value):
-        if value and User.objects.filter(Q(telephone=value) | Q(mobile=value)).exists():
-            # Add translation here
-            raise serializers.ValidationError('Phone number already exists.')
-
         if value and not value.startswith('+'):
-            # Add translation here
             raise serializers.ValidationError(
-                "Phone number must start with a '+' sign and include the country code."
-            )
+                self.auth_common_text.get('phoneNumberMustStartWithCode',
+                                          "Phone number must start with a '+' sign and include the country code."))
         if value and not value[1:].isdigit():
-            # Add translation here
             raise serializers.ValidationError(
-                "Phone number must contain only digits after the country code."
-            )
+                self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
+                                          "Phone number must contain only digits after the country code."))
         return value
 
     def validate(self, data):
@@ -182,22 +179,23 @@ class PasswordResetSerializer(serializers.Serializer):
         reset_password_token = data.get('reset_password_token')
 
         if not email and not phone_number:
-            # TODO: Add translation here
-            raise serializers.ValidationError('Either email or phone number is required.')
+            raise serializers.ValidationError(self.auth_common_text.get('emailOrPhoneNumberRequired',
+                                                                        'Either email or phone number is required.'))
 
         if email:
             user = User.objects.get(email=email)
             if user.reset_password_token != reset_password_token:
-                # TODO: Add translation here
-                raise serializers.ValidationError("Invalid reset password token.")
+                raise serializers.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
+                                                                            'Invalid reset password token.'))
         elif phone_number:
             # user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
             res = check_verification_code(self.context.get('request'), phone_number, reset_password_token)
             if not res:
-                # TODO: Add translation here
-                raise serializers.ValidationError("Invalid reset password token.")
+                raise serializers.ValidationError(self.auth_common_text.get('invalidResetPasswordCode',
+                                                                            'Invalid reset password code.'))
         else:
-            raise serializers.ValidationError("User does not exist.")
+            raise serializers.ValidationError(self.auth_common_text.get('userDoesNotExist',
+                                                                        'User does not exist.'))
         return data
 
     def validate_password(self, value):
@@ -240,13 +238,19 @@ class OTPGenerateSerializer(serializers.Serializer):
     user_id = serializers.CharField(max_length=36)
     locale = serializers.CharField(max_length=5, default='en')
 
+    def __init__(self, *args, **kwargs):
+        self.auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
+
     def validate_phone_number(self, value):
         if not value.startswith('+'):
             raise serializers.ValidationError(
-                "Phone number must start with a '+' sign and include the country code.")
+                self.auth_common_text.get('phoneNumberMustStartWithCode',
+                                          "Phone number must start with a '+' sign and include the country code."))
         if not value[1:].isdigit():
             raise serializers.ValidationError(
-                "Phone number must contain only digits after the country code."
+                self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
+                                          "Phone number must contain only digits after the country code.")
             )
         return value
 
@@ -269,28 +273,30 @@ class OTPVerifySerializer(serializers.Serializer):
     # change to choice field; mobile and telephone
     # type = serializers.ChoiceField(choices=['mobile', 'telephone'])
 
+    def __init__(self, *args, **kwargs):
+        self.auth_common_text = kwargs.pop('auth_common_text', {})
+        super().__init__(*args, **kwargs)
+
     def validate_phone_number(self, value):
         if not value.startswith('+'):
             raise serializers.ValidationError(
-                "Phone number must start with a '+'"
-                "sign and include the country code."
+                self.auth_common_text.get('phoneNumberMustStartWithCode',
+                                          "Phone number must start with a '+' sign and include the country code.")
             )
         if not value[1:].isdigit():
             raise serializers.ValidationError(
-                "Phone number must contain only "
-                "digits after the country code."
+                self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
+                                          "Phone number must contain only digits after the country code.")
             )
         return value
 
     def validate_otp_code(self, value):
         if not value.isdigit():
-            raise serializers.ValidationError(
-                'OTP must be a number'
-            )
+            raise serializers.ValidationError(self.auth_common_text.get('otpMustBeNumber', 'OTP must be a number'))
 
         if len(value) < 4:
             raise serializers.ValidationError(
-                'OTP must be 4 characters long'
+                self.auth_common_text.get('otpMustBeLongEnough', 'OTP must be 4 characters or more long')
             )
         return value
 

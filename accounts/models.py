@@ -15,20 +15,26 @@ class UserManager(BaseUserManager):
         """
         Creates and saves a User with the given email and password.
         """
-
-        if not email and not extra_fields.get('mobile'):
+        mobile = extra_fields.get('mobile')
+        if not email and not mobile:
             raise ValueError('Email or phone number is required.')
 
-        user = self.model(email=email, **extra_fields)
+        if email:
+            extra_fields['email'] = self.normalize_email(email)
+        else:
+            # Ensures email isn't passed as an empty string since the model expects None
+            extra_fields['email'] = None
+
+        user = self.model(**extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
 
         if extra_fields.get('is_superuser') is not True:
@@ -142,7 +148,8 @@ class LoginEvent(BaseModel):
         db_table = 'login_events'
 
     def __str__(self) -> str:
-        return f'{self.user.email or self.user.mobile or self.user.telephone}@{self.ip_address} logged in at {self.date_logged_in}'
+        return f'{self.user.email or self.user.mobile or self.user.telephone}@{self.ip_address} \
+            logged in at {self.date_logged_in}'
 
 
 class UserBank(AuditableModel):
@@ -174,4 +181,5 @@ class UserBeneficiaries(AuditableModel):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} is {self.f_name} with account {self.account_number}'
+        return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} \
+            is {self.f_name} with account {self.account_number}'
