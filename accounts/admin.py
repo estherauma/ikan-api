@@ -22,6 +22,7 @@ class CustomUserAdmin(BaseUserAdmin):
     model = User
     list_display = (
         'email',
+        'mobile',
         'first_name',
         'last_name',
         'created_at',
@@ -30,6 +31,10 @@ class CustomUserAdmin(BaseUserAdmin):
         'is_active',
         'is_staff'
     )
+    list_display_links = [
+        "email",
+        "mobile",
+    ]
     fieldsets = (
         (None, {
             'fields': (
@@ -49,7 +54,7 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('email', 'first_name', 'last_name', 'password1', 'password2'),
         }),
     )
-    search_fields = ('email', 'first_name', 'last_name',  'first_name', 'last_name', 'groups__name')
+    search_fields = ('email', 'mobile', 'first_name', 'last_name', 'groups__name')
     ordering = ('email',)
 
     def display_groups(self, obj):
