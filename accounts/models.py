@@ -148,7 +148,8 @@ class LoginEvent(BaseModel):
         db_table = 'login_events'
 
     def __str__(self) -> str:
-        return f'{self.user.email or self.user.mobile or self.user.telephone}@{self.ip_address} logged in at {self.date_logged_in}'
+        return f'{self.user.email or self.user.mobile or self.user.telephone}@{self.ip_address} \
+            logged in at {self.date_logged_in}'
 
 
 class UserBank(AuditableModel):
@@ -180,4 +181,5 @@ class UserBeneficiaries(AuditableModel):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} is {self.f_name} with account {self.account_number}'
+        return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} \
+            is {self.f_name} with account {self.account_number}'
