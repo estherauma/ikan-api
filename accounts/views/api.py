@@ -85,6 +85,9 @@ class LoginView(APIView):
             language = 'en-us'
         request.session['language'] = language
 
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+
         user = None
         if email is not None:
             if User.objects.filter(email=email).exists():
@@ -106,7 +109,7 @@ class LoginView(APIView):
         else:
             return Response({
                 'status': 'FAIL',
-                'message': 'Email or phone number is required'
+                'message': auth_common_text.get('emailOrPhoneNumberRequired', 'Email or phone number is required')
             }, status.HTTP_400_BAD_REQUEST)
 
         if user:
@@ -131,20 +134,19 @@ class LoginView(APIView):
                         LoginEvent.objects.create(
                             user=user, ip_address=request.META['REMOTE_ADDR'])
                     else:
-                        # TODO: Add translation here
-                        raise AuthenticationFailed('Authentication failed, contact admin', 401)
+                        raise AuthenticationFailed(
+                            auth_common_text.get('authFailedContactAdmin', 'Authentication failed, contact admin'), 401)
                 else:
-                    # TODO: Add translation here
-                    raise AuthenticationFailed('Invalid password, please try again', 401)
+                    raise AuthenticationFailed(
+                        auth_common_text.get('invalidPasswordTryAgain', 'Invalid password, please try again'), 401)
             else:
                 if user.is_verified is False:
-                    # TODO: Add translation here
-                    raise AuthenticationFailed('User account is not verified, please verify your account', 401)
-                # TODO: Add translation here
-                raise AuthenticationFailed('User account is not activated, contact admin', 401)
+                    raise AuthenticationFailed(
+                        auth_common_text.get('verifyAccountToContinue', 'Verify your account to continue.'), 401)
+                raise AuthenticationFailed(
+                    auth_common_text.get('accountNotActivated', 'Account is not activated, contact admin'), 401)
         else:
-            # TODO: Add translation here
-            raise AuthenticationFailed('User does not exist', 401)
+            raise AuthenticationFailed(auth_common_text.get('userDoesNotExist', 'User does not exist'), 401)
         return Response({
             'status': 'OK',
             'data': {
@@ -167,18 +169,20 @@ class RegisterView(APIView):
             request(Request): HTTP request
         '''
         data = request.data
-
         language = data.get('language', 'en-us')
         supported_languages = ['en-us', 'id-id', 'qm-zh']
         if language not in supported_languages:
             language = 'en-us'
         request.session['language'] = language
 
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+
         if not data.get('email') and not data.get('phone_number'):
-            # TODO: Add translation here
             return Response({
                 'status': 'FAIL',
-                'message': 'Either email or phone number is required.'
+                'message': auth_common_text.get('emailOrPhoneNumberRequired',
+                                                'Either email or phone number is required.')
             }, status.HTTP_400_BAD_REQUEST)
         if data.get('phone_number'):
             data['mobile'] = data['phone_number']
@@ -200,8 +204,6 @@ class RegisterView(APIView):
             verification_link = f'{config("BASE_URL")}/api/v1/accounts/verify-email/{uid}/{token}'
             # add language query param to verification link
             verification_link += f'?language={language}'
-            prismic_utils = PrismicUtils(request)
-            auth_common_text = prismic_utils.get_page_text('auth-common-text')
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
