@@ -187,7 +187,7 @@ class RegisterView(APIView):
         if data.get('phone_number'):
             data['mobile'] = data['phone_number']
 
-        serializer = self.serializer_class(data=data)
+        serializer = self.serializer_class(data=data, auth_common_text=auth_common_text)
         serializer.is_valid(raise_exception=True)
         user = serializer.save(is_active=False)
 
@@ -361,7 +361,10 @@ class PasswordResetCheckToken(APIView):
                 language = 'en-us'
             request.session['language'] = language
 
-            serializer = PasswordResetCheckTokenSerializer(data=data, context={'request': request})
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            serializer = PasswordResetCheckTokenSerializer(
+                data=data, auth_common_text=auth_common_text, context={'request': request})
             serializer.is_valid(raise_exception=True)
 
             return Response(
@@ -395,7 +398,10 @@ class ResetPassword(APIView):
                 language = 'en-us'
             request.session['language'] = language
 
-            serializer = PasswordResetSerializer(data=data)
+            prismic_utils = PrismicUtils(request)
+            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+
+            serializer = PasswordResetSerializer(data=data, auth_common_text=auth_common_text)
             serializer.is_valid(raise_exception=True)
 
             email = request.data.get('email')
@@ -417,7 +423,7 @@ class ResetPassword(APIView):
                 return Response(
                     {
                         'status': 'ERROR',
-                        'message': 'User does not exist'
+                        'message': auth_common_text.get('userDoesNotExist', 'User does not exist')
                     },
                     status.HTTP_400_BAD_REQUEST
                 )
@@ -427,7 +433,7 @@ class ResetPassword(APIView):
         return Response(
             {
                 'status': 'ERROR',
-                'message': 'Password reset failed.',
+                'message': auth_common_text.get('passwordResetFailure', 'Password reset failed.'),
             },
             status.HTTP_400_BAD_REQUEST
         )
@@ -561,7 +567,7 @@ class InviteUser(APIView):
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
-            serializer = RegisterSerializer(data=data)
+            serializer = RegisterSerializer(data=data, auth_common_text=auth_common_text)
             serializer.is_valid(raise_exception=True)
             user = User.objects.create_user(
                 email=email,
@@ -1049,7 +1055,9 @@ class UserBeneficiariesApiView(APIView):
 
 class GetOTP(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = OTPGenerateSerializer(data=request.data)
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        serializer = OTPGenerateSerializer(data=request.data, auth_common_text=auth_common_text)
 
         if serializer.is_valid():
             resp = serializer.start_otp_process()
@@ -1075,7 +1083,9 @@ class GetOTP(APIView):
 
 class VerifyOTP(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = OTPVerifySerializer(data=request.data)
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        serializer = OTPVerifySerializer(data=request.data, auth_common_text=auth_common_text)
         if serializer.is_valid():
             resp = serializer.verify_otp()
             if resp == 'approved':
@@ -1119,14 +1129,20 @@ class CheckPhoneNumberUniquenessView(APIView):
         Allows the same user to reuse a number for both mobile & telephone.
         Trims whitespace before checking.
         """
+        prismic_utils = PrismicUtils(request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+
         phone_number = request.data.get("phone_number")
         user_id = request.data.get("user_id", None)
 
         if not phone_number:
-            return Response({"detail": "Phone number is required."}, status=400)
+            return Response(
+                {"detail": auth_common_text.get('phoneNumberRequired', 'Phone number is required.')},
+                status=400
+            )
         # commenting out user_id required check to allow for new users
         # if not user_id:
-        #     return Response({"detail": "User ID is required."}, status=400)
+        #     return Response({"detail": auth_common_text.get('userIDRequired', 'User ID is required.')}, status=400)
 
         phone_number = phone_number.strip()
 
