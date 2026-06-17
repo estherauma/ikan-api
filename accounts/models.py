@@ -15,20 +15,26 @@ class UserManager(BaseUserManager):
         """
         Creates and saves a User with the given email and password.
         """
-
-        if not email and not extra_fields.get('mobile'):
+        mobile = extra_fields.get('mobile')
+        if not email and not mobile:
             raise ValueError('Email or phone number is required.')
 
-        user = self.model(email=email, **extra_fields)
+        if email:
+            extra_fields['email'] = self.normalize_email(email)
+        else:
+            # Ensures email isn't passed as an empty string since the model expects None
+            extra_fields['email'] = None
+
+        user = self.model(**extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
 
         if extra_fields.get('is_superuser') is not True:
