@@ -71,7 +71,19 @@
                                                     </div>
                                                 {% endif %}
                                                 
-                                                {{ field }}
+                                                {% if field.name in file_fields %}
+                                                    <!-- File input field -->
+                                                    <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap;">
+                                                        <!-- Hidden real input -->
+                                                        <input type="file" name="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" id="id_form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" class="real-input" hidden />
+                                                        
+                                                        <!-- Custom visible layout -->
+                                                        <button id="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}-file-button" type="button" class="custom-file-button">{{ common_text.chooseFile | default:"Choose File" }}</button>
+                                                        <span id="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}-file-text" class="custom-file-text">{{ common_text.noFileChosen | default:"No file chosen" }}</span>
+                                                    </div>
+                                                {% else %}
+                                                    {{ field }}
+                                                {% endif %}
                                                 
                                                 {% if field.errors %}
                                                     <div class="error-message">
@@ -208,6 +220,17 @@
     #submit-button:disabled {
         cursor: not-allowed;
         opacity: 0.5;
+    }
+
+    .custom-file-button {
+        height: 30px;
+        border-radius: 5px;
+        border-width: 1px;
+        margin: 0 10px;
+        font-size: 1rem;
+    }
+    .custom-file-text {
+        font-size: 1rem;
     }
     </style>
 {% endblock %}
