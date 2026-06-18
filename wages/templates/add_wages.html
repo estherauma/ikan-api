@@ -564,14 +564,13 @@
                                     class="ikan-dark-blue-100"
                                     style="cursor: pointer; text-decoration: underline; font-size: 1rem;"
                                 >
-                                    <!-- TODO:translate -->
-                                    📄 View PDF Document
+                                    📄 {{ payments_common_text.viewPDFDocument | default:"View PDF Document" }}
                                 </div>
                             `;
                         } else {
                             previewWrapper.innerHTML = `
                                 <div class="text-center ikan-dark-blue-100" style="font-size: 1rem;">
-                                    No preview available for this file type.
+                                    {{ payments_common_text.noPreviewForFileType | default:"No preview available for this file type." }}
                                 </div>
                             `;
                         }
