@@ -71,7 +71,19 @@
                                                     </div>
                                                 {% endif %}
                                                 
-                                                {{ field }}
+                                                {% if field.name in file_fields %}
+                                                    <!-- File input field -->
+                                                    <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">
+                                                        <!-- Hidden real input -->
+                                                        <input type="file" accept=".pdf" name="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" id="id_form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" class="real-input" hidden />
+                                                        
+                                                        <!-- Custom visible layout -->
+                                                        <button id="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}-file-button" type="button" class="custom-file-button">{{ common_text.chooseFile | default:"Choose File" }}</button>
+                                                        <span id="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}-file-text" class="custom-file-text">{{ common_text.noFileChosen | default:"No file chosen" }}</span>
+                                                    </div>
+                                                {% else %}
+                                                    {{ field }}
+                                                {% endif %}
                                                 
                                                 {% if field.errors %}
                                                     <div class="error-message">
@@ -111,7 +123,19 @@
                                                     </div>
                                                 {% endif %}
                                                 
-                                                {{ field }}
+                                                {% if field.name in file_fields %}
+                                                    <!-- File input field -->
+                                                    <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">
+                                                        <!-- Hidden real input -->
+                                                        <input type="file" accept=".pdf" name="form-__prefix__-{{ field.name }}" id="id_form-__prefix__-{{ field.name }}" class="real-input" hidden />
+                                                        
+                                                        <!-- Custom visible layout -->
+                                                        <button id="form-__prefix__-{{ field.name }}-file-button" type="button" class="custom-file-button">{{ common_text.chooseFile | default:"Choose File" }}</button>
+                                                        <span id="form-__prefix__-{{ field.name }}-file-text" class="custom-file-text">{{ common_text.noFileChosen | default:"No file chosen" }}</span>
+                                                    </div>
+                                                {% else %}
+                                                    {{ field }}
+                                                {% endif %}
                                                 
                                                 {% if field.errors %}
                                                     <div class="error-message">
@@ -208,6 +232,17 @@
     #submit-button:disabled {
         cursor: not-allowed;
         opacity: 0.5;
+    }
+
+    .custom-file-button {
+        height: 30px;
+        border-radius: 5px;
+        border-width: 1px;
+        margin: 0 10px;
+        font-size: 1rem;
+    }
+    .custom-file-text {
+        font-size: 1rem;
     }
     </style>
 {% endblock %}
@@ -326,8 +361,8 @@
                     const beneficiaryBankTransferReceipt = form.querySelector(`#id_form-${index}-beneficiary_bank_transfer_receipt`);
                     const beneficiaryRelationship = form.querySelector(`#id_form-${index}-beneficiary_relationship`);
                     const beneficiaryName = form.querySelector(`#id_form-${index}-beneficiary_name`);
-                    const beneficiaryContact = form.querySelector(`#id_form-${index}-beneficiary_contact`);
-                    const beneficiaryContactPlatform = form.querySelector(`#id_form-${index}-beneficiary_contact_platform`);
+                    // const beneficiaryContact = form.querySelector(`#id_form-${index}-beneficiary_contact`);  // Field is disabled for now
+                    // const beneficiaryContactPlatform = form.querySelector(`#id_form-${index}-beneficiary_contact_platform`);  // Field is disabled for now
 
                     // const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
                     //     .some(input => input.value.trim() !== "");
@@ -382,8 +417,8 @@
                         beneficiaryBankTransferReceipt.value = "";
                         beneficiaryRelationship.value = "";
                         beneficiaryName.value = "";
-                        beneficiaryContact.value = "";
-                        beneficiaryContactPlatform.value = "";
+                        // beneficiaryContact.value = "";  // Field is disabled for now
+                        // beneficiaryContactPlatform.value = "";  // Field is disabled for now
                         // paymentDate.value = "";
                         // startDate.value = "";
                         // endDate.value = "";
@@ -429,16 +464,59 @@
                             }
                         });
                     });
-                
+
+                    const customPayslipBtn = form.querySelector(`#form-${index}-payslip-file-button`);
+                    const customPayslipTxt = form.querySelector(`#form-${index}-payslip-file-text`);
+                    const realPayslipInput = form.querySelector(`#id_form-${index}-payslip`);
+                    customPayslipBtn.addEventListener("click", function() {
+                        realPayslipInput.click();
+                    });
+                    realPayslipInput.addEventListener("change", function() {
+                        if (realPayslipInput.value) {
+                            customPayslipTxt.innerHTML = realPayslipInput.files[0].name;
+                        } else {
+                            customPayslipTxt.innerHTML = "{{ common_text.noFileChosen | default:'No file chosen' }}";
+                        }
+                    });
+
+                    const customCrewBankTransferBtn = form.querySelector(`#form-${index}-crew_bank_transfer_receipt-file-button`);
+                    const customCrewBankTransferTxt = form.querySelector(`#form-${index}-crew_bank_transfer_receipt-file-text`);
+                    const realCrewBankTransferInput = form.querySelector(`#id_form-${index}-crew_bank_transfer_receipt`);
+                    customCrewBankTransferBtn.addEventListener("click", function() {
+                        realCrewBankTransferInput.click();
+                    });
+                    realCrewBankTransferInput.addEventListener("change", function() {
+                        if (realCrewBankTransferInput.value) {
+                            customCrewBankTransferTxt.innerHTML = realCrewBankTransferInput.files[0].name;
+                        } else {
+                            customCrewBankTransferTxt.innerHTML = "{{ common_text.noFileChosen | default:'No file chosen' }}";
+                        }
+                    });
+
+                    const customBeneficiaryBankTransferBtn = form.querySelector(`#form-${index}-beneficiary_bank_transfer_receipt-file-button`);
+                    const customBeneficiaryBankTransferTxt = form.querySelector(`#form-${index}-beneficiary_bank_transfer_receipt-file-text`);
+                    const realBeneficiaryBankTransferInput = form.querySelector(`#id_form-${index}-beneficiary_bank_transfer_receipt`);
+                    customBeneficiaryBankTransferBtn.addEventListener("click", function() {
+                        realBeneficiaryBankTransferInput.click();
+                    });
+                    realBeneficiaryBankTransferInput.addEventListener("change", function() {
+                        if (realBeneficiaryBankTransferInput.value) {
+                            customBeneficiaryBankTransferTxt.innerHTML = realBeneficiaryBankTransferInput.files[0].name;
+                        } else {
+                            customBeneficiaryBankTransferTxt.innerHTML = "{{ common_text.noFileChosen | default:'No file chosen' }}";
+                        }
+                    });
+
                     beneficiaryRelationship?.addEventListener("change", () => {
                         if (beneficiaryRelationship.value && beneficiaryRelationship.value !== "self") {
                             beneficiaryName.required = true;
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-flex");
 
-                            beneficiaryContact.required = true;
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                            // Field is disabled for now
+                            // beneficiaryContact.required = true;
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
 
                             // TODO: prepopulate fields here
                         } else {
@@ -447,10 +525,11 @@
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
                             beneficiaryName.value = "";
 
-                            beneficiaryContact.required = false;
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
-                            beneficiaryContact.value = "";
+                            // Field is disabled for now
+                            // beneficiaryContact.required = false;
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+                            // beneficiaryContact.value = "";
                         }
                     });
 
@@ -485,14 +564,13 @@
                                     class="ikan-dark-blue-100"
                                     style="cursor: pointer; text-decoration: underline; font-size: 1rem;"
                                 >
-                                    <!-- TODO:translate -->
-                                    📄 View PDF Document
+                                    📄 {{ payments_common_text.viewPDFDocument | default:"View PDF Document" }}
                                 </div>
                             `;
                         } else {
                             previewWrapper.innerHTML = `
                                 <div class="text-center ikan-dark-blue-100" style="font-size: 1rem;">
-                                    No preview available for this file type.
+                                    {{ payments_common_text.noPreviewForFileType | default:"No preview available for this file type." }}
                                 </div>
                             `;
                         }
