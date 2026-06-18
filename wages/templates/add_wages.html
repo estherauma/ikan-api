@@ -452,7 +452,49 @@
                             }
                         });
                     });
-                
+
+                    const customPayslipBtn = form.querySelector(`#form-${index}-payslip-file-button`);
+                    const customPayslipTxt = form.querySelector(`#form-${index}-payslip-file-text`);
+                    const realPayslipInput = form.querySelector(`#id_form-${index}-payslip`);
+                    customPayslipBtn.addEventListener("click", function() {
+                        realPayslipInput.click();
+                    });
+                    realPayslipInput.addEventListener("change", function() {
+                        if (realPayslipInput.value) {
+                            customPayslipTxt.innerHTML = realPayslipInput.files[0].name;
+                        } else {
+                            customPayslipTxt.innerHTML = "{{ common_text.noFileChosen | default:'No file chosen' }}";
+                        }
+                    });
+
+                    const customCrewBankTransferBtn = form.querySelector(`#form-${index}-crew_bank_transfer_receipt-file-button`);
+                    const customCrewBankTransferTxt = form.querySelector(`#form-${index}-crew_bank_transfer_receipt-file-text`);
+                    const realCrewBankTransferInput = form.querySelector(`#id_form-${index}-crew_bank_transfer_receipt`);
+                    customCrewBankTransferBtn.addEventListener("click", function() {
+                        realCrewBankTransferInput.click();
+                    });
+                    realCrewBankTransferInput.addEventListener("change", function() {
+                        if (realCrewBankTransferInput.value) {
+                            customCrewBankTransferTxt.innerHTML = realCrewBankTransferInput.files[0].name;
+                        } else {
+                            customCrewBankTransferTxt.innerHTML = "{{ common_text.noFileChosen | default:'No file chosen' }}";
+                        }
+                    });
+
+                    const customBeneficiaryBankTransferBtn = form.querySelector(`#form-${index}-beneficiary_bank_transfer_receipt-file-button`);
+                    const customBeneficiaryBankTransferTxt = form.querySelector(`#form-${index}-beneficiary_bank_transfer_receipt-file-text`);
+                    const realBeneficiaryBankTransferInput = form.querySelector(`#id_form-${index}-beneficiary_bank_transfer_receipt`);
+                    customBeneficiaryBankTransferBtn.addEventListener("click", function() {
+                        realBeneficiaryBankTransferInput.click();
+                    });
+                    realBeneficiaryBankTransferInput.addEventListener("change", function() {
+                        if (realBeneficiaryBankTransferInput.value) {
+                            customBeneficiaryBankTransferTxt.innerHTML = realBeneficiaryBankTransferInput.files[0].name;
+                        } else {
+                            customBeneficiaryBankTransferTxt.innerHTML = "{{ common_text.noFileChosen | default:'No file chosen' }}";
+                        }
+                    });
+
                     beneficiaryRelationship?.addEventListener("change", () => {
                         if (beneficiaryRelationship.value && beneficiaryRelationship.value !== "self") {
                             beneficiaryName.required = true;
