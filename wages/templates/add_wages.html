@@ -73,7 +73,7 @@
                                                 
                                                 {% if field.name in file_fields %}
                                                     <!-- File input field -->
-                                                    <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap;">
+                                                    <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">
                                                         <!-- Hidden real input -->
                                                         <input type="file" name="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" id="id_form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" class="real-input" hidden />
                                                         
