@@ -361,8 +361,8 @@
                     const beneficiaryBankTransferReceipt = form.querySelector(`#id_form-${index}-beneficiary_bank_transfer_receipt`);
                     const beneficiaryRelationship = form.querySelector(`#id_form-${index}-beneficiary_relationship`);
                     const beneficiaryName = form.querySelector(`#id_form-${index}-beneficiary_name`);
-                    const beneficiaryContact = form.querySelector(`#id_form-${index}-beneficiary_contact`);
-                    const beneficiaryContactPlatform = form.querySelector(`#id_form-${index}-beneficiary_contact_platform`);
+                    // const beneficiaryContact = form.querySelector(`#id_form-${index}-beneficiary_contact`);  // Field is disabled for now
+                    // const beneficiaryContactPlatform = form.querySelector(`#id_form-${index}-beneficiary_contact_platform`);  // Field is disabled for now
 
                     // const formHasValue = Array.from(form.querySelectorAll("input, select, textarea"))
                     //     .some(input => input.value.trim() !== "");
@@ -417,8 +417,8 @@
                         beneficiaryBankTransferReceipt.value = "";
                         beneficiaryRelationship.value = "";
                         beneficiaryName.value = "";
-                        beneficiaryContact.value = "";
-                        beneficiaryContactPlatform.value = "";
+                        // beneficiaryContact.value = "";  // Field is disabled for now
+                        // beneficiaryContactPlatform.value = "";  // Field is disabled for now
                         // paymentDate.value = "";
                         // startDate.value = "";
                         // endDate.value = "";
@@ -513,9 +513,10 @@
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.remove("d-none");
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-flex");
 
-                            beneficiaryContact.required = true;
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
+                            // Field is disabled for now
+                            // beneficiaryContact.required = true;
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-none");
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-flex");
 
                             // TODO: prepopulate fields here
                         } else {
@@ -524,10 +525,11 @@
                             beneficiaryName.closest('.field').querySelector('.indicator').classList.add("d-none");
                             beneficiaryName.value = "";
 
-                            beneficiaryContact.required = false;
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
-                            beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
-                            beneficiaryContact.value = "";
+                            // Field is disabled for now
+                            // beneficiaryContact.required = false;
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.remove("d-flex");
+                            // beneficiaryContact.closest('.field').querySelector('.indicator').classList.add("d-none");
+                            // beneficiaryContact.value = "";
                         }
                     });
 
