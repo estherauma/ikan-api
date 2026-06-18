@@ -123,7 +123,19 @@
                                                     </div>
                                                 {% endif %}
                                                 
-                                                {{ field }}
+                                                {% if field.name in file_fields %}
+                                                    <!-- File input field -->
+                                                    <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">
+                                                        <!-- Hidden real input -->
+                                                        <input type="file" name="form-__prefix__-{{ field.name }}" id="id_form-__prefix__-{{ field.name }}" class="real-input" hidden />
+                                                        
+                                                        <!-- Custom visible layout -->
+                                                        <button id="form-__prefix__-{{ field.name }}-file-button" type="button" class="custom-file-button">{{ common_text.chooseFile | default:"Choose File" }}</button>
+                                                        <span id="form-__prefix__-{{ field.name }}-file-text" class="custom-file-text">{{ common_text.noFileChosen | default:"No file chosen" }}</span>
+                                                    </div>
+                                                {% else %}
+                                                    {{ field }}
+                                                {% endif %}
                                                 
                                                 {% if field.errors %}
                                                     <div class="error-message">
