@@ -75,7 +75,7 @@
                                                     <!-- File input field -->
                                                     <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">
                                                         <!-- Hidden real input -->
-                                                        <input type="file" name="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" id="id_form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" class="real-input" hidden />
+                                                        <input type="file" accept=".pdf" name="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" id="id_form-{{ forloop.parentloop.counter0 }}-{{ field.name }}" class="real-input" hidden />
                                                         
                                                         <!-- Custom visible layout -->
                                                         <button id="form-{{ forloop.parentloop.counter0 }}-{{ field.name }}-file-button" type="button" class="custom-file-button">{{ common_text.chooseFile | default:"Choose File" }}</button>
@@ -127,7 +127,7 @@
                                                     <!-- File input field -->
                                                     <div class="file-input-wrapper" style="min-width: 100px; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">
                                                         <!-- Hidden real input -->
-                                                        <input type="file" name="form-__prefix__-{{ field.name }}" id="id_form-__prefix__-{{ field.name }}" class="real-input" hidden />
+                                                        <input type="file" accept=".pdf" name="form-__prefix__-{{ field.name }}" id="id_form-__prefix__-{{ field.name }}" class="real-input" hidden />
                                                         
                                                         <!-- Custom visible layout -->
                                                         <button id="form-__prefix__-{{ field.name }}-file-button" type="button" class="custom-file-button">{{ common_text.chooseFile | default:"Choose File" }}</button>
