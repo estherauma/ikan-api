@@ -47,6 +47,23 @@
         <script src="/static/themes/v1/assets/js/pages/authentication.init.js"></script>
 
     </body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.querySelector('button[type="submit"]');
+            const formEl = document.querySelector('form');
+            formEl.addEventListener('submit', function() {
+                // Disable the submit button to prevent multiple submissions
+                submitButton.disabled = true;
+                submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
+            });
+            if (formEl.errors || formEl.querySelectorAll('.errorlist').length > 0 || formEl.querySelectorAll('.is-invalid').length > 0) {
+                submitButton.disabled = false;
+                submitButton.innerText = "{{ common_text.submit | default:'Submit' }}";
+            }
+        });
+    </script>
+    
     <style>
         .ikan-primary-color {
             color: #3565ff;
