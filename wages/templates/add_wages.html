@@ -590,17 +590,6 @@
             };
         
             validateFormFields();
-
-            const formEl = document.querySelector('form');
-            formEl.addEventListener('submit', function() {
-                // Disable the submit button to prevent multiple submissions
-                submitButton.disabled = true;
-                submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
-            });
-            if (formEl.errors) {
-                submitButton.disabled = false;
-                submitButton.innerText = "{{ common_text.submit | default:'Submit' }}";
-            }
         });
     </script>
 {% endblock %}
