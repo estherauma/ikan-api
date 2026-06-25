@@ -117,6 +117,26 @@
                     select.parentNode.style.position = 'relative';
                     select.parentNode.appendChild(icon);
                 });
+
+                // disable submit button when form is submitted
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+                    const submitButtonText = submitButton ? submitButton.innerText : '';
+                    form.addEventListener('submit', function () {
+                        if (submitButton) {
+                            // Disable the submit button to prevent multiple submissions
+                            submitButton.disabled = true;
+                            submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
+                        }
+                    });
+                    if (form.errors || form.querySelectorAll('.errorlist').length > 0 || form.querySelectorAll('.is-invalid').length > 0) {
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                            submitButton.innerText = submitButtonText || "{{ common_text.submit | default:'Submit' }}";
+                        }
+                    }
+                });
             });
         </script>
 
