@@ -235,7 +235,7 @@ class UserBeneficiarySerializer(serializers.ModelSerializer):
 
 class OTPGenerateSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=15, required=True)
-    user_id = serializers.CharField(max_length=36)
+    user_id = serializers.CharField(max_length=36, required=False)
     locale = serializers.CharField(max_length=5, default='en')
 
     def __init__(self, *args, **kwargs):
@@ -254,6 +254,26 @@ class OTPGenerateSerializer(serializers.Serializer):
             )
         return value
 
+    def validate_user_id(self, value):
+        if value:
+            try:
+                User.objects.get(pk=value)
+            except User.DoesNotExist:
+                raise serializers.ValidationError(
+                    self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
+                )
+        elif not value and self.validated_data.get('phone_number'):
+            phone_number = self.validated_data.get('phone_number')
+            if phone_number:
+                try:
+                    user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
+                    self.validated_data['user_id'] = user.id
+                except User.DoesNotExist:
+                    raise serializers.ValidationError(
+                        self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
+                    )
+        return value
+
     def start_otp_process(self):
         try:
             phone_number = self.validated_data['phone_number']
@@ -268,8 +288,8 @@ class OTPGenerateSerializer(serializers.Serializer):
 class OTPVerifySerializer(serializers.Serializer):
     otp_code = serializers.CharField(max_length=15, required=True)
     phone_number = serializers.CharField(max_length=15, required=True)
-    user_id = serializers.CharField(max_length=36)
-    type = serializers.CharField(max_length=20)
+    user_id = serializers.CharField(max_length=36, required=False)
+    type = serializers.CharField(max_length=20, default='mobile')
     # change to choice field; mobile and telephone
     # type = serializers.ChoiceField(choices=['mobile', 'telephone'])
 
@@ -288,6 +308,26 @@ class OTPVerifySerializer(serializers.Serializer):
                 self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
                                           "Phone number must contain only digits after the country code.")
             )
+        return value
+
+    def validate_user_id(self, value):
+        if value:
+            try:
+                User.objects.get(pk=value)
+            except User.DoesNotExist:
+                raise serializers.ValidationError(
+                    self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
+                )
+        elif not value and self.validated_data.get('phone_number'):
+            phone_number = self.validated_data.get('phone_number')
+            if phone_number:
+                try:
+                    user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
+                    self.validated_data['user_id'] = user.id
+                except User.DoesNotExist:
+                    raise serializers.ValidationError(
+                        self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
+                    )
         return value
 
     def validate_otp_code(self, value):
