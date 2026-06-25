@@ -254,26 +254,6 @@ class OTPGenerateSerializer(serializers.Serializer):
             )
         return value
 
-    def validate_user_id(self, value):
-        if value:
-            try:
-                User.objects.get(pk=value)
-            except User.DoesNotExist:
-                raise serializers.ValidationError(
-                    self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
-                )
-        elif not value and self.validated_data.get('phone_number'):
-            phone_number = self.validated_data.get('phone_number')
-            if phone_number:
-                try:
-                    user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
-                    self.validated_data['user_id'] = user.id
-                except User.DoesNotExist:
-                    raise serializers.ValidationError(
-                        self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
-                    )
-        return value
-
     def start_otp_process(self):
         try:
             phone_number = self.validated_data['phone_number']
@@ -308,26 +288,6 @@ class OTPVerifySerializer(serializers.Serializer):
                 self.auth_common_text.get('phoneNumberMustContainOnlyDigits',
                                           "Phone number must contain only digits after the country code.")
             )
-        return value
-
-    def validate_user_id(self, value):
-        if value:
-            try:
-                User.objects.get(pk=value)
-            except User.DoesNotExist:
-                raise serializers.ValidationError(
-                    self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
-                )
-        elif not value and self.validated_data.get('phone_number'):
-            phone_number = self.validated_data.get('phone_number')
-            if phone_number:
-                try:
-                    user = User.objects.get(Q(mobile=phone_number) | Q(telephone=phone_number))
-                    self.validated_data['user_id'] = user.id
-                except User.DoesNotExist:
-                    raise serializers.ValidationError(
-                        self.auth_common_text.get('userDoesNotExist', 'User does not exist.')
-                    )
         return value
 
     def validate_otp_code(self, value):

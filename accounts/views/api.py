@@ -1060,11 +1060,23 @@ class GetOTP(APIView):
         serializer = OTPGenerateSerializer(data=request.data, auth_common_text=auth_common_text)
 
         if serializer.is_valid():
+            user_id = serializer.validated_data.get('user_id', None)
+            try:
+                if user_id:
+                    user = User.objects.get(id=user_id)
+                else:
+                    number = serializer.validated_data['phone_number']
+                    user = User.objects.get(Q(mobile=number) | Q(telephone=number))
+            except User.DoesNotExist:
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('userDoesNotExist', 'User does not exist.'),
+                    "errorKey": "userDoesNotExist"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
             resp = serializer.start_otp_process()
             if resp == 'pending':
                 num_type = request.data.get('type', None)
-                user = User.objects.get(
-                    id=serializer.validated_data['user_id'])
                 if num_type is None or num_type == 'mobile':
                     user.mobile = serializer.validated_data['phone_number']
                 elif num_type == 'telephone':
@@ -1087,11 +1099,23 @@ class VerifyOTP(APIView):
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         serializer = OTPVerifySerializer(data=request.data, auth_common_text=auth_common_text)
         if serializer.is_valid():
+            user_id = serializer.validated_data.get('user_id', None)
+            try:
+                if user_id:
+                    user = User.objects.get(id=user_id)
+                else:
+                    number = serializer.validated_data['phone_number']
+                    user = User.objects.get(Q(mobile=number) | Q(telephone=number))
+            except User.DoesNotExist:
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('userDoesNotExist', 'User does not exist.'),
+                    "errorKey": "userDoesNotExist"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
             resp = serializer.verify_otp()
             if resp == 'approved':
                 num_type = serializer.validated_data['type']
-                user = User.objects.get(
-                    id=serializer.validated_data['user_id'])
 
                 if num_type == "mobile" or num_type is None:
                     user.is_mobile_verified = True
