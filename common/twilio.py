@@ -1,4 +1,5 @@
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 from decouple import config
 from django.contrib import messages
 
@@ -17,10 +18,48 @@ class OTPVerification:
         return verification.status
 
     def check_otp(self, otp_code, phone_number):
-        verification_check = self.client.verify.v2.services(self.verify_service_sid) \
-            .verification_checks \
-            .create(to=phone_number, code=otp_code)
-        return verification_check.status
+        try:
+            verification_check = self.client.verify.v2.services(self.verify_service_sid) \
+                .verification_checks \
+                .create(to=phone_number, code=otp_code)
+            if verification_check.status == "approved":
+                return {
+                    "success": True,
+                    "status": "approved",
+                    "message": "Verification successful."
+                }
+            else:
+                return {
+                    "success": False,
+                    "status": "pending",
+                    "message": "Invalid OTP code provided."
+                }
+        except TwilioRestException as e:
+            if e.status == 404:
+                return {
+                    "success": False,
+                    "status": "expired_or_max_attempts",
+                    "message": "The verification session has expired, was already approved, \
+                        or max retry attempts were reached.",
+                }
+            elif e.status == 429 or e.code == 60202:
+                return {
+                    "success": False,
+                    "status": "blocked",
+                    "message": "This number has been temporarily blocked due to too many attempts."
+                }
+            else:
+                return {
+                    "success": False,
+                    "status": "twilio_api_error",
+                    "message": f"Twilio API Error ({e.code}): {e.msg}"
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "status": "server_error",
+                "message": f"An unexpected system error occurred: {str(e)}"
+            }
 
     def send_sms(self, phone_number, message):
         # TODO: set up a dedicated phone number for sending SMS and use it here
@@ -46,7 +85,7 @@ def check_verification_code(request, phone_number, otp_code, auth_common_text=No
     try:
         otp_service = OTPVerification()
         verification_result = otp_service.check_otp(otp_code, phone_number)
-        return verification_result == 'approved'
+        return verification_result.get('status') == 'approved'
     except Exception:
         messages.error(request, auth_common_text.get('errorVerifyingCode', 'Error verifying code.'))
         return False
