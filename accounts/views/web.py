@@ -507,26 +507,26 @@ class VerifyPhoneNumber(View):
                 # here; other statuses
                 elif verification_status == 'pending':
                     messages.error(request, auth_common_text.get('otpVerificationPending',
-                                                                 'OTP verification is still pending. \
-                                                                    Please check the code and try again.'))
+                                                                 'OTP verification is still pending. '
+                                                                 'Please check the code and try again.'))
                 elif verification_status == 'expired_or_max_attempts':
                     messages.error(request, auth_common_text.get('otpCodeExpiredApprovedOrMaxAttempts',
-                                                                 'OTP verification code has expired, \
-                                                                    was already approved, OR max attempts reached. \
-                                                                        Please request a new code and try again.'))
+                                                                 'OTP verification code has expired, '
+                                                                 'was already approved, OR max attempts reached. '
+                                                                 'Please request a new code and try again.'))
                 elif verification_status == 'blocked':
                     messages.error(request, auth_common_text.get('otpVerificationBlocked',
-                                                                 'OTP verification has been blocked due to \
-                                                                    too many attempts. Please request a new code \
-                                                                        and try again.'))
+                                                                 'OTP verification has been blocked due to '
+                                                                 'too many attempts. '
+                                                                 'Please request a new code and try again.'))
                 elif verification_status == 'twilio_api_error':
                     messages.error(request, auth_common_text.get('otpVerificationTwilioAPIError',
-                                                                 'OTP verification failed due to a Twilio API error. \
-                                                                    Please try again later.'))
+                                                                 'OTP verification failed due to a Twilio API error. '
+                                                                 'Please try again later.'))
                 elif verification_status == 'server_error':
                     messages.error(request, auth_common_text.get('otpVerificationServerError',
-                                                                 'OTP verification failed due to a server error. \
-                                                                    Please try again later.'))
+                                                                 'OTP verification failed due to a server error. '
+                                                                 'Please try again later.'))
                 else:
                     messages.error(request, auth_common_text.get('phoneNumberVerifyFailure',
                                                                  'Phone number verification failed. Please try again.'))

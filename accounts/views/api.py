@@ -1137,40 +1137,40 @@ class VerifyOTP(APIView):
                 return Response({
                     "status": 'error',
                     "error": auth_common_text.get('otpVerificationPending',
-                                                  'OTP verification is still pending. \
-                                                  Please check the code and try again.'),
+                                                  'OTP verification is still pending. '
+                                                  'Please check the code and try again.'),
                     "errorKey": "otpVerificationPending"
                     }, status=status.HTTP_400_BAD_REQUEST)
             elif result.get('status') == 'expired_or_max_attempts':
                 return Response({
                     "status": 'error',
                     "error": auth_common_text.get('otpCodeExpiredApprovedOrMaxAttempts',
-                                                  'OTP verification code has expired, was already approved, \
-                                                    OR max attempts reached. Please request a new code and try again.'),
+                                                  'OTP verification code has expired, was already approved,'
+                                                  ' OR max attempts reached. Please request a new code and try again.'),
                     "errorKey": "otpCodeExpiredApprovedOrMaxAttempts"
                     }, status=status.HTTP_400_BAD_REQUEST)
             elif result.get('status') == 'blocked':
                 return Response({
                     "status": 'error',
                     "error": auth_common_text.get('otpVerificationBlocked',
-                                                  'OTP verification has been blocked due to too many attempts. \
-                                                  Please request a new code and try again.'),
+                                                  'OTP verification has been blocked due to too many attempts. '
+                                                  'Please request a new code and try again.'),
                     "errorKey": "otpVerificationBlocked"
                     }, status=status.HTTP_400_BAD_REQUEST)
             elif result.get('status') == 'twilio_api_error':
                 return Response({
                     "status": 'error',
                     "error": auth_common_text.get('otpVerificationTwilioAPIError',
-                                                  'OTP verification failed due to a Twilio API error. \
-                                                  Please try again later.'),
+                                                  'OTP verification failed due to a Twilio API error. '
+                                                  'Please try again later.'),
                     "errorKey": "otpVerificationTwilioAPIError"
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             elif result.get('status') == 'server_error':
                 return Response({
                     "status": 'error',
                     "error": auth_common_text.get('otpVerificationServerError',
-                                                  'OTP verification failed due to a server error. \
-                                                  Please try again later.'),
+                                                  'OTP verification failed due to a server error. '
+                                                  'Please try again later.'),
                     "errorKey": "otpVerificationServerError"
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
