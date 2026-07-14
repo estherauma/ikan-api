@@ -215,7 +215,13 @@ class WorkersListView(LoginRequiredMixin, ListView):
                 try:
                     otp_service = OTPVerification()
                     locale = get_locale_from_request(request)
-                    otp_service.send_otp(user.mobile, locale=locale)
+                    send_result = otp_service.send_otp(user.mobile, locale=locale)
+                    if not send_result.get('success'):
+                        if auth_common_text.get(send_result.get('errorKey')) is not None:
+                            messages.error(request, auth_common_text.get(send_result.get('errorKey')))
+                        else:
+                            messages.error(request, auth_common_text.get('unableToGenerateOTP',
+                                                                         'Unable to generate OTP code.'))
                 except Exception:
                     messages.error(request, auth_common_text.get('otpCodeSendError',
                                                                  'An error occurred while sending OTP code.'))
@@ -453,7 +459,13 @@ class RegisterWebView(View):
             try:
                 otp_service = OTPVerification()
                 locale = get_locale_from_request(request)
-                otp_service.send_otp(user.mobile, locale=locale)
+                send_result = otp_service.send_otp(user.mobile, locale=locale)
+                if not send_result.get('success'):
+                    if auth_common_text.get(send_result.get('errorKey')) is not None:
+                        messages.error(request, auth_common_text.get(send_result.get('errorKey')))
+                    else:
+                        messages.error(request, auth_common_text.get('unableToGenerateOTP',
+                                                                     'Unable to generate OTP code.'))
             except Exception:
                 messages.error(request, auth_common_text.get('otpCodeSendError',
                                                              'An error occurred while sending OTP code.'))
@@ -474,7 +486,13 @@ class VerifyPhoneNumber(View):
                 user = User.objects.get(id=user_id_from_login)
                 otp_service = OTPVerification()
                 locale = get_locale_from_request(request)
-                otp_service.send_otp(user.mobile, locale=locale)
+                send_result = otp_service.send_otp(user.mobile, locale=locale)
+                if not send_result.get('success'):
+                    if auth_common_text.get(send_result.get('errorKey')) is not None:
+                        messages.error(request, auth_common_text.get(send_result.get('errorKey')))
+                    else:
+                        messages.error(request, auth_common_text.get('unableToGenerateOTP',
+                                                                     'Unable to generate OTP code.'))
                 request.session['user_id'] = user.id
             except Exception:
                 messages.error(request, auth_common_text.get('otpCodeSendError',
@@ -559,8 +577,15 @@ def resend_otp(request):
         user = User.objects.get(id=user_id)
         otp_service = OTPVerification()
         locale = get_locale_from_request(request)
-        otp_service.send_otp(user.mobile, locale=locale)
-        messages.success(request, auth_common_text.get('otpCodeResentSuccessfully', 'OTP code resent successfully.'))
+        send_result = otp_service.send_otp(user.mobile, locale=locale)
+        if send_result.get('success'):
+            messages.success(request, auth_common_text.get('otpCodeResentSuccessfully',
+                                                           'OTP code resent successfully.'))
+        else:
+            if auth_common_text.get(send_result.get('errorKey')) is not None:
+                messages.error(request, auth_common_text.get(send_result.get('errorKey')))
+            else:
+                messages.error(request, auth_common_text.get('unableToResendOTP', 'Unable to resend OTP code.'))
     else:
         messages.error(request, auth_common_text.get('unableToResendOTP', 'Unable to resend OTP code.'))
     return redirect('accounts:verify-phone-number')

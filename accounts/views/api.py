@@ -102,8 +102,7 @@ class LoginView(APIView):
                 # check if the phone number is verified
                 if (user.telephone == phone_number and not user.is_telephone_verified) or\
                         (user.mobile == phone_number and not user.is_mobile_verified):
-                    # TODO: Add translation here
-                    # TODO: don't translate, exact message is needed for client side to trigger resend otp flow
+                    # TODO: DO NOT TRANSLATE, exact message is needed for client side to trigger resend otp flow
                     raise AuthenticationFailed(
                         "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
         else:
@@ -216,14 +215,15 @@ class RegisterView(APIView):
                 template=EmailTemplate.VERIFY_EMAIL.value,
                 auth_common_text=auth_common_text,
             )
-        if data.get('phone_number'):
-            # Send verification otp code to phone number
-            try:
-                otp_service = OTPVerification()
-                locale = get_locale_from_request(request)
-                otp_service.send_otp(user.mobile, locale=locale)
-            except Exception:
-                pass
+        # Code block commented out as the otp code generation is triggered from the frontend after account creation.
+        # if data.get('phone_number'):
+        #     # Send verification otp code to phone number
+        #     try:
+        #         otp_service = OTPVerification()
+        #         locale = get_locale_from_request(request)
+        #         otp_service.send_otp(user.mobile, locale=locale)
+        #     except Exception:
+        #         pass
 
         return Response(
             {
@@ -296,7 +296,8 @@ class RequestPasswordReset(APIView):
                 'message': 'Email or phone number is required',
             }, status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
+        user_queryset = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number))
+        user = user_queryset.first()
         if user and email:
             password_reset_token = random.randrange(111111, 999999)
             user.reset_password_token = password_reset_token
@@ -407,7 +408,8 @@ class ResetPassword(APIView):
             email = request.data.get('email')
             phone_number = request.data.get('phone_number')
             password = request.data.get('password')
-            user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
+            user_queryset = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number))
+            user = user_queryset.first()
             if user:
                 user.set_password(password)
                 user.reset_password_token = None
@@ -563,7 +565,8 @@ class InviteUser(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        user_exists = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).exists()
+        user_queryset = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile))
+        user_exists = user_queryset.exists()
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
@@ -584,7 +587,7 @@ class InviteUser(APIView):
 
             return send_email_invite(user, auth_common_text=auth_common_text)
         else:
-            user = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).first()
+            user = user_queryset.first()
 
             if user.email is not None and not user.is_verified and not user.is_active:
                 return send_email_invite(user, auth_common_text=auth_common_text)
@@ -1075,19 +1078,75 @@ class GetOTP(APIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
 
             resp = serializer.start_otp_process()
-            if resp == 'pending':
+            if resp.get('status') == 'pending':
                 num_type = request.data.get('type', None)
                 if num_type is None or num_type == 'mobile':
                     user.mobile = serializer.validated_data['phone_number']
                 elif num_type == 'telephone':
                     user.telephone = serializer.validated_data['phone_number']
                 user.save()
-                return Response({"status": resp}, status=status.HTTP_200_OK)
+                return Response({"status": resp.get('status')}, status=status.HTTP_200_OK)
+            elif resp.get('status') == 'invalid_number':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationInvalidNumber',
+                                                  'Invalid phone number provided. '
+                                                  'Please check the number and try again.'),
+                    "errorKey": "otpCodeGenerationInvalidNumber"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif resp.get('status') == 'invalid_country_code':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationInvalidCountryCode',
+                                                  'The provided phone number has an invalid country code.'),
+                    "errorKey": "otpCodeGenerationInvalidCountryCode"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif resp.get('status') == 'too_many_requests':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationTooManyRequests',
+                                                  'Too many OTP requests have been made for this number. '
+                                                  'Please wait and try again later.'),
+                    "errorKey": "otpCodeGenerationTooManyRequests"
+                }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+            elif resp.get('status') == 'sms_not_supported':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationSMSNotSupported',
+                                                  'The provided phone number does not support receiving SMS messages.'),
+                    "errorKey": "otpCodeGenerationSMSNotSupported"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif resp.get('status') == 'blocked':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationBlocked',
+                                                  'OTP code generation has been blocked due to too many attempts. '
+                                                  'Please request a new code and try again.'),
+                    "errorKey": "otpCodeGenerationBlocked"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif resp.get('status') == 'twilio_api_error':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationTwilioAPIError',
+                                                  'OTP code generation failed due to a Twilio API error. '
+                                                  'Please try again later.'),
+                    "errorKey": "otpCodeGenerationTwilioAPIError"
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            elif resp.get('status') == 'server_error':
+                return Response({
+                    "status": 'error',
+                    "error": auth_common_text.get('otpCodeGenerationServerError',
+                                                  'OTP code generation failed due to a server error. '
+                                                  'Please try again later.'),
+                    "errorKey": "otpCodeGenerationServerError"
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 return Response({
                     "status": 'error',
-                    "error": resp.get('error')
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                    "error": auth_common_text.get('otpCodeGenerationFailed',
+                                                  'OTP code generation failed. Please try again.'),
+                    "errorKey": "otpCodeGenerationFailed"
+                }, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
