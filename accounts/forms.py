@@ -233,8 +233,9 @@ class PasswordResetForm(forms.Form):
         self.cleaned_data['has_phone_number'] = validation_result['is_phone']
         self.cleaned_data['has_email'] = validation_result['is_email']
 
-        if not User.objects.filter(Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone)
-                                   ).exists():
+        user_queryset = User.objects.filter(
+            Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone))
+        if not user_queryset.exists():
             raise forms.ValidationError(self.auth_common_text.get('userDoesNotExist', 'User does not exist.'))
         return email_or_phone
 
@@ -242,12 +243,13 @@ class PasswordResetForm(forms.Form):
         email_or_phone = self.cleaned_data.get('email_or_phone')
         reset_password_token = self.cleaned_data.get('reset_password_token')
 
+        user_queryset = User.objects.filter(
+            Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone),
+            reset_password_token=reset_password_token
+        )
         if (self.cleaned_data.get('has_phone_number') and
             not check_verification_code(self.request, email_or_phone, reset_password_token, self.auth_common_text)) or \
-                (self.cleaned_data.get('has_email') and not User.objects.filter(
-                    Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone),
-                    reset_password_token=reset_password_token
-                ).exists()):
+                (self.cleaned_data.get('has_email') and not user_queryset.exists()):
             raise forms.ValidationError(self.auth_common_text.get('invalidResetPasswordToken',
                                                                   'Invalid reset password token.'))
         return reset_password_token
@@ -482,8 +484,9 @@ class CreateWorkerForVOForm(forms.Form):
         self.cleaned_data['has_phone_number'] = validation_result['is_phone']
         self.cleaned_data['has_email'] = validation_result['is_email']
 
-        if User.objects.filter(Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone)
-                               ).exists():
+        user_queryset = User.objects.filter(
+            Q(email=email_or_phone) | Q(mobile=email_or_phone) | Q(telephone=email_or_phone))
+        if user_queryset.exists():
             raise forms.ValidationError(
                 self.auth_common_text.get('userWithEmailOrPhoneAlreadyExists',
                                           'User with this email or phone number already exists.'))

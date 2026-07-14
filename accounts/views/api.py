@@ -296,7 +296,8 @@ class RequestPasswordReset(APIView):
                 'message': 'Email or phone number is required',
             }, status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
+        user_queryset = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number))
+        user = user_queryset.first()
         if user and email:
             password_reset_token = random.randrange(111111, 999999)
             user.reset_password_token = password_reset_token
@@ -407,7 +408,8 @@ class ResetPassword(APIView):
             email = request.data.get('email')
             phone_number = request.data.get('phone_number')
             password = request.data.get('password')
-            user = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number)).first()
+            user_queryset = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number))
+            user = user_queryset.first()
             if user:
                 user.set_password(password)
                 user.reset_password_token = None
@@ -563,7 +565,8 @@ class InviteUser(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        user_exists = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).exists()
+        user_queryset = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile))
+        user_exists = user_queryset.exists()
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         if not user_exists:
@@ -584,7 +587,7 @@ class InviteUser(APIView):
 
             return send_email_invite(user, auth_common_text=auth_common_text)
         else:
-            user = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile)).first()
+            user = user_queryset.first()
 
             if user.email is not None and not user.is_verified and not user.is_active:
                 return send_email_invite(user, auth_common_text=auth_common_text)
