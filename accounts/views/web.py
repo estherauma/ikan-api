@@ -579,7 +579,8 @@ def resend_otp(request):
         locale = get_locale_from_request(request)
         send_result = otp_service.send_otp(user.mobile, locale=locale)
         if send_result.get('success'):
-            messages.success(request, auth_common_text.get('otpCodeResentSuccessfully', 'OTP code resent successfully.'))
+            messages.success(request, auth_common_text.get('otpCodeResentSuccessfully',
+                                                           'OTP code resent successfully.'))
         else:
             if auth_common_text.get(send_result.get('errorKey')) is not None:
                 messages.error(request, auth_common_text.get(send_result.get('errorKey')))
