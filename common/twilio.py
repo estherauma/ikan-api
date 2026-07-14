@@ -12,10 +12,73 @@ class OTPVerification:
         self.client = Client(self.account_sid, self.auth_token)
 
     def send_otp(self, phone_number, locale='en'):
-        verification = self.client.verify.v2.services(self.verify_service_sid) \
-            .verifications \
-            .create(to=phone_number, channel="sms", locale=locale)
-        return verification.status
+        try:
+            verification = self.client.verify.v2.services(self.verify_service_sid) \
+                .verifications \
+                .create(to=phone_number, channel="sms", locale=locale)
+            if verification.status == "pending":
+                return {
+                    "success": True,
+                    "status": "pending",
+                    "message": "OTP sent successfully."
+                }
+            else:
+                return {
+                    "success": False,
+                    "status": "failed",
+                    "message": "Failed to send OTP.",
+                    "errorKey": "otpCodeGenerationFailed"
+                }
+        except TwilioRestException as e:
+            if e.code == 60200 or e.code == 60006 or e.status == 400:
+                return {
+                    "success": False,
+                    "status": "invalid_number",
+                    "message": "The provided phone number is invalid.",
+                    "errorKey": "otpCodeGenerationInvalidNumber"
+                }
+            elif e.code == 19034:
+                return {
+                    "success": False,
+                    "status": "invalid_country_code",
+                    "message": "The provided phone number has an invalid country code.",
+                    "errorKey": "otpCodeGenerationInvalidCountryCode"
+                }
+            elif e.status == 429 or e.code == 60203 or e.code == 60202 or e.code == 60211 or e.code == 60212:
+                return {
+                    "success": False,
+                    "status": "too_many_requests",
+                    "message": "Too many requests have been made to this number. Please try again later.",
+                    "errorKey": "otpCodeGenerationTooManyRequests"
+                }
+            elif e.code == 60205:
+                return {
+                    "success": False,
+                    "status": "sms_not_supported",
+                    "message": "The provided phone number does not support receiving SMS messages.",
+                    "errorKey": "otpCodeGenerationSMSNotSupported"
+                }
+            elif e.code == 60410 or e.code == 60412 or e.status == 403:
+                return {
+                    "success": False,
+                    "status": "blocked",
+                    "message": "This number has been temporarily blocked due to too many attempts.",
+                    "errorKey": "otpCodeGenerationBlocked"
+                }
+            else:
+                return {
+                    "success": False,
+                    "status": "twilio_api_error",
+                    "message": f"Twilio API Error ({e.code}): {e.msg}",
+                    "errorKey": "otpCodeGenerationTwilioAPIError"
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "status": "server_error",
+                "message": f"An unexpected system error occurred: {str(e)}",
+                "errorKey": "otpCodeGenerationServerError"
+            }
 
     def check_otp(self, otp_code, phone_number):
         try:
