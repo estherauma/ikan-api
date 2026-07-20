@@ -1,5 +1,6 @@
 from django.db import models
 from common.models import AuditableModel
+import accounts.models
 from accounts.models import User
 
 
@@ -22,7 +23,7 @@ class Company(AuditableModel):
 
 
 class UserCompany(AuditableModel):
-    user = models.ForeignKey(User, on_delete=models.SET(User.objects.get_default_user))
+    user = models.ForeignKey(User, on_delete=models.SET(accounts.models.UserManager.get_default_user))
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)

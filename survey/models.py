@@ -1,4 +1,5 @@
 from django.db import models
+import accounts.models
 from common.models import AuditableModel
 import json
 from accounts.models import User
@@ -9,7 +10,7 @@ class Survey(AuditableModel):
     app_ref = models.CharField(max_length=255, null=True, blank=True)
     user = models.ForeignKey(
         User,
-        on_delete=models.SET(User.objects.get_default_user),
+        on_delete=models.SET(accounts.models.UserManager.get_default_user),
         related_name="surveys",
         null=True,
         blank=True,
@@ -45,7 +46,7 @@ class InlineQuestion(AuditableModel):
     app_ref = models.CharField(max_length=255, null=True, blank=True)
     user = models.ForeignKey(
         User,
-        on_delete=models.SET(User.objects.get_default_user),
+        on_delete=models.SET(accounts.models.UserManager.get_default_user),
         related_name="inline_questions",
     )
     question_key = models.CharField(max_length=255, null=False, blank=False)
