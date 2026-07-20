@@ -140,7 +140,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
 class LoginEvent(BaseModel):
     user = models.ForeignKey(
-        User, on_delete=models.SET(User.objects.get_default_user), related_name='login_events')
+        User, on_delete=models.SET(UserManager.get_default_user), related_name='login_events')
     ip_address = models.GenericIPAddressField()
     date_logged_in = models.DateTimeField(auto_now_add=True)
 
