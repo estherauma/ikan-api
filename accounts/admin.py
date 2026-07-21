@@ -44,7 +44,7 @@ class CustomUserAdmin(BaseUserAdmin):
                 'city', 'country', 'postal_code', 'position',
                 'is_active', 'is_verified', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
                 'access_code', 'reset_password_token', 'registration_number', 'passport_number',
-                'created_by', 'updated_by', 'deleted_by', 'deleted', 'deleted_at'
+                'created_by', 'updated_by', 'recruited_by', 'deleted_by', 'deleted', 'deleted_at'
             )
         }),
     )
