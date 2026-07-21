@@ -97,6 +97,28 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
                 .values_list('contract__name', flat=True).first()
         return name_on_contract
 
+    # This property is used to get the vessel owners associated with an agent.
+    # It checks if the current user is an 'agent (taiwanese_agent or indonesian_agent)' and then
+    # retrieves the vessel owners linked to that agent through the AgentVesselOwnerRelationship model.
+    @property
+    def vessel_owners(self):
+        role_queryset = self.groups.filter(Q(name='taiwanese_agent') | Q(name='indonesian_agent'))
+        if role_queryset.exists():
+            vo_queryset = User.objects.filter(agent_relationships__agent=self, agent_relationships__status='active')
+            return vo_queryset if vo_queryset.exists() else None
+        return None
+
+    # This property is used to get the agents associated with a vessel owner.
+    # It checks if the current user is a 'vessel_owner' and then retrieves the agents
+    # linked to that vessel owner through the AgentVesselOwnerRelationship model.
+    @property
+    def agents(self):
+        if self.groups.filter(name='vessel_owner').exists():
+            agent_queryset = User.objects.filter(vessel_owner_relationships__vessel_owner=self,
+                                                 vessel_owner_relationships__status='active')
+            return agent_queryset if agent_queryset.exists() else None
+        return None
+
     def __str__(self):
         if self.name_on_contract:
             return f'{self.name_on_contract} ({self.email or self.mobile or self.telephone})'
