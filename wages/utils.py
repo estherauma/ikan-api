@@ -31,7 +31,7 @@ file_fields = [
 ]
 
 
-def get_workers_on_vessel(vessel):
+def get_workers_on_vessel(vessel, agent_obj=None):
     contracts_with_vessel = []
     party_b_clauses = ContractClause.objects.filter(kind='contract-clauses-parties-requirement-fishers')
     for clause in party_b_clauses:
@@ -45,7 +45,10 @@ def get_workers_on_vessel(vessel):
     workers_on_vessel = User.objects.filter(
             Q(groups__name="worker") &
             Q(user_contract_access__contract__in=contracts_with_vessel)
-        ).distinct()
+        )
+    if agent_obj:
+        workers_on_vessel = workers_on_vessel.filter(recruited_by=agent_obj)
+    workers_on_vessel = workers_on_vessel.distinct()
     return workers_on_vessel
 
 
