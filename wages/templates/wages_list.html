@@ -22,7 +22,7 @@
         </div>
     {% endif %}
 
-    {% if loggedin_user.is_vessel_owner %}
+    {% if loggedin_user.is_vessel_owner or loggedin_user.is_taiwanese_agent or loggedin_user.is_indonesian_agent %}
 		<div class="row mt-4 mx-4 mb-1">
             <div class="col">
                 <button
@@ -65,7 +65,14 @@
                                 >
                                     {% csrf_token %}
 
-                                    {% if not has_vessel %}
+                                    {% if is_agent and not agent_has_vo %}
+                                        <div class="row m-3">
+                                            <div class="col">
+                                                <!-- TODO: translate-->
+                                                <p>{{ payments_common_text.noVesselOwnerRelationships | default:"You don't have any vessel owner relationships. Contact admin to add." }}</p>
+                                            </div>
+                                        </div>
+                                    {% elif not has_vessel %}
                                         <div class="row m-3">
                                             <div class="col">
                                                 <p>{{ payments_common_text.noVesselsAdded }}</p>
@@ -177,7 +184,9 @@
                                                         <!-- todo: change -->
                                                         <th>{{ payments_common_text.totalUSDAmountReceived }}</th>
                                                         <th>{{ payments_common_text.paymentDate }}</th>
-                                                        <th>{{ common_text.status }}</th>
+                                                        {% if loggedin_user.is_vessel_owner %}
+                                                            <th>{{ common_text.status }}</th>
+                                                        {% endif %}
                                                         <th>{{ common_text.actions }}</th>
                                                     </tr>
                                                 </thead>
@@ -189,9 +198,11 @@
                                                         <td>{{v_payment.start_date | format_date:selected_language}} - {{v_payment.end_date | format_date:selected_language}}</td>
                                                         <td>{{v_payment.usd_amount}}</td>
                                                         <td>{{v_payment.payment_date | format_date:selected_language}}</td>
-                                                        <td>
-                                                            <span class="{{v_payment.status_class}}">{{v_payment.status_label}}</span>
-                                                        </td>
+                                                        {% if loggedin_user.is_vessel_owner %}
+                                                            <td>
+                                                                <span class="{{v_payment.status_class}}">{{v_payment.status_label}}</span>
+                                                            </td>
+                                                        {% endif %}
                                                         <td>
                                                             <a 
                                                                 href="{% url 'wages:wage-details' v_payment.id %}"
