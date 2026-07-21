@@ -40,6 +40,8 @@ def loggedin_user(request):
         loggedin_user.is_vessel_owner = False
         loggedin_user.is_worker = False
         loggedin_user.is_public = False
+        loggedin_user.is_taiwanese_agent = False
+        loggedin_user.is_indonesian_agent = False
 
         roles = loggedin_user.groups.all().values_list('name', flat=True)
         if 'vessel_owner' in roles:
@@ -49,6 +51,10 @@ def loggedin_user(request):
             loggedin_user.is_worker = True
         elif 'public' in roles:
             loggedin_user.is_public = True
+        elif 'taiwanese_agent' in roles:
+            loggedin_user.is_taiwanese_agent = True
+        elif 'indonesian_agent' in roles:
+            loggedin_user.is_indonesian_agent = True
 
     return {
             'loggedin_user': loggedin_user,
@@ -260,6 +266,10 @@ def invite_user(request):
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
+            recruited_by = None
+            if request.user.groups.filter(name='taiwanese_agent').exists() or \
+               request.user.groups.filter(name='indonesian_agent').exists():
+                recruited_by = request.user
             user = User.objects.create_user(
                 email=form.cleaned_data.get('email'),
                 mobile=form.cleaned_data.get('mobile'),
@@ -269,6 +279,7 @@ def invite_user(request):
                 access_code=get_access_code(),
                 created_by=request.user.id,
                 updated_by=request.user.id,
+                recruited_by=recruited_by,
             )
             # Save user group/role
             group = Group.objects.get(name=form.cleaned_data.get('role'))
