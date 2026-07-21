@@ -536,3 +536,19 @@ class CreateAgentVesselownerRelationshipForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        agent = cleaned_data.get('agent')
+        vessel_owner = cleaned_data.get('vessel_owner')
+
+        if agent and vessel_owner:
+            if AgentVesselOwnerRelationship.objects.filter(agent=agent, vessel_owner=vessel_owner).exists():
+                raise forms.ValidationError(
+                    "This agent and vessel owner relationship already exists."
+                )
+            if agent == vessel_owner:
+                raise forms.ValidationError(
+                    "Agent and vessel owner cannot be the same user."
+                )
+        return cleaned_data
