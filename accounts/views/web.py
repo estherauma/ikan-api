@@ -1,8 +1,9 @@
-from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm
+from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm, \
+    LoginForm, RegistrationForm, PasswordResetForm, RequestPasswordResetForm, \
+    CreateAgentVesselownerRelationshipForm
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
-from accounts.forms import RegistrationForm, PasswordResetForm, RequestPasswordResetForm
 from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -17,8 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
-from accounts.models import User
-from accounts.forms import LoginForm
+from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
 
 
@@ -115,6 +115,7 @@ class UserListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
         context['resend_token_form'] = ResendTokenForm()
+        context['create_agent_vo_relationship_form'] = CreateAgentVesselownerRelationshipForm()
 
         super_user = self.request.user.is_superuser
         users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
@@ -773,3 +774,28 @@ def change_language(request):
         'auth_common_text': auth_common_text,
     }
     return render(request, 'change_language.html', context)
+
+
+class CreateAgentVesselownerRelationshipView(LoginRequiredMixin, View):
+    def post(self, request):
+        form = CreateAgentVesselownerRelationshipForm(data=request.POST)
+        if form.is_valid():
+            agent_vo_rlshp = AgentVesselOwnerRelationship.objects.create(
+                agent=form.cleaned_data['agent'],
+                vessel_owner=form.cleaned_data['vessel_owner'],
+                status=form.cleaned_data['status'],
+                created_by=request.user.id,
+                updated_by=request.user.id,
+            )
+            agent_vo_rlshp.save()
+
+            messages.success(request, 'Agent/Vesselowner relationship created successfully.')
+            return redirect('accounts:users')
+        else:
+            if form.errors.get('__all__'):
+                messages.error(request, form.errors['__all__'][0])
+            else:
+                prismic_utils = PrismicUtils(request)
+                common_text = prismic_utils.common_text
+                messages.error(request, common_text.get("formIsInvalid", "Form is invalid."))
+            return redirect('accounts:users')
