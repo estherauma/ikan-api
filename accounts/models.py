@@ -79,6 +79,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     postal_code = models.CharField(_('postal code'), null=True, blank=True, max_length=30)
     registration_number = models.CharField(_('registration number'), null=True, blank=True, max_length=30)
     passport_number = models.CharField(_('passport number'), null=True, blank=True, max_length=30)
+    recruited_by = models.ForeignKey('self', on_delete=models.SET(UserManager.get_default_user), null=True, blank=True)
 
     USERNAME_FIELD = 'email'
 
@@ -183,3 +184,26 @@ class UserBeneficiaries(AuditableModel):
     def __str__(self):
         return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} \
             is {self.f_name} with account {self.account_number}'
+
+
+class AgentVesselOwnerRelationship(AuditableModel):
+    # This import here prevent circular import issues
+    from common.utils import generate_uuid
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('pending', 'Pending'),
+        ('terminated', 'Terminated'),
+    ]
+
+    app_ref = models.CharField(max_length=50, default=generate_uuid, unique=True)
+    agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vessel_owner_relationships')
+    vessel_owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='agent_relationships')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+
+    class Meta:
+        unique_together = ('agent', 'vessel_owner')
+
+    def __str__(self):
+        return f'Agent: {self.agent.first_name} {self.agent.last_name} ({self.agent.email or self.agent.mobile}) - ' \
+               f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
+               f'({self.vessel_owner.email or self.vessel_owner.mobile})'
