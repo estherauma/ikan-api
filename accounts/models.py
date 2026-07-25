@@ -44,6 +44,7 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    @staticmethod
     def get_default_user():
         User = get_user_model()
         default_email = 'default_ikan_user@fiftyeight.io'
