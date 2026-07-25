@@ -4,7 +4,7 @@ from accounts.views.web import invite_user, logout_user, \
     RequestPasswordReset, ResetPassword, LoginView, \
     ResendAcessCode, UserDetailView, WorkersListView, change_language, \
     VerifyPhoneNumber, verify_phone_number_success, verify_phone_number_failure, \
-    resend_otp, resend_password_reset_token
+    resend_otp, resend_password_reset_token, CreateAgentVesselownerRelationshipView
 
 app_name = 'accounts'
 
@@ -27,4 +27,6 @@ urlpatterns = [
     path('verify-phone-number/success', verify_phone_number_success, name='verify-phone-number-success'),
     path('verify-phone-number/failure', verify_phone_number_failure, name='verify-phone-number-failure'),
     path('verify-phone-number/resend-otp', resend_otp, name='resend-otp'),
+    path('create-agent-vo-relationship', CreateAgentVesselownerRelationshipView.as_view(),
+         name='create-agent-vo-relationship'),
 ]

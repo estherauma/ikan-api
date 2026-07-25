@@ -30,6 +30,9 @@ class VesselSelectForm(forms.Form):
         super().__init__(*args, **kwargs)
         if user:
             self.fields["vessel"].queryset = Vessel.objects.filter(created_by=user.id)
+            if user.groups.filter(name__in=["taiwanese_agent", "indonesian_agent"]).exists():
+                vesselowner_ids = user.vessel_owners.values_list("id", flat=True)
+                self.fields["vessel"].queryset = Vessel.objects.filter(created_by__in=vesselowner_ids)
 
 
 class AddWageForm(forms.ModelForm):
@@ -62,16 +65,17 @@ class AddWageForm(forms.ModelForm):
         # to control their order in the row when displaying
         fields = wage_fields
 
-    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, **kwargs):
+    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, agent_obj=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.vessel = vessel
         self.payments_common_text = payments_common_text
+        self.agent_obj = agent_obj
         empty_select_choice = [("", "")]
 
         for field in self.fields:
             self.fields[field].widget.attrs["style"] = "min-height: 45px; border-radius: 10px;\
                 border-width: 1px; min-width: 100px; max-width: 160px;padding: 0 10px; font-size: 1rem;"
-            
+
             if field in file_fields:
                 self.fields[field].widget.attrs["accept"] = ".pdf, application/pdf"
                 self.fields[field].widget.attrs["style"] += "max-width: 250px;"
@@ -87,7 +91,7 @@ class AddWageForm(forms.ModelForm):
                                                                                  in beneficiary_relationship_options]
 
         if vessel:
-            workers_on_vessel = get_workers_on_vessel(vessel)
+            workers_on_vessel = get_workers_on_vessel(vessel, agent_obj=self.agent_obj)
             self.fields["user"].queryset = workers_on_vessel
 
     def clean_usd_amount(self):
@@ -126,7 +130,7 @@ class AddWageForm(forms.ModelForm):
             #     self.add_error("beneficiary_contact",
             #                    self.payments_common_text.get("beneficiaryContactIsRequired",
             #                                                  "Beneficiary contact is required."))
-        
+
         # Validate file fields to ensure they are PDFs by checking the file
         # extension and magic bytes rather than the client-provided content_type,
         # which can be spoofed or absent for valid PDFs.
@@ -160,16 +164,18 @@ class AddWageForm(forms.ModelForm):
 
 
 class BaseWageFormSet(BaseModelFormSet):
-    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, **kwargs):
+    def __init__(self, *args, vessel=None, loggedin_user=None, payments_common_text={}, agent_obj=None, **kwargs):
         self.vessel = vessel
         self.payments_common_text = payments_common_text
         self.loggedin_user = loggedin_user
+        self.agent_obj = agent_obj
         super().__init__(*args, **kwargs)
 
     def _construct_form(self, i, **kwargs):
         kwargs["vessel"] = self.vessel
         kwargs["loggedin_user"] = self.loggedin_user
         kwargs["payments_common_text"] = self.payments_common_text
+        kwargs["agent_obj"] = self.agent_obj
         return super()._construct_form(i, **kwargs)
 
     def clean(self):
@@ -208,7 +214,7 @@ class BaseWageFormSet(BaseModelFormSet):
         self.add_fields(form, None)
 
         # set the queryset for the user field in the empty form to the workers on the vessel
-        workers_on_vessel = get_workers_on_vessel(self.vessel)
+        workers_on_vessel = get_workers_on_vessel(self.vessel, agent_obj=self.agent_obj)
         form.fields["user"].queryset = workers_on_vessel
 
         return form

@@ -1,8 +1,9 @@
-from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm
+from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm, \
+    LoginForm, RegistrationForm, PasswordResetForm, RequestPasswordResetForm, \
+    CreateAgentVesselownerRelationshipForm
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic.list import ListView
-from accounts.forms import RegistrationForm, PasswordResetForm, RequestPasswordResetForm
 from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -17,8 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
-from accounts.models import User
-from accounts.forms import LoginForm
+from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
 
 
@@ -40,6 +40,8 @@ def loggedin_user(request):
         loggedin_user.is_vessel_owner = False
         loggedin_user.is_worker = False
         loggedin_user.is_public = False
+        loggedin_user.is_taiwanese_agent = False
+        loggedin_user.is_indonesian_agent = False
 
         roles = loggedin_user.groups.all().values_list('name', flat=True)
         if 'vessel_owner' in roles:
@@ -49,6 +51,10 @@ def loggedin_user(request):
             loggedin_user.is_worker = True
         elif 'public' in roles:
             loggedin_user.is_public = True
+        elif 'taiwanese_agent' in roles:
+            loggedin_user.is_taiwanese_agent = True
+        elif 'indonesian_agent' in roles:
+            loggedin_user.is_indonesian_agent = True
 
     return {
             'loggedin_user': loggedin_user,
@@ -115,6 +121,7 @@ class UserListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['invite_user_form'] = InviteUser()
         context['resend_token_form'] = ResendTokenForm()
+        context['create_agent_vo_relationship_form'] = CreateAgentVesselownerRelationshipForm()
 
         super_user = self.request.user.is_superuser
         users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
@@ -259,6 +266,10 @@ def invite_user(request):
     if request.method == 'POST':
         form = InviteUser(request.POST)
         if form.is_valid():
+            recruited_by = None
+            if request.user.groups.filter(name='taiwanese_agent').exists() or \
+               request.user.groups.filter(name='indonesian_agent').exists():
+                recruited_by = request.user
             user = User.objects.create_user(
                 email=form.cleaned_data.get('email'),
                 mobile=form.cleaned_data.get('mobile'),
@@ -268,6 +279,7 @@ def invite_user(request):
                 access_code=get_access_code(),
                 created_by=request.user.id,
                 updated_by=request.user.id,
+                recruited_by=recruited_by,
             )
             # Save user group/role
             group = Group.objects.get(name=form.cleaned_data.get('role'))
@@ -773,3 +785,28 @@ def change_language(request):
         'auth_common_text': auth_common_text,
     }
     return render(request, 'change_language.html', context)
+
+
+class CreateAgentVesselownerRelationshipView(LoginRequiredMixin, View):
+    def post(self, request):
+        form = CreateAgentVesselownerRelationshipForm(data=request.POST)
+        if form.is_valid():
+            agent_vo_rlshp = AgentVesselOwnerRelationship.objects.create(
+                agent=form.cleaned_data['agent'],
+                vessel_owner=form.cleaned_data['vessel_owner'],
+                status=form.cleaned_data['status'],
+                created_by=request.user.id,
+                updated_by=request.user.id,
+            )
+            agent_vo_rlshp.save()
+
+            messages.success(request, 'Agent/Vesselowner relationship created successfully.')
+            return redirect('accounts:users')
+        else:
+            if form.errors.get('__all__'):
+                messages.error(request, form.errors['__all__'][0])
+            else:
+                prismic_utils = PrismicUtils(request)
+                common_text = prismic_utils.common_text
+                messages.error(request, common_text.get("formIsInvalid", "Form is invalid."))
+            return redirect('accounts:users')

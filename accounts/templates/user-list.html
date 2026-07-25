@@ -21,6 +21,19 @@
                     <button type="button" class="btn btn-large waves-effect waves-light ikan-primary-button" data-bs-toggle="modal" data-bs-target="#invite-user-modal">
                         {{ auth_common_text.inviteUser }}
                     </button>
+
+                    <!-- Create agent/vesselowner relationship  button -->
+                    {% if loggedin_user.is_superuser %}
+                        <button
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#create-agent-vo-relationship-modal"
+                            class="btn btn-large ikan-primary-button"
+                        >
+                            <i class="mdi mdi-plus"></i>
+                            Create Agent/Vesselowner relationship
+                        </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -134,9 +147,58 @@
                     </form>
 
                 </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Agent/Vesselowner relationship modal -->
+    <div id="create-agent-vo-relationship-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title ikan-primary-color" >Create Agent/Vesselowner Relationship</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="create-agent-vo-relationship-form" class="ikan-form" action="{% url 'accounts:create-agent-vo-relationship' %}" method="POST">
+                        {% csrf_token %}
+                        
+                        {% for field in create_agent_vo_relationship_form %}
+                            <div class="mb-3">
+                                {{ field.label_tag }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+
+                                {% if field.help_text %}
+                                    <span class="fst-italic ms-1" style="color: var(--ct-gray);">{{ field.help_text }}</span>
+                                {% endif %}
+                                
+                                {{ field }}
+                                
+                                {% if field.errors %}
+                                    <ul class="errorlist">
+                                        {% for error in field.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        {% if create_agent_vo_relationship_form.non_field_errors  %}
+                            <div class="alert alert-danger">
+                                {{ create_agent_vo_relationship_form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3 text-center">
+                            <button class="ikan-primary-button" type="submit" disabled>Create Relationship</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -167,8 +229,39 @@
             });
         </script>
     {% endif %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const agentVoRshpform = document.getElementById("create-agent-vo-relationship-form");
+            const submitButton = agentVoRshpform.querySelector('button[type="submit"]');
+
+            // Function to check if all required fields are filled
+            function checkRequiredFields() {
+                const requiredFields = agentVoRshpform.querySelectorAll("input[required], select[required]");
+                let allFilled = true;
+                requiredFields.forEach((field) => {
+                    if (!field.value) {
+                        allFilled = false;
+                    }
+                });
+                submitButton.disabled = !allFilled;
+            }
+
+            // Add event listeners to required fields
+            const requiredFields = agentVoRshpform.querySelectorAll("input[required], select[required]");
+            requiredFields.forEach((field) => {
+                field.addEventListener("input", checkRequiredFields);
+                field.addEventListener("change", checkRequiredFields);
+            });
+
+            // Initial check on page load
+            checkRequiredFields();
+        });
+    </script>
+    
     <style>
-        #invite-user-form {
+        #invite-user-form,
+        #create-agent-vo-relationship-form {
             label:has(+ input:required)::after,
             label:has(+ select:required)::after {
                 content: "*";

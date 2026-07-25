@@ -4,7 +4,7 @@ import re
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
-from accounts.models import User
+from accounts.models import User, AgentVesselOwnerRelationship
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Q
@@ -512,3 +512,43 @@ class CreateWorkerForVOForm(forms.Form):
             self.fields['vessel_owner'].queryset = User.objects.filter(
                 groups__name='vessel_owner'
             ).exclude(id=user.id)
+
+
+class CreateAgentVesselownerRelationshipForm(forms.Form):
+    agent = forms.ModelChoiceField(
+        queryset=User.objects.filter(Q(groups__name='taiwanese_agent') | Q(groups__name='indonesian_agent')),
+        widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
+        help_text="Select an agent to attach to this vessel owner.",
+        required=True
+    )
+    vessel_owner = forms.ModelChoiceField(
+        queryset=User.objects.filter(groups__name='vessel_owner'),
+        widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
+        help_text="Select a vessel owner to attach to this agent.",
+        required=True
+    )
+    status = forms.ChoiceField(
+        choices=[('active', 'Active'), ('pending', 'Pending'), ('terminated', 'Terminated')],
+        widget=forms.Select(attrs={'class': 'form-control ikan-select'}),
+        help_text="Select the status of the relationship.",
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        agent = cleaned_data.get('agent')
+        vessel_owner = cleaned_data.get('vessel_owner')
+
+        if agent and vessel_owner:
+            if AgentVesselOwnerRelationship.objects.filter(agent=agent, vessel_owner=vessel_owner).exists():
+                raise forms.ValidationError(
+                    "This agent and vessel owner relationship already exists."
+                )
+            if agent == vessel_owner:
+                raise forms.ValidationError(
+                    "Agent and vessel owner cannot be the same user."
+                )
+        return cleaned_data

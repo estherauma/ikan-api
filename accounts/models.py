@@ -79,6 +79,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     postal_code = models.CharField(_('postal code'), null=True, blank=True, max_length=30)
     registration_number = models.CharField(_('registration number'), null=True, blank=True, max_length=30)
     passport_number = models.CharField(_('passport number'), null=True, blank=True, max_length=30)
+    recruited_by = models.ForeignKey('self', on_delete=models.SET(UserManager.get_default_user), null=True, blank=True)
 
     USERNAME_FIELD = 'email'
 
@@ -95,6 +96,28 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
             name_on_contract = self.user_contract_access.select_related('contract') \
                 .values_list('contract__name', flat=True).first()
         return name_on_contract
+
+    # This property is used to get the vessel owners associated with an agent.
+    # It checks if the current user is an 'agent (taiwanese_agent or indonesian_agent)' and then
+    # retrieves the vessel owners linked to that agent through the AgentVesselOwnerRelationship model.
+    @property
+    def vessel_owners(self):
+        role_queryset = self.groups.filter(Q(name='taiwanese_agent') | Q(name='indonesian_agent'))
+        if role_queryset.exists():
+            vo_queryset = User.objects.filter(agent_relationships__agent=self, agent_relationships__status='active')
+            return vo_queryset if vo_queryset.exists() else None
+        return None
+
+    # This property is used to get the agents associated with a vessel owner.
+    # It checks if the current user is a 'vessel_owner' and then retrieves the agents
+    # linked to that vessel owner through the AgentVesselOwnerRelationship model.
+    @property
+    def agents(self):
+        if self.groups.filter(name='vessel_owner').exists():
+            agent_queryset = User.objects.filter(vessel_owner_relationships__vessel_owner=self,
+                                                 vessel_owner_relationships__status='active')
+            return agent_queryset if agent_queryset.exists() else None
+        return None
 
     def __str__(self):
         if self.name_on_contract:
@@ -183,3 +206,26 @@ class UserBeneficiaries(AuditableModel):
     def __str__(self):
         return f'Beneficiary for {self.user.email or self.user.mobile or self.user.telephone} \
             is {self.f_name} with account {self.account_number}'
+
+
+class AgentVesselOwnerRelationship(AuditableModel):
+    # This import here prevent circular import issues
+    from common.utils import generate_uuid
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('pending', 'Pending'),
+        ('terminated', 'Terminated'),
+    ]
+
+    app_ref = models.CharField(max_length=50, default=generate_uuid, unique=True)
+    agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vessel_owner_relationships')
+    vessel_owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='agent_relationships')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+
+    class Meta:
+        unique_together = ('agent', 'vessel_owner')
+
+    def __str__(self):
+        return f'Agent: {self.agent.first_name} {self.agent.last_name} ({self.agent.email or self.agent.mobile}) - ' \
+               f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
+               f'({self.vessel_owner.email or self.vessel_owner.mobile})'

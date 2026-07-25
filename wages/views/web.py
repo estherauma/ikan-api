@@ -34,7 +34,17 @@ class WageListView(LoginRequiredMixin, ListView):
         is_super_user = user.is_superuser
         roles = user.groups.all().values_list("name", flat=True)
         is_vessel_owner = "vessel_owner" in roles
+        is_agent = "taiwanese_agent" in roles or "indonesian_agent" in roles
         has_vessel = Vessel.objects.filter(created_by=user.id).exists()
+        agent_vos = user.vessel_owners
+        agent_has_vo = None
+        if user.groups.filter(name__in=["taiwanese_agent", "indonesian_agent"]).exists():
+            agent_has_vo = user.vessel_owners.exists() if user.vessel_owners else False
+            if agent_has_vo:
+                agent_vo_ids = agent_vos.values_list("id", flat=True)
+                vessels_queryset = Vessel.objects.filter(created_by__in=agent_vo_ids)
+                has_vessel = vessels_queryset.exists()
+
         wages = Wage.objects.filter(created_by=user.id)
         if is_super_user:
             wages = Wage.objects.all()
@@ -53,6 +63,8 @@ class WageListView(LoginRequiredMixin, ListView):
             wage.status_label = status_object['label']
 
         context["wages"] = wages
+        context["is_agent"] = is_agent
+        context["agent_has_vo"] = agent_has_vo
         context["has_vessel"] = has_vessel
         context["vessel_form"] = VesselSelectForm(user=user)
 
@@ -124,12 +136,15 @@ class AddWagesView(LoginRequiredMixin, View):
         payments_common_text = prismic_utils.get_page_text("payments-common-text")
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
-        workers_on_vessel = get_workers_on_vessel(vessel)
+        agent_obj = self.request.user if self.request.user.groups.filter(
+            name__in=["taiwanese_agent", "indonesian_agent"]).exists() else None
+        workers_on_vessel = get_workers_on_vessel(vessel, agent_obj=agent_obj)
         formset = WagesFormSet(
             queryset=Wage.objects.none(),
             vessel=vessel,
             loggedin_user=self.request.user,
-            payments_common_text=payments_common_text
+            payments_common_text=payments_common_text,
+            agent_obj=agent_obj
         )
 
         context = {
@@ -163,7 +178,9 @@ class AddWagesView(LoginRequiredMixin, View):
             files=request.FILES,
             vessel=vessel,
             loggedin_user=request.user,
-            payments_common_text=payments_common_text
+            payments_common_text=payments_common_text,
+            agent_obj=request.user if request.user.groups.filter(
+                name__in=["taiwanese_agent", "indonesian_agent"]).exists() else None
         )
         context["formset"] = formset
 

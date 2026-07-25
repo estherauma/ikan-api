@@ -99,6 +99,21 @@ class ContractsView(LoginRequiredMixin, View):
                             updated_by=vessel_owner if vessel_owner else request.user.id,
                         )
                         access.save()
+
+                        # Grant contract access to agent if exists
+                        if worker and worker.recruited_by:
+                            agent = User.objects.filter(id=worker.recruited_by.id).first()
+                            if agent and not UserContractAccess.objects.filter(
+                                user=agent,
+                                contract=contract
+                            ).exists():
+                                agent_access = UserContractAccess.objects.create(
+                                    user=agent,
+                                    contract=contract,
+                                    created_by=vessel_owner if vessel_owner else request.user.id,
+                                    updated_by=vessel_owner if vessel_owner else request.user.id,
+                                )
+                                agent_access.save()
             messages.success(request, 'Contract created successfully')
             return redirect('contracts-web:contract-details', pk=contract.id)
         else:

@@ -81,17 +81,19 @@
                         </div>
                         <hr class="my-2 mx-0">
 
-                        <div class="row d-flex align-items-center">
-                            <div class="col-12 col-sm-4">
-                                <h5 class="text-muted">{{ common_text.status }}:</h5>
+                        {% if loggedin_user.is_vessel_owner %}
+                            <div class="row d-flex align-items-center">
+                                <div class="col-12 col-sm-4">
+                                    <h5 class="text-muted">{{ common_text.status }}:</h5>
+                                </div>
+                                <div class="col-12 col-sm-8">
+                                    <h4 class="status-text">
+                                        <span class="{{wage.status_class}}">{{ wage.status_label }}</span>
+                                    </h4>
+                                </div>
                             </div>
-                            <div class="col-12 col-sm-8">
-                                <h4 class="status-text">
-                                    <span class="{{wage.status_class}}">{{ wage.status_label }}</span>
-                                </h4>
-                            </div>
-                        </div>
-                        <hr class="my-2 mx-0">
+                            <hr class="my-2 mx-0">
+                        {% endif %}
 
                         {% if wage.payslip %}
                             <div class="row d-flex align-items-center">
