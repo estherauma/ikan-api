@@ -49,15 +49,13 @@ class UserManager(BaseUserManager):
         User = get_user_model()
         default_email = 'default_ikan_user@fiftyeight.io'
 
-        try:
-            user = User.objects.get(email=default_email)
-        except User.DoesNotExist:
-            default_password = secrets.token_urlsafe(16)
-            user = User.objects.create_user(
-                email=default_email,
-                password=default_password,
-                is_active=False,
-            )
+        user, created = User.objects.get_or_create(
+            email=default_email,
+            defaults={
+                'is_active': False,
+                'password': secrets.token_urlsafe(16),
+            }
+        )
         return user
 
 
