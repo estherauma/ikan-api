@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from common.models import BaseModel
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+import secrets
+from django.contrib.auth import get_user_model
 
 
 class UserManager(BaseUserManager):
@@ -42,13 +44,16 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-    def get_default_user(self):
+    @classmethod
+    def get_default_user(cls):
+        User = get_user_model()
         default_email = 'default_ikan_user@fiftyeight.io'
-        default_password = self.make_random_password()
+
         try:
-            user = self.get(email=default_email)
-        except self.model.DoesNotExist:
-            user = self.create_user(
+            user = User.objects.get(email=default_email)
+        except User.DoesNotExist:
+            default_password = secrets.token_urlsafe(16)
+            user = User.objects.create_user(
                 email=default_email,
                 password=default_password,
                 is_active=False,
