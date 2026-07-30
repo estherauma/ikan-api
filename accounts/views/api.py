@@ -296,7 +296,11 @@ class RequestPasswordReset(APIView):
                 'message': 'Email or phone number is required',
             }, status.HTTP_400_BAD_REQUEST)
 
-        user_queryset = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number))
+        user_queryset = User.objects.none()
+        if email:
+            user_queryset = User.objects.filter(email=email)
+        if phone_number:
+            user_queryset = User.objects.filter(Q(mobile=phone_number) | Q(telephone=phone_number))
         user = user_queryset.first()
         if user and email:
             password_reset_token = random.randrange(111111, 999999)
@@ -408,7 +412,11 @@ class ResetPassword(APIView):
             email = request.data.get('email')
             phone_number = request.data.get('phone_number')
             password = request.data.get('password')
-            user_queryset = User.objects.filter(Q(email=email) | Q(mobile=phone_number) | Q(telephone=phone_number))
+            user_queryset = User.objects.none()
+            if email:
+                user_queryset = User.objects.filter(email=email)
+            if phone_number:
+                user_queryset = User.objects.filter(Q(mobile=phone_number) | Q(telephone=phone_number))
             user = user_queryset.first()
             if user:
                 user.set_password(password)
@@ -565,7 +573,11 @@ class InviteUser(APIView):
                 status.HTTP_400_BAD_REQUEST
             )
 
-        user_queryset = User.objects.filter(Q(email=email) | Q(mobile=mobile) | Q(telephone=mobile))
+        user_queryset = User.objects.none()
+        if email:
+            user_queryset = User.objects.filter(email=email)
+        if mobile:
+            user_queryset = User.objects.filter(Q(mobile=mobile) | Q(telephone=mobile))
         user_exists = user_queryset.exists()
         prismic_utils = PrismicUtils(request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
