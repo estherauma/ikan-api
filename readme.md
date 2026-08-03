@@ -10,9 +10,61 @@ settings/
    base.py  # contains the base default app settings
    ci.py   # contains the ci tool settings
    dev.py  # contains the development app settings
-   prod.py # contains the production app settings
+   production.py # contains the production app settings
    staging.py # contains the staging app settings
 ```
+
+## Setting Up
+
+### Requirements
+
+- Python 3.10
+- PostgreSQL
+
+### 1. Create and activate a virtual environment
+
+```bash
+python3.10 -m venv .venv
+source .venv/bin/activate
+```
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Create your environment file
+
+Copy `.env.example` to `.env` and add the required values.
+
+### 4. Run migrations
+create your local postgres database
+
+```bash
+python manage.py migrate
+```
+
+### 5. Seed default roles and users
+
+```bash
+python manage.py seedrolesandusers
+```
+
+This command is important because the mobile app depends on the default roles created by `accounts.management.commands`.
+
+### 6. Fetch Prismic data
+
+```bash
+python manage.py fetch_prismic_data
+```
+
+### 7. Start the development server
+
+```bash
+python manage.py runserver
+```
+
 ## Running tests
 1. `coverage run manage.py test` to run tests
 1. `coverage report` to generate test report
