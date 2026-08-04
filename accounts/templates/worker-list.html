@@ -23,7 +23,7 @@
                 </button>
 
                 <!-- Add worker for VO button -->
-                {% if loggedin_user.is_superuser %}
+                {% if loggedin_user.is_superuser or loggedin_user.is_taiwanese_agent or loggedin_user.is_indonesian_agent %}
                     <button
                         type="button"
                         data-bs-toggle="modal"
