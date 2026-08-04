@@ -183,6 +183,9 @@ class WorkersListView(LoginRequiredMixin, ListView):
         auth_common_text = context.get('auth_common_text', {})
         context['create_worker_for_vo_form'] = form
         if form.is_valid():
+            vessel_owner_id = None
+            if form.cleaned_data.get('vessel_owner'):
+                vessel_owner_id = form.cleaned_data.get('vessel_owner').id
             recruited_by = None
             if request.user.groups.filter(name='taiwanese_agent').exists() or \
                request.user.groups.filter(name='indonesian_agent').exists():
@@ -194,8 +197,9 @@ class WorkersListView(LoginRequiredMixin, ListView):
                 first_name=form.cleaned_data.get('first_name'),
                 last_name=form.cleaned_data.get('last_name'),
                 is_active=True,
-                created_by=form.cleaned_data.get('vessel_owner', request.user.id),
-                updated_by=form.cleaned_data.get('vessel_owner', request.user.id),
+                is_verified=True,
+                created_by=vessel_owner_id or request.user.id,
+                updated_by=vessel_owner_id or request.user.id,
                 recruited_by=recruited_by,
             )
             # Save user group/role
