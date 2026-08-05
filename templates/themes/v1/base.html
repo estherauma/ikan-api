@@ -28,6 +28,10 @@
 		<!-- Icons css -->
 		<link href="/static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
 
+        <!-- intlTelInput JS Dependencies -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
+        <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+
     </head>
 
     <body class="{% block body_class %}{% endblock %}">
@@ -136,6 +140,48 @@
                             submitButton.innerText = submitButtonText || "{{ common_text.submit | default:'Submit' }}";
                         }
                     }
+                });
+
+                /* 
+                    Handle phone number inputs using the intl-tel-input library.
+                    It initializes the library for each input, adjusts the UI based on whether the input is an email or a phone number,
+                    and converts local phone numbers to E.164 format before form submission.
+                */
+                // Query all phone number inputs on a given form
+                const phoneNumberInputs = document.querySelectorAll(".ikan-phonenumber-input");
+                phoneNumberInputs.forEach((input) => {
+                    // Initialize intl-tel-input each field
+                    const iti = window.intlTelInput(input, {
+                        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+                        initialCountry: "auto",
+                        geoIpLookup: callback => {
+                            fetch("https://ipapi.co/json")
+                            .then(res => res.json())
+                            .then(data => callback(data.country_code))
+                            .catch(() => callback("us"));
+                        }
+                    });
+
+                    // Toggle field UI based on whether the input is an email or a phone number
+                    const adjustUI = () => {
+                        const value = input.value.trim();
+                        const isEmail = value.includes("@") || /[a-zA-Z]/.test(value);
+                        const container = input.closest(".iti");
+
+                        if (container) {
+                            if (isEmail || !value) {
+                                container.classList.add("iti-disabled-style");
+                            } else {
+                                container.classList.remove("iti-disabled-style");
+                            }
+                        }
+                    }
+
+                    // Runs on initial load (handles pre-filled values in edit forms)
+                    adjustUI();
+
+                    // Runs on every keypress inside this specific input
+                    input.addEventListener("input", adjustUI);
                 });
             });
         </script>
@@ -255,6 +301,17 @@
                         color: #3565ff;
                     }
                 }
+            }
+
+            /* Hides the country dropdown UI when rendering an email */
+            .iti-disabled-style .iti__flag-container {
+                display: none;
+            }
+            .iti-disabled-style input {
+                padding-left: 0.9rem !important;
+            }
+            .iti {
+                width: 100%;
             }
         </style>
     </body>
