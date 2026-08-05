@@ -182,6 +182,16 @@
 
                     // Runs on every keypress inside this specific input
                     input.addEventListener("input", adjustUI);
+
+                    // Convert local number to full E.164 before sending
+                    formEl.addEventListener("submit", (e) => {
+                        const value = input.value.trim();
+                        const isEmail = value.includes("@") || /[a-zA-Z]/.test(value);
+                        if (!isEmail && value !== "") {
+                            // getNumber() returns the full country code + local number, e.g., "+14155552671"
+                            input.value = iti.getNumber(); 
+                        }
+                    });
                 });
             });
         </script>
