@@ -61,7 +61,7 @@ class RegistrationForm(UserCreationForm):
     )
     email_or_phone = forms.CharField(
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control ikan-phonenumber-input',
             'id': 'email_or_phone',
             'placeholder': 'Enter your email or phone number',
             'autocomplete': 'off'
@@ -167,7 +167,7 @@ class RegistrationForm(UserCreationForm):
 class RequestPasswordResetForm(forms.Form):
     email_or_phone = forms.CharField(
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control ikan-phonenumber-input',
             'id': 'email_or_phone',
             'placeholder': 'Enter your email or phone number'
         })
@@ -200,7 +200,7 @@ class RequestPasswordResetForm(forms.Form):
 class PasswordResetForm(forms.Form):
     email_or_phone = forms.CharField(
         widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control ikan-phonenumber-input',
             'id': 'email_or_phone',
             'placeholder': 'Enter your email or phone number'
         })
@@ -320,7 +320,7 @@ class PasswordResetForm(forms.Form):
 class InviteUser(forms.Form):
     email_or_phone = forms.CharField(
         widget=forms.TextInput(attrs={
-            'class': 'form-control mb-3',
+            'class': 'form-control mb-3 ikan-phonenumber-input',
             'id': 'email_or_phone',
             'placeholder': 'Enter your email or phone number'
         }),
@@ -428,12 +428,22 @@ class ResendTokenForm(forms.Form):
 class LoginForm(forms.Form):
     email_or_phone = forms.CharField(
         label='Email or Phone Number',
-        widget=forms.TextInput(attrs={'placeholder': 'Enter email or phone number', 'class': 'form-control'})
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Enter email or phone number',
+                'class': 'form-control ikan-phonenumber-input'
+            }
+        )
     )
     password = forms.CharField(
         label='Password',
         widget=forms.PasswordInput(
-            attrs={"autocomplete": "new-password", 'placeholder': 'Enter your password', 'class': 'form-control'})
+            attrs={
+                "autocomplete": "new-password",
+                'placeholder': 'Enter your password',
+                'class': 'form-control'
+            }
+        )
     )
 
     def __init__(self, *args, **kwargs):
@@ -462,7 +472,7 @@ class CreateWorkerForVOForm(forms.Form):
     )
     email_or_phone = forms.CharField(
         widget=forms.TextInput(attrs={
-            'class': 'form-control mb-3',
+            'class': 'form-control mb-3 ikan-phonenumber-input',
             'id': 'email_or_phone',
             'placeholder': 'Enter your email or phone number'
         }),
