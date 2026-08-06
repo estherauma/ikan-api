@@ -23,6 +23,11 @@
 
 		<!-- Icons css -->
 		<link href="/static/themes/v1/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+
+        <!-- intlTelInput JS Dependencies -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
+        <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+
     </head>
 
     <body class="{% block body_class %}authentication-bg authentication-bg-pattern{% endblock %}">
@@ -52,15 +57,124 @@
         document.addEventListener('DOMContentLoaded', function() {
             const submitButton = document.querySelector('button[type="submit"]');
             const formEl = document.querySelector('form');
-            formEl.addEventListener('submit', function() {
-                // Disable the submit button to prevent multiple submissions
-                submitButton.disabled = true;
-                submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
-            });
-            if (formEl.errors || formEl.querySelectorAll('.errorlist').length > 0 || formEl.querySelectorAll('.is-invalid').length > 0) {
+            const defaultBtnText = "{{ common_text.submit | default:'Submit' }}";
+            const submittingText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
+            const resetButton = () => {
                 submitButton.disabled = false;
-                submitButton.innerText = "{{ common_text.submit | default:'Submit' }}";
+                submitButton.innerText = defaultBtnText;
             }
+
+            // Reset submit button on fresh page load or browser back/forward navigation
+            resetButton();
+            window.addEventListener("pageshow", (e) => {
+                if (e.persisted) resetButton();
+            });
+
+            /* 
+                Handle phone number inputs using the intl-tel-input library.
+                It initializes the library for each input, adjusts the UI based on whether the input is an email or a phone number,
+                and converts local phone numbers to E.164 format before form submission.
+            */
+            // Query all phone number inputs on a given form
+            const phoneNumberInputs = document.querySelectorAll(".ikan-phonenumber-input");
+            phoneNumberInputs.forEach((input) => {
+                // Initialize intl-tel-input each field
+                const iti = window.intlTelInput(input, {
+                    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+                    initialCountry: "auto",
+                    geoIpLookup: callback => {
+                        fetch("https://ipapi.co/json")
+                        .then(res => res.json())
+                        .then(data => callback(data.country_code))
+                        .catch(() => callback("us"));
+                    }
+                });
+
+                // Toggle field UI based on whether the input is an email or a phone number
+                const adjustUI = () => {
+                    const value = input.value.trim();
+                    const isEmail = value.includes("@") || /[a-zA-Z]/.test(value);
+                    const container = input.closest(".iti");
+
+                    if (container) {
+                        if (isEmail || !value) {
+                            container.classList.add("iti-disabled-style");
+                        } else {
+                            container.classList.remove("iti-disabled-style");
+                        }
+                    }
+                }
+
+                // Runs on initial load (handles pre-filled values in edit forms)
+                adjustUI();
+
+                // Runs on every keypress inside this specific input
+                input.addEventListener("input", adjustUI);
+                
+                // Dynamically create and insert error span
+                const showError = (message) => {
+                    clearError(); // Avoid duplicate spans if clicked multiple times
+
+                    const errorSpan = document.createElement("span");
+                    errorSpan.className = "dynamic-phone-error";
+                    errorSpan.style.color = "#dc3545";
+                    errorSpan.style.fontSize = "0.875rem";
+                    errorSpan.style.marginTop = "6px";
+                    errorSpan.style.display = "block";
+                    errorSpan.textContent = message;
+
+                    // Target .iti wrapper created by intl-tel-input
+                    const itiContainer = input.closest(".iti") || input;
+                    
+                    // Insert immediately after the input container
+                    itiContainer.parentNode.insertBefore(errorSpan, itiContainer.nextSibling);
+                };
+
+                // Remove the dynamically created error span
+                const clearError = () => {
+                    const existingError = document.querySelector(".dynamic-phone-error");
+                    if (existingError) {
+                        existingError.remove();
+                    }
+                };
+
+                // Clear dynamic error as soon as user edits input
+                input.addEventListener("input", clearError);
+
+                formEl.addEventListener("submit", (e) => {
+                    clearError();
+
+                    const rawValue = input.value.trim();
+                    const isEmail = rawValue.includes("@") || /[a-zA-Z]/.test(rawValue);
+
+                    // Skip validation if it's an email'
+                    if (isEmail || rawValue === "") return;
+
+                    const countryData = iti.getSelectedCountryData();
+                    const formattedNumber = iti.getNumber();
+
+                    // Check if country code is missing or number is invalid
+                    if (!countryData.dialCode || !formattedNumber.startsWith("+") || !iti.isValidNumber()) {
+                        e.preventDefault(); // Stop submission
+                        const err_msg = "{{ auth_common_text.enterValidCountryCodeAndNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
+                        showError(err_msg);
+                        
+                        // DO NOT DISABLE: Keep button active on error
+                        resetButton();
+                        return;
+                    }
+
+                    // Reformat input to E.164 before submitting
+                    input.value = formattedNumber;
+
+                    // Disable submit button to prevent multiple submissions
+                    // Use setTimeout so the form payload captures the input value before disabling
+                    setTimeout(() => {
+                        submitButton.disabled = true;
+                        submitButton.innerText = submittingText;
+                    }, 10);
+                });
+            });
         });
     </script>
     
@@ -168,6 +282,19 @@
             justify-content: center;
             padding: 10px;
             font-size: 1rem;
+        }
+
+
+
+        /* Hides the country dropdown UI when rendering an email */
+        .iti-disabled-style .iti__flag-container {
+            display: none;
+        }
+        .iti-disabled-style input {
+            padding-left: 0.9rem !important;
+        }
+        .iti {
+            width: 100%;
         }
     </style>
 
