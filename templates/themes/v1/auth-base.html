@@ -57,15 +57,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             const submitButton = document.querySelector('button[type="submit"]');
             const formEl = document.querySelector('form');
-            formEl.addEventListener('submit', function() {
-                // Disable the submit button to prevent multiple submissions
-                submitButton.disabled = true;
-                submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
-            });
-            if (formEl.errors || formEl.querySelectorAll('.errorlist').length > 0 || formEl.querySelectorAll('.is-invalid').length > 0) {
+            const defaultBtnText = "{{ common_text.submit | default:'Submit' }}";
+            const submittingText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
+            const resetButton = () => {
                 submitButton.disabled = false;
-                submitButton.innerText = "{{ common_text.submit | default:'Submit' }}";
+                submitButton.innerText = defaultBtnText;
             }
+
+            // Reset submit button on fresh page load or browser back/forward navigation
+            resetButton();
+            window.addEventListener("pageshow", (e) => {
+                if (e.persisted) resetButton();
+            });
 
             /* 
                 Handle phone number inputs using the intl-tel-input library.
@@ -155,11 +158,21 @@
                         e.preventDefault(); // Stop submission
                         err_msg = "{{ auth_common_text.invalidPhoneNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
                         showError(err_msg);
+                        
+                        // DO NOT DISABLE: Keep button active on error
+                        resetButton();
                         return;
                     }
 
                     // Reformat input to E.164 before submitting
                     input.value = formattedNumber;
+
+                    // Disable submit button to prevent multiple submissions
+                    // Use setTimeout so the form payload captures the input value before disabling
+                    setTimeout(() => {
+                        submitButton.disabled = true;
+                        submitButton.innerText = submittingText;
+                    }, 10);
                 });
             });
         });
