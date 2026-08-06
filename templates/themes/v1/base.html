@@ -182,15 +182,59 @@
 
                     // Runs on every keypress inside this specific input
                     input.addEventListener("input", adjustUI);
+                
+                    // Dynamically create and insert error span
+                    const showError = (message) => {
+                        clearError(); // Avoid duplicate spans if clicked multiple times
 
-                    // Convert local number to full E.164 before sending
-                    formEl.addEventListener("submit", (e) => {
-                        const value = input.value.trim();
-                        const isEmail = value.includes("@") || /[a-zA-Z]/.test(value);
-                        if (!isEmail && value !== "") {
-                            // getNumber() returns the full country code + local number, e.g., "+14155552671"
-                            input.value = iti.getNumber(); 
+                        const errorSpan = document.createElement("span");
+                        errorSpan.className = "dynamic-phone-error";
+                        errorSpan.style.color = "#dc3545";
+                        errorSpan.style.fontSize = "0.875rem";
+                        errorSpan.style.marginTop = "6px";
+                        errorSpan.style.display = "block";
+                        errorSpan.textContent = message;
+
+                        // Target .iti wrapper created by intl-tel-input
+                        const itiContainer = input.closest(".iti") || input;
+                        
+                        // Insert immediately after the input container
+                        itiContainer.parentNode.insertBefore(errorSpan, itiContainer.nextSibling);
+                    };
+
+                    // Remove the dynamically created error span
+                    const clearError = () => {
+                        const existingError = document.querySelector(".dynamic-phone-error");
+                        if (existingError) {
+                            existingError.remove();
                         }
+                    };
+
+                    // Clear dynamic error as soon as user edits input
+                    input.addEventListener("input", clearError);
+
+                    formEl.addEventListener("submit", (e) => {
+                        clearError();
+
+                        const rawValue = input.value.trim();
+                        const isEmail = rawValue.includes("@") || /[a-zA-Z]/.test(rawValue);
+
+                        // Skip validation if it's an email'
+                        if (isEmail || rawValue === "") return;
+
+                        const countryData = iti.getSelectedCountryData();
+                        const formattedNumber = iti.getNumber();
+
+                        // Check if country code is missing or number is invalid
+                        if (!countryData.dialCode || !formattedNumber.startsWith("+") || !iti.isValidNumber()) {
+                            e.preventDefault(); // Stop submission
+                            err_msg = "{{ auth_common_text.invalidPhoneNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
+                            showError(err_msg);
+                            return;
+                        }
+
+                        // Reformat input to E.164 before submitting
+                        input.value = formattedNumber;
                     });
                 });
             });
