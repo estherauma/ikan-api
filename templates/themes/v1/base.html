@@ -126,115 +126,123 @@
                 const forms = document.querySelectorAll('form');
                 forms.forEach(form => {
                     const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
-                    const submitButtonText = submitButton ? submitButton.innerText : '';
-                    form.addEventListener('submit', function () {
-                        if (submitButton) {
-                            // Disable the submit button to prevent multiple submissions
-                            submitButton.disabled = true;
-                            submitButton.innerText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
-                        }
-                    });
-                    if (form.errors || form.querySelectorAll('.errorlist').length > 0 || form.querySelectorAll('.is-invalid').length > 0) {
-                        if (submitButton) {
-                            submitButton.disabled = false;
-                            submitButton.innerText = submitButtonText || "{{ common_text.submit | default:'Submit' }}";
-                        }
+                    const defaultBtnText = "{{ common_text.submit | default:'Submit' }}";
+                    const submittingText = "{{ common_text.submittingYourData | default:'Submitting your data...' }}";
+                    const resetButton = () => {
+                        submitButton.disabled = false;
+                        submitButton.innerText = defaultBtnText;
                     }
-                });
 
-                /* 
-                    Handle phone number inputs using the intl-tel-input library.
-                    It initializes the library for each input, adjusts the UI based on whether the input is an email or a phone number,
-                    and converts local phone numbers to E.164 format before form submission.
-                */
-                // Query all phone number inputs on a given form
-                const phoneNumberInputs = document.querySelectorAll(".ikan-phonenumber-input");
-                phoneNumberInputs.forEach((input) => {
-                    // Initialize intl-tel-input each field
-                    const iti = window.intlTelInput(input, {
-                        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
-                        initialCountry: "auto",
-                        geoIpLookup: callback => {
-                            fetch("https://ipapi.co/json")
-                            .then(res => res.json())
-                            .then(data => callback(data.country_code))
-                            .catch(() => callback("us"));
-                        }
+                    // Reset submit button on fresh page load or browser back/forward navigation
+                    resetButton();
+                    window.addEventListener("pageshow", (e) => {
+                        if (e.persisted) resetButton();
                     });
 
-                    // Toggle field UI based on whether the input is an email or a phone number
-                    const adjustUI = () => {
-                        const value = input.value.trim();
-                        const isEmail = value.includes("@") || /[a-zA-Z]/.test(value);
-                        const container = input.closest(".iti");
+                    /* 
+                        Handle phone number inputs using the intl-tel-input library.
+                        It initializes the library for each input, adjusts the UI based on whether the input is an email or a phone number,
+                        and converts local phone numbers to E.164 format before form submission.
+                    */
+                    // Query all phone number inputs on a given form
+                    const phoneNumberInputs = document.querySelectorAll(".ikan-phonenumber-input");
+                    phoneNumberInputs.forEach((input) => {
+                        // Initialize intl-tel-input each field
+                        const iti = window.intlTelInput(input, {
+                            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+                            initialCountry: "auto",
+                            geoIpLookup: callback => {
+                                fetch("https://ipapi.co/json")
+                                .then(res => res.json())
+                                .then(data => callback(data.country_code))
+                                .catch(() => callback("us"));
+                            }
+                        });
 
-                        if (container) {
-                            if (isEmail || !value) {
-                                container.classList.add("iti-disabled-style");
-                            } else {
-                                container.classList.remove("iti-disabled-style");
+                        // Toggle field UI based on whether the input is an email or a phone number
+                        const adjustUI = () => {
+                            const value = input.value.trim();
+                            const isEmail = value.includes("@") || /[a-zA-Z]/.test(value);
+                            const container = input.closest(".iti");
+
+                            if (container) {
+                                if (isEmail || !value) {
+                                    container.classList.add("iti-disabled-style");
+                                } else {
+                                    container.classList.remove("iti-disabled-style");
+                                }
                             }
                         }
-                    }
 
-                    // Runs on initial load (handles pre-filled values in edit forms)
-                    adjustUI();
+                        // Runs on initial load (handles pre-filled values in edit forms)
+                        adjustUI();
 
-                    // Runs on every keypress inside this specific input
-                    input.addEventListener("input", adjustUI);
-                
-                    // Dynamically create and insert error span
-                    const showError = (message) => {
-                        clearError(); // Avoid duplicate spans if clicked multiple times
+                        // Runs on every keypress inside this specific input
+                        input.addEventListener("input", adjustUI);
+                    
+                        // Dynamically create and insert error span
+                        const showError = (message) => {
+                            clearError(); // Avoid duplicate spans if clicked multiple times
 
-                        const errorSpan = document.createElement("span");
-                        errorSpan.className = "dynamic-phone-error";
-                        errorSpan.style.color = "#dc3545";
-                        errorSpan.style.fontSize = "0.875rem";
-                        errorSpan.style.marginTop = "6px";
-                        errorSpan.style.display = "block";
-                        errorSpan.textContent = message;
+                            const errorSpan = document.createElement("span");
+                            errorSpan.className = "dynamic-phone-error";
+                            errorSpan.style.color = "#dc3545";
+                            errorSpan.style.fontSize = "0.875rem";
+                            errorSpan.style.marginTop = "6px";
+                            errorSpan.style.display = "block";
+                            errorSpan.textContent = message;
 
-                        // Target .iti wrapper created by intl-tel-input
-                        const itiContainer = input.closest(".iti") || input;
-                        
-                        // Insert immediately after the input container
-                        itiContainer.parentNode.insertBefore(errorSpan, itiContainer.nextSibling);
-                    };
+                            // Target .iti wrapper created by intl-tel-input
+                            const itiContainer = input.closest(".iti") || input;
+                            
+                            // Insert immediately after the input container
+                            itiContainer.parentNode.insertBefore(errorSpan, itiContainer.nextSibling);
+                        };
 
-                    // Remove the dynamically created error span
-                    const clearError = () => {
-                        const existingError = document.querySelector(".dynamic-phone-error");
-                        if (existingError) {
-                            existingError.remove();
-                        }
-                    };
+                        // Remove the dynamically created error span
+                        const clearError = () => {
+                            const existingError = document.querySelector(".dynamic-phone-error");
+                            if (existingError) {
+                                existingError.remove();
+                            }
+                        };
 
-                    // Clear dynamic error as soon as user edits input
-                    input.addEventListener("input", clearError);
+                        // Clear dynamic error as soon as user edits input
+                        input.addEventListener("input", clearError);
 
-                    formEl.addEventListener("submit", (e) => {
-                        clearError();
+                        form.addEventListener("submit", (e) => {
+                            clearError();
 
-                        const rawValue = input.value.trim();
-                        const isEmail = rawValue.includes("@") || /[a-zA-Z]/.test(rawValue);
+                            const rawValue = input.value.trim();
+                            const isEmail = rawValue.includes("@") || /[a-zA-Z]/.test(rawValue);
 
-                        // Skip validation if it's an email'
-                        if (isEmail || rawValue === "") return;
+                            // Skip validation if it's an email'
+                            if (isEmail || rawValue === "") return;
 
-                        const countryData = iti.getSelectedCountryData();
-                        const formattedNumber = iti.getNumber();
+                            const countryData = iti.getSelectedCountryData();
+                            const formattedNumber = iti.getNumber();
 
-                        // Check if country code is missing or number is invalid
-                        if (!countryData.dialCode || !formattedNumber.startsWith("+") || !iti.isValidNumber()) {
-                            e.preventDefault(); // Stop submission
-                            err_msg = "{{ auth_common_text.invalidPhoneNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
-                            showError(err_msg);
-                            return;
-                        }
+                            // Check if country code is missing or number is invalid
+                            if (!countryData.dialCode || !formattedNumber.startsWith("+") || !iti.isValidNumber()) {
+                                e.preventDefault(); // Stop submission
+                                err_msg = "{{ auth_common_text.invalidPhoneNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
+                                showError(err_msg);
+                            
+                                // DO NOT DISABLE: Keep button active on error
+                                resetButton();
+                                return;
+                            }
 
-                        // Reformat input to E.164 before submitting
-                        input.value = formattedNumber;
+                            // Reformat input to E.164 before submitting
+                            input.value = formattedNumber;
+
+                            // Disable submit button to prevent multiple submissions
+                            // Use setTimeout so the form payload captures the input value before disabling
+                            setTimeout(() => {
+                                submitButton.disabled = true;
+                                submitButton.innerText = submittingText;
+                            }, 10);
+                        });
                     });
                 });
             });
