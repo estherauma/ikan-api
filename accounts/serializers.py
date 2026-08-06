@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from accounts.models import User, UserBank, UserBeneficiaries
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from common.twilio import OTPVerification, check_verification_code
 from django.db.models import Q
@@ -58,8 +59,8 @@ class RegisterSerializer(serializers.Serializer):
     def validate_password(self, value):
         try:
             validate_password(value)
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(error.messages)
         return value
 
     def validate(self, data):
@@ -201,8 +202,8 @@ class PasswordResetSerializer(serializers.Serializer):
     def validate_password(self, value):
         try:
             validate_password(value)
-        except Exception as e:
-            raise serializers.ValidationError(str(e))
+        except DjangoValidationError as error:
+            raise serializers.ValidationError(error.messages)
         return value
 
 

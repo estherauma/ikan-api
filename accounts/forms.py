@@ -3,6 +3,7 @@ import re
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.models import Group
 from accounts.models import User, AgentVesselOwnerRelationship
 from django.core.exceptions import ValidationError
@@ -133,6 +134,12 @@ class RegistrationForm(UserCreationForm):
 
         if password1 != password2:
             raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
+
+        try:
+            validate_password(password2, self.instance)
+        except ValidationError as error:
+            raise forms.ValidationError(error.messages)
+
         return password2
 
     def __init__(self, *args, **kwargs):
@@ -273,6 +280,19 @@ class PasswordResetForm(forms.Form):
 
         if password1 != password2:
             raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
+
+        user = None
+        if self.cleaned_data.get('has_email'):
+            user = User.objects.filter(email=self.cleaned_data.get('email')).first()
+        elif self.cleaned_data.get('has_phone_number'):
+            mobile = self.cleaned_data.get('mobile')
+            user = User.objects.filter(Q(mobile=mobile) | Q(telephone=mobile)).first()
+
+        try:
+            validate_password(password2, user)
+        except ValidationError as error:
+            raise forms.ValidationError(error.messages)
+
         return password2
 
     def __init__(self, *args, **kwargs):
@@ -525,6 +545,12 @@ class CreateWorkerForVOForm(forms.Form):
 
         if password1 != password2:
             raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
+
+        try:
+            validate_password(password2)
+        except ValidationError as error:
+            raise forms.ValidationError(error.messages)
+
         return password2
 
     def __init__(self, *args, **kwargs):
