@@ -156,7 +156,7 @@
                     // Check if country code is missing or number is invalid
                     if (!countryData.dialCode || !formattedNumber.startsWith("+") || !iti.isValidNumber()) {
                         e.preventDefault(); // Stop submission
-                        err_msg = "{{ auth_common_text.invalidPhoneNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
+                        const err_msg = "{{ auth_common_text.invalidPhoneNumber | default:'Please select a valid country code and enter a complete phone number.' }}"
                         showError(err_msg);
                         
                         // DO NOT DISABLE: Keep button active on error
