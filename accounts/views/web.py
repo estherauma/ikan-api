@@ -20,6 +20,7 @@ from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
+from accounts.utils import get_workers
 
 
 @login_required(login_url='/account/login')
@@ -163,12 +164,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
         context['invite_user_form'] = InviteUser()
         context['resend_token_form'] = ResendTokenForm()
         context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=self.request.user)
-
-        super_user = self.request.user.is_superuser
-        users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
-        workers = users.filter(groups__name='worker', created_by=self.request.user.id)
-
-        context['workers'] = workers
+        context['workers'] = get_workers(self.request)
         prismic_utils = PrismicUtils(self.request)
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
@@ -260,12 +256,7 @@ def invite_user(request):
     context['invite_user_form'] = InviteUser()
     context['resend_token_form'] = ResendTokenForm()
     context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=request.user)
-
-    super_user = request.user.is_superuser
-    users = User.objects.all() if super_user else User.objects.filter(created_by=request.user.id)
-    workers = users.filter(groups__name='worker', created_by=request.user.id)
-
-    context['workers'] = workers
+    context['workers'] = get_workers(request)
     prismic_utils = PrismicUtils(request)
     auth_common_text = prismic_utils.get_page_text('auth-common-text')
     context['auth_common_text'] = auth_common_text
