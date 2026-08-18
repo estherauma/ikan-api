@@ -315,21 +315,21 @@ def invite_user(request):
                                                         'User created but an error occurred while sending the email. \
                                                             Please contact support.'))
             # TODO: to be worked on with api/mobile changes
-            # if form.cleaned_data.get('has_phone_number'):
-            #     try:
-            #         otp_service = OTPVerification()
-            #         # locale = get_locale_from_request(request)
-            #         # otp_service.send_otp(user.mobile, locale=locale)
-            #         # add message asking user to verify their phone number and to set password using the mobile app
-            #         message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
-            #                                        Please download the IKAN mobile app to verify your phone number \
-            #                                        and set your password. Your access code is: ') + user.access_code
-            #         otp_service.send_sms(user.mobile, message)
-            #     except Exception:
-            #         messages.error(request,
-            #                        auth_common_text.get('userCreatedErrorSendingSMS',
-            #                                             'User created but an error occurred while sending the SMS. \
-            #                                               Please contact support.'))
+            if form.cleaned_data.get('has_phone_number'):
+                try:
+                    otp_service = OTPVerification()
+                    # locale = get_locale_from_request(request)
+                    # otp_service.send_otp(user.mobile, locale=locale)
+                    # add message asking user to verify their phone number and to set password using the mobile app
+                    message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
+                                                   Please download the IKAN mobile app to verify your phone number \
+                                                   and set your password. Your access code is: ') + user.access_code
+                    otp_service.send_sms(user.mobile, message)
+                except Exception:
+                    messages.error(request,
+                                   auth_common_text.get('userCreatedErrorSendingSMS',
+                                                        'User created but an error occurred while sending the SMS. \
+                                                          Please contact support.'))
 
             if form_origin == 'worker-list':
                 return redirect('accounts:workers')
