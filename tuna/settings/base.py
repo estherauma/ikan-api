@@ -42,6 +42,7 @@ ALLOWED_HOSTS = config(
 INSTALLED_APPS = [
     "accounts",
     "companies",
+    "content",
     "contracts",
     "corsheaders",
     "common",
