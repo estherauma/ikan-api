@@ -17,6 +17,7 @@ import json
 from google.oauth2 import service_account
 from dotenv import load_dotenv
 from django.contrib.messages import constants as message_constants
+from common.logging_config import build_logging_config
 
 load_dotenv()
 
@@ -236,3 +237,5 @@ GS_DEFAULT_ACL = None
 MESSAGE_TAGS = {
     message_constants.ERROR: "danger",
 }
+
+LOGGING = build_logging_config()

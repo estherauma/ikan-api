@@ -170,3 +170,4 @@ uploads/
 
 gcs-credentials.json
 aggregated_content_example.json
+logs/
