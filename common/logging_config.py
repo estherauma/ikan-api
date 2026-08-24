@@ -35,6 +35,23 @@ def build_logging_config():
         },
         "root": {
             "handlers": ["console", "daily_file"],
-            "level": 'WARNING',
+            "level": 'INFO',
+        },
+        "loggers": {
+            "django.utils.autoreload": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "matplotlib": {
+                "handlers": ["console", "daily_file"],
+                "level": "ERROR",
+                "propagate": False,
+            },
+            "matplotlib.font_manager": {
+                "handlers": ["console", "daily_file"],
+                "level": "ERROR",
+                "propagate": False,
+            },
         },
     }
