@@ -54,6 +54,20 @@ def aggregate_additional_text(dynamic_zone):
     return result
 
 
+def aggregate_common_text_entries(dynamic_zone):
+    result = []
+    for item in dynamic_zone:
+        if item.get("__component") != "ikan.common-text":
+            continue
+        result.append(
+            {
+                "label": item.get("key"),
+                "value": item.get("value"),
+            }
+        )
+    return result
+
+
 def aggregate_text(value, split_lines=False):
     if not value:
         return None

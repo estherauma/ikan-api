@@ -1,5 +1,6 @@
 from content.services.aggregation_utils import (
     aggregate_additional_text,
+    aggregate_common_text_entries,
     aggregate_image,
     aggregate_media,
     aggregate_rich_text,
@@ -95,7 +96,21 @@ def aggregate_case_study(item, base_url):
     )
 
 
+def aggregate_common_text(item, _base_url):
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "page_name": item.get("uid"),
+            "page_title": item.get("page_title"),
+            "last_updated": item.get("last_published_at") or item.get("updatedAt"),
+            "data": aggregate_common_text_entries(item.get("dynamic_zone", [])),
+        },
+    )
+
+
 AGGREGATORS = {
     "app_tutorials": aggregate_app_tutorials,
     "case_study": aggregate_case_study,
+    "common_text": aggregate_common_text,
 }

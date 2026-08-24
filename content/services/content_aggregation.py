@@ -1,4 +1,6 @@
+import json
 import logging
+from pathlib import Path
 
 from content.models import AggregatedContent
 from content.services.aggregators import aggregate_documents
@@ -6,6 +8,7 @@ from content.services.strapi_content import StrapiContentService
 
 
 logger = logging.getLogger(__name__)
+TEMP_AGGREGATED_DATA_FILE = Path(__file__).resolve().parents[2] / "new_agg_data.json"
 
 
 class ContentAggregationService:
@@ -35,6 +38,7 @@ class ContentAggregationService:
             aggregated_data = self._merge_with_latest_snapshot(aggregated_data)
 
         snapshot = AggregatedContent.objects.create(content=aggregated_data)
+        self._write_temp_aggregated_data_file(aggregated_data)
         self._prune_old_snapshots()
 
         logger.info(
@@ -45,6 +49,13 @@ class ContentAggregationService:
             aggregated_count,
         )
         return snapshot, aggregated_count
+
+    def _write_temp_aggregated_data_file(self, aggregated_data):
+        # TODO: Remove this temporary JSON dump once aggregation testing is complete.
+        TEMP_AGGREGATED_DATA_FILE.write_text(
+            json.dumps(aggregated_data, default=str, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
     def _merge_with_latest_snapshot(self, partial_data):
         latest_snapshot = AggregatedContent.objects.order_by("-created_at").first()
