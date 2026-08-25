@@ -343,6 +343,34 @@ def aggregate_dropdown_content_component(zone, base_url, **_context):
     }
 
 
+def aggregate_clickable_list_component(zone, **_context):
+    base_url = _context.get("base_url")
+    items = []
+
+    for item in zone.get("repeatable_zone", []):
+        icon = aggregate_image(item.get("icon"), base_url)
+        page_reference = item.get("page")
+        page = None
+
+        if page_reference:
+            page = {"uid": page_reference}
+
+        items.append(
+            {
+                "icon": icon.get("url") if icon else None,
+                "label": render_rich_text_as_plain_text(item.get("label")),
+                "navigationPage": None,
+                "page": page,
+            }
+        )
+
+    return {
+        "type": "clickable_list",
+        "layout": (zone.get("layout") or "flow").lower(),
+        "list": items,
+    }
+
+
 def aggregate_case_study_component(
     zone,
     **_context,
@@ -508,6 +536,7 @@ def find_existing_aggregated_case_study(existing_content, uid, locale):
 
 DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.additional-text": aggregate_additional_text_component,
+    "ikan.clickable-list": aggregate_clickable_list_component,
     "ikan.common-text": aggregate_common_text_component,
     "ikan.dropdown-content": aggregate_dropdown_content_component,
     "ikan.heading": aggregate_heading_component,

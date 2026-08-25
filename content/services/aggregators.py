@@ -274,6 +274,35 @@ def aggregate_learning_hub_subchapter(item, **context):
     )
 
 
+def aggregate_learning_hub_subchapter_list(item, **context):
+    base_url = context.get("base_url")
+    page_content = aggregate_dynamic_zone(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+    )
+
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "id": item.get("prismic_id") or item.get("id"),
+            "type": "learning_hub_subchapter_list",
+            "chapter": item.get("chapter"),
+            "language": item.get("locale"),
+            "pageIcon": aggregate_image(item.get("page_icon"), base_url),
+            "pageAudio": aggregate_media_reference(item.get("page_audio"), base_url),
+            "pageTitle": item.get("page_title") or "Title",
+            "pageVideo": aggregate_media_reference(item.get("page_video"), base_url),
+            "page_name": item.get("uid"),
+            "pageContent": page_content,
+            "disclaimerText": item.get("disclaimer_text"),
+            "pageTitleAudio": aggregate_media_reference(item.get("title_audio"), base_url),
+            "pageDescription": aggregate_rich_text(item.get("page_description")),
+            "analyticsEventName": item.get("analytics_event_name"),
+        },
+    )
+
+
 CUSTOM_TYPE_AGGREGATORS = {
     "app_tutorials": aggregate_app_tutorials,
     "case_study": aggregate_case_study,
@@ -282,4 +311,5 @@ CUSTOM_TYPE_AGGREGATORS = {
     "form_questions": aggregate_form_questions,
     "language_text": aggregate_language_text,
     "learning_hub_subchapter": aggregate_learning_hub_subchapter,
+    "learning_hub_subchapter_list": aggregate_learning_hub_subchapter_list,
 }
