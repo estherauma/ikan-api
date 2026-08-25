@@ -4,7 +4,7 @@ from content.services import ContentAggregationService
 
 
 class Command(BaseCommand):
-    help = "Fetch content from Strapi and save an aggregated snapshot"
+    help = "Fetch content from Strapi and save an aggregated content record"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--custom-type",
             default=None,
-            help="Aggregate only one custom type and merge it into the latest snapshot.",
+            help="Aggregate only one custom type and merge it into the latest stored content.",
         )
 
     def handle(self, *args, **options):
@@ -36,12 +36,12 @@ class Command(BaseCommand):
             )
             return
 
-        snapshot, aggregated_count = result
+        content_record, aggregated_count = result
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Content aggregation succeeded for '{collection_name}'"
                 f"{f' ({custom_type})' if custom_type else ''}. "
-                f"Aggregated {aggregated_count} document(s). Snapshot ID: {snapshot.id}"
+                f"Aggregated {aggregated_count} document(s). Record ID: {content_record.id}"
             )
         )

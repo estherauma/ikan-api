@@ -1,30 +1,60 @@
+from decouple import config
+
 from content.services.aggregation_utils import (
-    aggregate_additional_text,
-    aggregate_common_text_entries,
+    DYNAMIC_ZONE_COMPONENT_AGGREGATORS,
     aggregate_image,
     aggregate_media,
     aggregate_rich_text,
-    aggregate_text_area,
     aggregate_text,
-    aggregate_tutorials,
+    aggregate_media_reference,
     empty_media,
 )
 
 
-def aggregate_documents(documents, base_url, custom_type=None):
+def aggregate_dynamic_zone(dynamic_zone, **context):
+    return [entry["data"] for entry in aggregate_dynamic_zone_entries(dynamic_zone, **context)]
+
+
+def aggregate_dynamic_zone_entries(dynamic_zone, **context):
+    aggregated_components = []
+
+    for component in dynamic_zone or []:
+        component_name = component.get("__component")
+        aggregator = DYNAMIC_ZONE_COMPONENT_AGGREGATORS.get(component_name)
+        if not aggregator:
+            continue
+
+        aggregated_component = aggregator(component, **context)
+        if aggregated_component is not None:
+            aggregated_components.append(
+                {
+                    "component": component_name,
+                    "data": aggregated_component,
+                }
+            )
+
+    return aggregated_components
+
+
+def aggregate_documents(documents, custom_type=None, existing_content=None):
     aggregated_data = {}
     aggregated_count = 0
+    base_url = config("STRAPI_BASE_URL").rstrip("/")
+    aggregation_context = {
+        "base_url": base_url,
+        "existing_content": existing_content,
+    }
 
     for item in documents:
         item_custom_type = item.get("custom_type")
         if custom_type and item_custom_type != custom_type:
             continue
 
-        aggregator = AGGREGATORS.get(item_custom_type)
+        aggregator = CUSTOM_TYPE_AGGREGATORS.get(item_custom_type)
         if not aggregator:
             continue
 
-        page_key, locale, page_data = aggregator(item, base_url)
+        page_key, locale, page_data = aggregator(item, **aggregation_context)
         if not locale or not page_key or not page_data:
             continue
 
@@ -37,12 +67,24 @@ def aggregate_documents(documents, base_url, custom_type=None):
     return aggregated_data, aggregated_count
 
 
-def aggregate_app_tutorials(item, base_url):
+def aggregate_app_tutorials(item, **context):
     if item.get("uid") != "app-tutorials":
         return None, None, None
 
+    base_url = context.get("base_url")
     locale = item.get("locale")
-    dynamic_zone = item.get("dynamic_zone", [])
+    dynamic_zone_entries = aggregate_dynamic_zone_entries(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+    )
+    tutorials = next(
+        (entry["data"] for entry in dynamic_zone_entries if entry["component"] == "ikan.tutorials"),
+        None,
+    )
+    additional_text = next(
+        (entry["data"] for entry in dynamic_zone_entries if entry["component"] == "ikan.additional-text"),
+        None,
+    )
 
     return (
         "app-tutorials",
@@ -50,53 +92,59 @@ def aggregate_app_tutorials(item, base_url):
         {
             "id": item.get("id"),
             "page_name": "app-tutorials",
-            "tutorials": aggregate_tutorials(dynamic_zone, base_url),
+            "tutorials": tutorials,
             "last_updated": item.get("last_published_at") or item.get("updatedAt"),
             "welcome_text": aggregate_text(item.get("welcome_text")),
-            "welcome_audio": empty_media(),
+            "welcome_audio": aggregate_media(item.get("welcome_audio"), base_url) or empty_media(),
             "welcome_title": item.get("page_title"),
             "welcome_video": aggregate_media(item.get("welcome_video"), base_url),
-            "additional_text": aggregate_additional_text(dynamic_zone),
+            "additional_text": additional_text,
             "analyticsEventName": item.get("analytics_event_name"),
-            "welcome_video_for_public": aggregate_media(item.get("welcome_video_for_public"), base_url),
+            "welcome_video_for_public": (
+                aggregate_media(item.get("welcome_video_for_public"), base_url) or empty_media()
+            ),
         },
     )
 
 
-def aggregate_case_study(item, base_url):
-    page_content = []
+def build_case_study_payload(item, base_url, sub_chapter=None):
+    page_content = aggregate_dynamic_zone(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+        include_audio=False,
+    )
     description = []
+    for content_block in page_content:
+        if content_block.get("description"):
+            description = content_block["description"]
+            break
 
-    for zone in item.get("dynamic_zone", []):
-        if zone.get("__component") != "ikan.text-area":
-            continue
+    return {
+        "uid": item.get("uid"),
+        "id": item.get("id"),
+        "type": "case_study",
+        "image": aggregate_image(item.get("cover_image") or item.get("page_icon"), base_url),
+        "language": item.get("locale"),
+        "pageIcon": aggregate_image(item.get("page_icon"), base_url),
+        "pageTitle": item.get("page_title"),
+        "subChapter": sub_chapter,
+        "description": description,
+        "pageContent": page_content,
+        "pageTitleAudio": {},
+        "analyticsEventName": item.get("analytics_event_name"),
+    }
 
-        text_area = aggregate_text_area(zone)
-        if text_area["description"] and not description:
-            description = text_area["description"]
-        page_content.append(text_area)
 
+def aggregate_case_study(item, **context):
+    base_url = context.get("base_url")
     return (
         item.get("uid"),
         item.get("locale"),
-        {
-            "uid": item.get("uid"),
-            "id": item.get("id"),
-            "type": "case_study",
-            "image": aggregate_image(item.get("cover_image"), base_url),
-            "language": item.get("locale"),
-            "pageIcon": aggregate_image(item.get("page_icon"), base_url),
-            "pageTitle": item.get("page_title"),
-            "subChapter": None,
-            "description": description,
-            "pageContent": page_content,
-            "pageTitleAudio": {},
-            "analyticsEventName": item.get("analytics_event_name"),
-        },
+        build_case_study_payload(item, base_url),
     )
 
 
-def aggregate_common_text(item, _base_url):
+def aggregate_common_text(item, **context):
     return (
         item.get("uid"),
         item.get("locale"),
@@ -104,13 +152,46 @@ def aggregate_common_text(item, _base_url):
             "page_name": item.get("uid"),
             "page_title": item.get("page_title"),
             "last_updated": item.get("last_published_at") or item.get("updatedAt"),
-            "data": aggregate_common_text_entries(item.get("dynamic_zone", [])),
+            "data": aggregate_dynamic_zone(item.get("dynamic_zone", [])),
         },
     )
 
 
-AGGREGATORS = {
+def aggregate_create_content_area(item, **context):
+    base_url = context.get("base_url")
+    existing_content = context.get("existing_content")
+    page_content = aggregate_dynamic_zone(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+        existing_content=existing_content or {},
+        parent_uid=item.get("uid"),
+        locale=item.get("locale"),
+    )
+
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "id": item.get("id"),
+            "type": "create_content_area",
+            "language": item.get("locale"),
+            "pageIcon": aggregate_image(item.get("page_icon"), base_url),
+            "pageAudio": aggregate_media_reference(item.get("page_audio"), base_url) or empty_media(),
+            "pageTitle": item.get("page_title") or "Title",
+            "pageVideo": aggregate_media_reference(item.get("page_video"), base_url) or empty_media(),
+            "page_name": item.get("uid"),
+            "pageContent": page_content,
+            "disclaimerText": item.get("disclaimer_text"),
+            "pageTitleAudio": aggregate_media_reference(item.get("title_audio"), base_url) or {},
+            "pageDescription": aggregate_rich_text(item.get("page_description")),
+            "analyticsEventName": item.get("analytics_event_name"),
+        },
+    )
+
+
+CUSTOM_TYPE_AGGREGATORS = {
     "app_tutorials": aggregate_app_tutorials,
     "case_study": aggregate_case_study,
     "common_text": aggregate_common_text,
+    "create_content_area": aggregate_create_content_area,
 }

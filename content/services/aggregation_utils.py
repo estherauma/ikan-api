@@ -1,14 +1,7 @@
 import re
 
 
-def aggregate_tutorials(dynamic_zone, base_url):
-    tutorials_component = next(
-        (item for item in dynamic_zone if item.get("__component") == "ikan.tutorials"),
-        None,
-    )
-    if not tutorials_component:
-        return None
-
+def aggregate_tutorials_component(tutorials_component, base_url, **_context):
     items = []
     for item in tutorials_component.get("repeatable_zone", []):
         items.append(
@@ -32,14 +25,7 @@ def aggregate_tutorials(dynamic_zone, base_url):
     }
 
 
-def aggregate_additional_text(dynamic_zone):
-    additional_text_component = next(
-        (item for item in dynamic_zone if item.get("__component") == "ikan.additional-text"),
-        None,
-    )
-    if not additional_text_component:
-        return None
-
+def aggregate_additional_text_component(additional_text_component, **_context):
     result = []
     for item in additional_text_component.get("repeatable_zone", []):
         if item.get("value") is None:
@@ -54,18 +40,92 @@ def aggregate_additional_text(dynamic_zone):
     return result
 
 
-def aggregate_common_text_entries(dynamic_zone):
+def aggregate_common_text_component(component, **_context):
+    return {
+        "label": component.get("key"),
+        "value": component.get("value"),
+    }
+
+
+def aggregate_rich_text(blocks):
+    if not blocks:
+        return None
+
     result = []
-    for item in dynamic_zone:
-        if item.get("__component") != "ikan.common-text":
-            continue
-        result.append(
-            {
-                "label": item.get("key"),
-                "value": item.get("value"),
-            }
-        )
-    return result
+    for block in blocks:
+        block_type = block.get("type")
+        if block_type == "paragraph":
+            result.append({"paragraph": render_children_text(block.get("children", []))})
+        elif block_type == "heading":
+            level = block.get("level", 1)
+            result.append({f"heading{level}": render_children_text(block.get("children", []))})
+        elif block_type == "list":
+            list_items = []
+            for child in block.get("children", []):
+                if child.get("type") != "list-item":
+                    continue
+                list_items.append(render_children_text(child.get("children", [])))
+            result.append(
+                {
+                    "orderedList" if block.get("format") == "ordered" else "unorderedList": list_items,
+                }
+            )
+    return result or None
+
+
+def render_rich_text_as_plain_text(blocks):
+    if not blocks:
+        return None
+
+    parts = []
+    for block in blocks:
+        text = render_children_text(block.get("children", []))
+        if text:
+            parts.append(text)
+    if not parts:
+        return ""
+    return " ".join(parts).strip()
+
+
+def aggregate_option_entries(value):
+    if not value:
+        return []
+
+    if isinstance(value, str):
+        return [line.strip() for line in value.splitlines() if line.strip()]
+
+    if isinstance(value, list):
+        return [
+            render_children_text(item.get("children", [])).strip()
+            for item in value
+            if render_children_text(item.get("children", [])).strip()
+        ]
+
+    return []
+
+
+def aggregate_web_link(url):
+    if not url:
+        return None
+
+    return {
+        "url": url,
+        "kind": "web",
+        }
+
+
+def aggregate_media_reference(value, base_url):
+    if not value:
+        return None
+
+    if isinstance(value, str):
+        return aggregate_web_link(value)
+
+    mime = value.get("mime", "")
+    if mime.startswith("image/"):
+        return aggregate_image(value, base_url)
+
+    return aggregate_media(value, base_url)
 
 
 def aggregate_text(value, split_lines=False):
@@ -128,27 +188,105 @@ def aggregate_text_area(zone):
     }
 
 
-def aggregate_rich_text(blocks):
-    if not blocks:
+def aggregate_text_area_component(zone, base_url=None, include_audio=True, **_context):
+    aggregated_text_area = aggregate_text_area(zone)
+    if not include_audio:
+        return aggregated_text_area
+
+    aggregated_text_area["contentAudio"] = (
+        aggregate_media_reference(zone.get("content_audio"), base_url) or empty_media()
+    )
+    return aggregated_text_area
+
+
+def aggregate_question_component(zone, base_url, **_context):
+    return {
+        "key": zone.get("question_key"),
+        "type": "questions",
+        "roles": split_roles(zone.get("roles")) if zone.get("roles") else None,
+        "options": aggregate_question_options(zone.get("repeatable_zone", [])),
+        "question": render_rich_text_as_plain_text(zone.get("question")),
+        "isRequired": zone.get("is_required"),
+        "questionType": zone.get("question_type"),
+        "questionAudio": aggregate_media_reference(zone.get("question_audio"), base_url) or empty_media(),
+        "displayquestion": bool(zone.get("display_question")),
+    }
+
+
+def aggregate_warning_box_component(zone, base_url, **_context):
+    return {
+        "icon": aggregate_image(zone.get("icon"), base_url),
+        "type": "warning_box",
+        "title": zone.get("warning_title"),
+        "description": aggregate_rich_text(zone.get("warning_text")),
+    }
+
+
+def aggregate_dropdown_content_component(zone, base_url, **_context):
+    return {
+        "type": "drop_down_content",
+        "data": [
+            {
+                "title": entry.get("title"),
+                "titleAudio": aggregate_media_reference(entry.get("audio"), base_url) or {},
+                "description": aggregate_rich_text(entry.get("description")),
+                "showDescription": False,
+            }
+            for entry in zone.get("repeatable_zone", [])
+        ],
+    }
+
+
+def aggregate_case_study_component(
+    zone,
+    *,
+    existing_content=None,
+    parent_uid=None,
+    locale=None,
+    **_context,
+):
+    existing_case_study = find_existing_aggregated_case_study(
+        existing_content,
+        zone.get("link"),
+        locale,
+    )
+    if existing_case_study is None:
         return None
 
-    result = []
-    for block in blocks:
-        if block.get("type") != "paragraph":
-            continue
-        children = block.get("children") or []
-        text = "".join(child.get("text", "") for child in children).strip()
-        if text:
-            result.append({"paragraph": text})
-    return result or None
+    return {
+        **existing_case_study,
+        "subChapter": parent_uid,
+    }
+
+
+def aggregate_video_area_component(zone, base_url, **_context):
+    return {
+        "type": "video",
+        "mediaData": aggregate_media_reference(zone.get("video_link"), base_url),
+        "thumbnail": aggregate_image(zone.get("thumbnail"), base_url),
+    }
+
+
+def aggregate_single_image_component(zone, base_url, **_context):
+    return {
+        "type": "image",
+        "title": zone.get("key"),
+        "mediaData": aggregate_image(zone.get("single_image"), base_url),
+    }
+
+
+def aggregate_heading_component(zone, base_url, **_context):
+    return {
+        "text": zone.get("heading"),
+        "type": "heading",
+        "headingAudio": aggregate_media_reference(zone.get("heading_audio"), base_url) or empty_media(),
+    }
 
 
 def empty_media():
     return {
         "url": None,
         "kind": "media",
-        "name": "unknown",
-        "size": "unknown",
     }
 
 
@@ -156,3 +294,120 @@ def split_roles(value):
     if not value:
         return []
     return [role.strip() for role in re.split(r",\s*|\s*,\s*", value) if role.strip()]
+
+
+def render_children_text(children):
+    parts = []
+    for child in children or []:
+        child_type = child.get("type")
+        if child_type == "text":
+            parts.append(render_text_node(child))
+        elif child_type == "link":
+            href = child.get("url")
+            text = render_children_text(child.get("children", []))
+            parts.append(f'<a href="{href}">{text}</a>' if href else text)
+        elif child_type == "list-item":
+            parts.append(render_children_text(child.get("children", [])))
+        else:
+            nested_children = child.get("children")
+            if nested_children is not None:
+                parts.append(render_children_text(nested_children))
+    return "".join(parts)
+
+
+def render_text_node(node):
+    text = node.get("text", "")
+    if node.get("bold"):
+        text = f"<strong>{text}</strong>"
+    if node.get("italic"):
+        text = f"<em>{text}</em>"
+    if node.get("underline"):
+        text = f"<u>{text}</u>"
+    return text
+
+
+def aggregate_question_options(repeatable_zone):
+    options = []
+
+    for item in repeatable_zone:
+        option_values = aggregate_option_entries(item.get("options"))
+        if not option_values:
+            continue
+
+        if len(option_values) > 1:
+            for option in option_values:
+                options.append(
+                    {
+                        "option": option,
+                        "description": None,
+                        "followUpQuestion": None,
+                    }
+                )
+            continue
+
+        follow_up_options = aggregate_option_entries(item.get("follow_up_question_options"))
+        options.append(
+            {
+                "option": option_values[0] if option_values else None,
+                "description": render_rich_text_as_plain_text(item.get("option_description"))
+                if isinstance(item.get("option_description"), list)
+                else item.get("option_description"),
+                "followUpQuestion": (
+                    {
+                        "key": item.get("follow_up_question_key"),
+                        "roles": split_roles(item.get("roles")) if item.get("roles") else None,
+                        "options": [
+                            {
+                                "option": option,
+                                "description": None,
+                                "secondFollowUpQuestion": None,
+                            }
+                            for option in follow_up_options
+                        ]
+                        or None,
+                        "question": item.get("follow_up_question"),
+                        "isRequired": item.get("is_required"),
+                        "questionLink": item.get("follow_up_question_link") or None,
+                        "questionType": item.get("follow_up_question_type"),
+                        "displayquestion": bool(item.get("display_followup_question")),
+                    }
+                    if item.get("follow_up_question")
+                    else None
+                ),
+            }
+        )
+
+    return options
+
+
+def find_existing_aggregated_case_study(existing_content, uid, locale):
+    if not isinstance(existing_content, dict) or not uid or not locale:
+        return None
+
+    locale_pages = existing_content.get(locale)
+    if not isinstance(locale_pages, dict):
+        return None
+
+    existing_page = locale_pages.get(uid)
+    if not isinstance(existing_page, dict):
+        return None
+
+    if existing_page.get("type") != "case_study":
+        return None
+
+    return existing_page
+
+
+DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
+    "ikan.additional-text": aggregate_additional_text_component,
+    "ikan.common-text": aggregate_common_text_component,
+    "ikan.dropdown-content": aggregate_dropdown_content_component,
+    "ikan.heading": aggregate_heading_component,
+    "ikan.question": aggregate_question_component,
+    "ikan.single-image": aggregate_single_image_component,
+    "ikan.text-area": aggregate_text_area_component,
+    "ikan.tutorials": aggregate_tutorials_component,
+    "ikan.video-area": aggregate_video_area_component,
+    "jgw.case-study": aggregate_case_study_component,
+    "jgw.warning-box": aggregate_warning_box_component,
+}
