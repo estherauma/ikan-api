@@ -19,6 +19,7 @@ from ..views.api import (
     GetOTP,
     VerifyOTP,
     CheckPhoneNumberUniquenessView,
+    SyncUserData,
 )
 
 app_name = 'accounts-api'
@@ -46,4 +47,5 @@ urlpatterns = [
     path('generate-otp/', GetOTP.as_view(), name='generate-otp'),
     path('verify-otp/', VerifyOTP.as_view(), name='verify-otp'),
     path('check-unique-phone-number/', CheckPhoneNumberUniquenessView.as_view(), name='check-unique-phone-number'),
+    path('sync', SyncUserData.as_view(), name='sync'),
 ]
