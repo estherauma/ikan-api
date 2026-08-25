@@ -1308,9 +1308,9 @@ class SyncUserData(APIView):
         Returns the user's data along with a token and first login status.
         """
         user = request.user
-        payload = UserProfileSerializer(user).data
+        profile = UserProfileSerializer(user).data
         identity_manager = JwtManager()
-        payload = {
+        token_payload = {
             'email': user.email if user.email else '',
             'mobile': user.mobile if user.mobile else '',
             'id': user.pk,
@@ -1320,14 +1320,14 @@ class SyncUserData(APIView):
             'role': list(user.groups.values_list('name', flat=True))[0] if user.groups.exists() else '',
             'roles': list(user.groups.values_list('name', flat=True)) if user.groups.exists() else [],
         }
-        token = identity_manager.encode(payload)
+        token = identity_manager.encode(token_payload)
         is_first_login = user.last_login is None
 
         return Response({
             'status': 'OK',
             'data': {
                 'token': token,
-                'user_data': payload,
+                'user_data': profile,
                 'is_first_login': is_first_login,
                 'sync_data': get_sync_data(user),
             }
