@@ -7,6 +7,7 @@ from accounts.serializers import (
     OTPGenerateSerializer, OTPVerifySerializer
 )
 
+from accounts.utils import get_sync_data
 from accounts.views.web import get_locale_from_request
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
@@ -152,6 +153,7 @@ class LoginView(APIView):
                 'token': token,
                 'is_first_login': is_first_login,
                 'user_data': payload,
+                'sync_data': get_sync_data(user),
             }
         },
             status.HTTP_200_OK
@@ -1290,3 +1292,43 @@ class CheckPhoneNumberUniquenessView(APIView):
             "unique": not exists,
             "phone_number": phone_number
         }, status.HTTP_200_OK)
+
+
+class SyncUserData(APIView):
+    """
+    API endpoint for syncing user data.
+    Requires authentication.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        """
+        Sync user data.
+
+        Returns the user's data along with a token and first login status.
+        """
+        user = request.user
+        payload = UserProfileSerializer(user).data
+        identity_manager = JwtManager()
+        payload = {
+            'email': user.email if user.email else '',
+            'mobile': user.mobile if user.mobile else '',
+            'id': user.pk,
+            'firstName': user.first_name,
+            'lastName': user.last_name,
+            'isAdmin': user.is_admin,
+            'role': list(user.groups.values_list('name', flat=True))[0] if user.groups.exists() else '',
+            'roles': list(user.groups.values_list('name', flat=True)) if user.groups.exists() else [],
+        }
+        token = identity_manager.encode(payload)
+        is_first_login = user.last_login is None
+
+        return Response({
+            'status': 'OK',
+            'data': {
+                'token': token,
+                'user_data': payload,
+                'is_first_login': is_first_login,
+                'sync_data': get_sync_data(user),
+            }
+        })
