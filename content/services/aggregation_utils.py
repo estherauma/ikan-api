@@ -1,6 +1,31 @@
 import re
 
 
+def normalize_link_url(url):
+    if not isinstance(url, str):
+        return url
+
+    normalized_url = url.strip()
+
+    mailto_match = re.match(r"^(mailto:)+", normalized_url, flags=re.IGNORECASE)
+    if mailto_match:
+        remainder = normalized_url[mailto_match.end():]
+        if remainder.lower().startswith(("http://", "https://")):
+            normalized_url = remainder
+        else:
+            normalized_url = f"mailto:{remainder}"
+
+    tel_match = re.match(r"^(tel:)+", normalized_url, flags=re.IGNORECASE)
+    if tel_match:
+        remainder = normalized_url[tel_match.end():]
+        if remainder.lower().startswith(("http://", "https://")):
+            normalized_url = remainder
+        else:
+            normalized_url = f"tel:{remainder}"
+
+    return normalized_url
+
+
 def aggregate_tutorials_component(tutorials_component, base_url, **_context):
     items = []
     for item in tutorials_component.get("repeatable_zone", []):
@@ -303,7 +328,7 @@ def render_children_text(children):
         if child_type == "text":
             parts.append(render_text_node(child))
         elif child_type == "link":
-            href = child.get("url")
+            href = normalize_link_url(child.get("url"))
             text = render_children_text(child.get("children", []))
             parts.append(f'<a href="{href}">{text}</a>' if href else text)
         elif child_type == "list-item":
