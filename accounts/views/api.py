@@ -112,7 +112,7 @@ class LoginView(APIView):
             }, status.HTTP_400_BAD_REQUEST)
 
         if user:
-            if user.is_active:
+            if user.is_active and user.is_verified:
                 if user.check_password(password):
                     identity_manager = JwtManager()
                     if user.groups.exists():
