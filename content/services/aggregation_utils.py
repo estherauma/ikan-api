@@ -72,6 +72,14 @@ def aggregate_common_text_component(component, **_context):
     }
 
 
+def aggregate_language_text_component(component, **_context):
+    return {
+        "key": component.get("key"),
+        "label": component.get("label"),
+        "locale_code": component.get("locale_code"),
+    }
+
+
 def parse_inline_str_comma_separated_options(value):
     if not value:
         return []
@@ -481,6 +489,7 @@ DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.common-text": aggregate_common_text_component,
     "ikan.dropdown-content": aggregate_dropdown_content_component,
     "ikan.heading": aggregate_heading_component,
+    "ikan.language-text": aggregate_language_text_component,
     "ikan.question": aggregate_question_component,
     "ikan.single-image": aggregate_single_image_component,
     "ikan.text-area": aggregate_text_area_component,

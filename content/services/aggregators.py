@@ -159,6 +159,19 @@ def aggregate_common_text(item, **context):
     )
 
 
+def aggregate_language_text(item, **context):
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "page_name": item.get("uid"),
+            "page_title": item.get("page_title"),
+            "last_updated": item.get("last_published_at") or item.get("updatedAt"),
+            "data": aggregate_dynamic_zone(item.get("dynamic_zone", [])),
+        },
+    )
+
+
 def aggregate_form_questions(item, **context):
     form_questions = []
     additional_text = []
@@ -221,4 +234,5 @@ CUSTOM_TYPE_AGGREGATORS = {
     "common_text": aggregate_common_text,
     "create_content_area": aggregate_create_content_area,
     "form_questions": aggregate_form_questions,
+    "language_text": aggregate_language_text,
 }
