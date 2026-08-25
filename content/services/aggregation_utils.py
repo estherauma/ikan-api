@@ -72,6 +72,59 @@ def aggregate_common_text_component(component, **_context):
     }
 
 
+def parse_inline_str_comma_separated_options(value):
+    if not value:
+        return []
+
+    if isinstance(value, list):
+        return value
+
+    if isinstance(value, str):
+        return value.split(",") if value and value.strip() else []
+    return []
+
+
+def aggregate_form_question_options(options, options_translations=None):
+    option_values = parse_inline_str_comma_separated_options(options)
+    if not option_values:
+        return []
+
+    translated_values = parse_inline_str_comma_separated_options(options_translations)
+    if translated_values:
+        return [
+            {
+                "label": label,
+                "value": value,
+            }
+            for label, value in zip(translated_values, option_values)
+        ]
+
+    return [
+        {
+            "label": value,
+            "value": value,
+        }
+        for value in option_values
+    ]
+
+
+def aggregate_form_question_component(component, **_context):
+    return {
+        "category": component.get("category"),
+        "key": component.get("key"),
+        "label": component.get("label"),
+        "placeholder": component.get("placeholder"),
+        "question_type": component.get("question_type"),
+        "is_required": component.get("is_required"),
+        "displayquestion": component.get("displayquestion"),
+        "help_text": component.get("helptext"),
+        "options": aggregate_form_question_options(
+            component.get("options"),
+            component.get("options_translations"),
+        ),
+    }
+
+
 def aggregate_rich_text(blocks):
     if not blocks:
         return None

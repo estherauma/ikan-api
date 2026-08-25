@@ -2,11 +2,13 @@ from decouple import config
 
 from content.services.aggregation_utils import (
     DYNAMIC_ZONE_COMPONENT_AGGREGATORS,
+    aggregate_form_question_component,
     aggregate_image,
     aggregate_media,
     aggregate_rich_text,
     aggregate_text,
     aggregate_media_reference,
+    aggregate_additional_text_component,
     empty_media,
 )
 
@@ -157,6 +159,30 @@ def aggregate_common_text(item, **context):
     )
 
 
+def aggregate_form_questions(item, **context):
+    form_questions = []
+    additional_text = []
+
+    for component in item.get("dynamic_zone", []):
+        component_name = component.get("__component")
+        if component_name == "ikan.form-question":
+            form_questions.append(aggregate_form_question_component(component))
+        elif component_name == "ikan.additional-text":
+            additional_text = aggregate_additional_text_component(component)
+
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "page_name": item.get("uid"),
+            "page_title": item.get("page_title"),
+            "last_updated": item.get("last_published_at") or item.get("updatedAt"),
+            "form_questions": form_questions,
+            "additional_text": additional_text,
+        },
+    )
+
+
 def aggregate_create_content_area(item, **context):
     base_url = context.get("base_url")
     existing_content = context.get("existing_content")
@@ -194,4 +220,5 @@ CUSTOM_TYPE_AGGREGATORS = {
     "case_study": aggregate_case_study,
     "common_text": aggregate_common_text,
     "create_content_area": aggregate_create_content_area,
+    "form_questions": aggregate_form_questions,
 }
