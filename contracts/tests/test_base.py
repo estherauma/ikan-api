@@ -1,10 +1,13 @@
 from rest_framework.test import APITestCase
+from django.core.cache import cache
 from django.test import TestCase
 
 
 class BaseApiTestCase(APITestCase):
     def setUp(self):
         self.login_url = '/api/v1/auth/login/'
+        # throttle counters live in the cache and would otherwise leak between tests
+        cache.clear()
 
     def login(self, user):
         pass
