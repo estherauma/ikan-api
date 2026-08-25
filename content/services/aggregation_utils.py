@@ -80,6 +80,26 @@ def aggregate_language_text_component(component, **_context):
     }
 
 
+def aggregate_subchapter_subtopics_component(component, **_context):
+    return [
+        {
+            "id": item.get("subtopic_id"),
+            "title": item.get("subtopic_title"),
+        }
+        for item in component.get("repeatable_zone", [])
+        if item.get("subtopic_id") or item.get("subtopic_title")
+    ]
+
+
+def aggregate_audio_component(component, base_url, **_context):
+    return {
+        "type": "audio",
+        "title": component.get("audio_title"),
+        "description": aggregate_rich_text(component.get("audio_description")),
+        "mediaData": aggregate_media_reference(component.get("audio_link"), base_url),
+    }
+
+
 def parse_inline_str_comma_separated_options(value):
     if not value:
         return []
@@ -325,16 +345,18 @@ def aggregate_dropdown_content_component(zone, base_url, **_context):
 
 def aggregate_case_study_component(
     zone,
-    *,
-    existing_content=None,
-    parent_uid=None,
-    locale=None,
     **_context,
 ):
+    existing_content = _context.get("existing_content")
+    parent_uid = _context.get("parent_uid")
+    locale = _context.get("locale")
+    link = zone.get("link") or {}
+    linked_uid = link.get("uid") if isinstance(link, dict) else link
+    linked_locale = link.get("locale") if isinstance(link, dict) else None
     existing_case_study = find_existing_aggregated_case_study(
         existing_content,
-        zone.get("link"),
-        locale,
+        linked_uid,
+        linked_locale or locale,
     )
     if existing_case_study is None:
         return None
@@ -490,10 +512,14 @@ DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.dropdown-content": aggregate_dropdown_content_component,
     "ikan.heading": aggregate_heading_component,
     "ikan.language-text": aggregate_language_text_component,
+    "ikan.audio": aggregate_audio_component,
+    "ikan.case-study-linked": aggregate_case_study_component,
     "ikan.question": aggregate_question_component,
+    "ikan.subchapter-subtopics": aggregate_subchapter_subtopics_component,
     "ikan.single-image": aggregate_single_image_component,
     "ikan.text-area": aggregate_text_area_component,
     "ikan.tutorials": aggregate_tutorials_component,
+    "ikan.warning-box": aggregate_warning_box_component,
     "ikan.video-area": aggregate_video_area_component,
     "jgw.case-study": aggregate_case_study_component,
     "jgw.warning-box": aggregate_warning_box_component,

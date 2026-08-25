@@ -28,6 +28,9 @@ def aggregate_dynamic_zone_entries(dynamic_zone, **context):
 
         aggregated_component = aggregator(component, **context)
         if aggregated_component is not None:
+            # subtopic_id is unique to learning_hub_subchapter componennts, we can add it here
+            if component.get("subtopic_id"):
+                aggregated_component["subtopicId"] = component.get("subtopic_id")
             aggregated_components.append(
                 {
                     "component": component_name,
@@ -228,6 +231,49 @@ def aggregate_create_content_area(item, **context):
     )
 
 
+def aggregate_learning_hub_subchapter(item, **context):
+    base_url = context.get("base_url")
+    existing_content = context.get("existing_content")
+    dynamic_zone_entries = aggregate_dynamic_zone_entries(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+        existing_content=existing_content or {},
+        parent_uid=item.get("uid"),
+        locale=item.get("locale"),
+    )
+    subchapter_subtopics = []
+    page_content = []
+
+    for entry in dynamic_zone_entries:
+        if entry["component"] == "ikan.subchapter-subtopics":
+            subchapter_subtopics = entry["data"]
+        else:
+            page_content.append(entry["data"])
+
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "id": item.get("id"),
+            "type": "learning_hub_subchapter",
+            "language": item.get("locale"),
+            "pageIcon": aggregate_image(item.get("page_icon"), base_url),
+            "pageAudio": aggregate_media_reference(item.get("page_audio"), base_url) or empty_media(),
+            "pageTitle": item.get("page_title") or "Title",
+            "pageVideo": aggregate_media_reference(item.get("page_video"), base_url) or empty_media(),
+            "page_name": item.get("uid"),
+            "subchapter": item.get("subchapter"),
+            "pageContent": page_content,
+            "disclaimerText": item.get("disclaimer_text"),
+            "pageTitleAudio": aggregate_media_reference(item.get("title_audio"), base_url) or empty_media(),
+            "pageDescription": aggregate_rich_text(item.get("page_description")),
+            "subchapterSummary": aggregate_rich_text(item.get("subchapter_summary")),
+            "analyticsEventName": item.get("analytics_event_name"),
+            "subchapterSubtopics": subchapter_subtopics,
+        },
+    )
+
+
 CUSTOM_TYPE_AGGREGATORS = {
     "app_tutorials": aggregate_app_tutorials,
     "case_study": aggregate_case_study,
@@ -235,4 +281,5 @@ CUSTOM_TYPE_AGGREGATORS = {
     "create_content_area": aggregate_create_content_area,
     "form_questions": aggregate_form_questions,
     "language_text": aggregate_language_text,
+    "learning_hub_subchapter": aggregate_learning_hub_subchapter,
 }
