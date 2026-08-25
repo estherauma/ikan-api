@@ -181,6 +181,14 @@ REST_FRAMEWORK = {
         "accounts.backends.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    # views opt in via `throttle_scope`; unscoped views are left unthrottled
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.ScopedRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "10/min",
+        "sync": "30/min",
+    },
 }
 
 # jwt token settings

@@ -43,6 +43,7 @@ from companies.serializers import UserCompanySerializer
 class LoginView(APIView):
     serializer_class = LoginSerializer
     permission_classes = (AllowAny,)
+    throttle_scope = 'login'
 
     def post(self, request):
         """
@@ -1300,6 +1301,7 @@ class SyncUserData(APIView):
     Requires authentication.
     """
     permission_classes = (IsAuthenticated,)
+    throttle_scope = 'sync'
 
     def get(self, request):
         """
