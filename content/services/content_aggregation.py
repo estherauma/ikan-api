@@ -1,7 +1,5 @@
-import json
 import logging
 from datetime import timedelta
-from pathlib import Path
 
 from django.utils import timezone
 
@@ -11,7 +9,6 @@ from content.services.strapi_content import StrapiContentService
 
 
 logger = logging.getLogger(__name__)
-TEMP_AGGREGATED_DATA_FILE = Path(__file__).resolve().parents[2] / "new_agg_data.json"
 AGGREGATED_CONTENT_RETENTION_WINDOW = timedelta(days=1)
 
 
@@ -171,16 +168,8 @@ class ContentAggregationService:
         else:
             content_record = AggregatedContent.objects.create(content=aggregated_data)
 
-        self._write_temp_aggregated_data_file(aggregated_data)
         self._delete_older_agg_content()
         return content_record
-
-    def _write_temp_aggregated_data_file(self, aggregated_data):
-        # TODO: Remove this temporary JSON dump once aggregation testing is complete.
-        TEMP_AGGREGATED_DATA_FILE.write_text(
-            json.dumps(aggregated_data, default=str, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
 
     def _merge_with_latest_stored_content(self, partial_data, existing_content=None):
         latest_stored_content = existing_content if existing_content is not None else self._get_latest_stored_content()

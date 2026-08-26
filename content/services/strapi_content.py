@@ -1,15 +1,11 @@
 import logging
 import time
-import json
-from pathlib import Path
 
 import requests
 from decouple import config
 
 
 logger = logging.getLogger(__name__)
-
-DEBUG_OUTPUT_FILE = Path(__file__).resolve().parents[2] / "logs" / "custom_type_responses.json"
 
 
 class StrapiContentService:
@@ -37,9 +33,7 @@ class StrapiContentService:
         response = self._get(url, params=request_params)
         if response is None:
             return None
-        data = response.json()
-        self._write_debug_response(data)
-        return data
+        return response.json()
 
     def get_document(self, payload):
         collection_name = payload.get("collection_name")
@@ -48,17 +42,7 @@ class StrapiContentService:
         response = self._get(url, params=payload.get("params"))
         if response is None:
             return None
-        data = response.json()
-        self._write_debug_response(data)
-        return data
-
-    def _write_debug_response(self, data):
-        # TODO: Remove this temporary JSON dump once Strapi aggregation functions are implemented.
-        DEBUG_OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-        DEBUG_OUTPUT_FILE.write_text(
-            json.dumps(data, default=str, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        return response.json()
 
     def _get(self, url, params=None):
         attempt = 0

@@ -72,7 +72,6 @@ class ContentAggregationServiceTests(TestCase):
     def setUp(self):
         self.content_service = Mock()
         self.service = ContentAggregationService(content_service=self.content_service)
-        self.service._write_temp_aggregated_data_file = Mock()
         self.service._delete_older_agg_content = Mock()
 
     def create_record(self, content, created_at=None, updated_at=None):
