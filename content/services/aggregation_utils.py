@@ -89,6 +89,18 @@ def aggregate_menu_content_component(component, **_context):
     }
 
 
+def aggregate_page_media_component(component, base_url, **_context):
+    media_key = component.get("media_key")
+    media_value = component.get("media_value")
+    if not media_key or not media_value:
+        return None
+
+    return {
+        "media_key": media_key,
+        "media_value": aggregate_media_reference(media_value, base_url),
+    }
+
+
 def aggregate_language_text_component(component, **_context):
     return {
         "key": component.get("key"),
@@ -559,6 +571,7 @@ DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.heading": aggregate_heading_component,
     "ikan.language-text": aggregate_language_text_component,
     "ikan.menu-content": aggregate_menu_content_component,
+    "ikan.media": aggregate_page_media_component,
     "ikan.audio": aggregate_audio_component,
     "ikan.case-study-linked": aggregate_case_study_component,
     "ikan.question": aggregate_question_component,

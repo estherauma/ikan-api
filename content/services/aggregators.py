@@ -188,6 +188,37 @@ def aggregate_menu_content(item, **context):
     )
 
 
+def aggregate_page(item, **context):
+    base_url = context.get("base_url")
+    dynamic_zone_entries = aggregate_dynamic_zone_entries(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+    )
+    page_media = {}
+    additional_text = []
+
+    for entry in dynamic_zone_entries:
+        if entry["component"] == "ikan.media":
+            media_key = entry["data"].get("media_key")
+            media_value = entry["data"].get("media_value")
+            if media_key and media_value:
+                page_media[media_key] = media_value
+        elif entry["component"] == "ikan.additional-text":
+            additional_text = entry["data"]
+
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "page_name": item.get("uid"),
+            "page_title": item.get("page_title"),
+            "last_updated": item.get("last_published_at") or item.get("updatedAt"),
+            "additional_text": additional_text,
+            "page_media": page_media,
+        },
+    )
+
+
 def aggregate_form_questions(item, **context):
     form_questions = []
     additional_text = []
@@ -324,6 +355,7 @@ CUSTOM_TYPE_AGGREGATORS = {
     "form_questions": aggregate_form_questions,
     "language_text": aggregate_language_text,
     "menu_content": aggregate_menu_content,
+    "page": aggregate_page,
     "learning_hub_subchapter": aggregate_learning_hub_subchapter,
     "learning_hub_subchapter_list": aggregate_learning_hub_subchapter_list,
 }
