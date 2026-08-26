@@ -274,12 +274,12 @@ class ContentViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["data"][0]["created_at"], serialized["updated_at"])
 
-    def test_compare_content_returns_no_new_when_no_content_exists(self):
+    def test_compare_content_returns_400_when_timestamp_is_missing(self):
         request = self.factory.get("/api/v1/content/compare/")
 
         response = compare_content(request)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         self.assertFalse(response.data["new"])
 
     def test_compare_content_accepts_updated_at_query_param(self):
@@ -301,6 +301,20 @@ class ContentViewsTests(TestCase):
         request = self.factory.get(
             "/api/v1/content/compare/",
             {"app_content_created_at": serialized["created_at"]},
+        )
+
+        response = compare_content(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.data["new"])
+
+    def test_compare_content_accepts_query_param_when_timezone_plus_becomes_space(self):
+        record = self.create_record({"en-us": {"home": {"page_title": "Home"}}})
+        serialized = serialize_aggregated_content(record)
+        broken_timestamp = serialized["updated_at"].replace("+", " ")
+        request = self.factory.get(
+            "/api/v1/content/compare/",
+            {"app_content_updated_at": broken_timestamp},
         )
 
         response = compare_content(request)

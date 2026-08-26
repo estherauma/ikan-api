@@ -1,4 +1,5 @@
 import logging
+import re
 from http import HTTPStatus
 
 from decouple import config
@@ -14,6 +15,23 @@ from content.services import ContentAggregationService
 
 
 logger = logging.getLogger(__name__)
+QUERYSTRING_OFFSET_RE = re.compile(r" (?=\d{2}:\d{2}$)")
+
+
+def parse_content_timestamp(value):
+    if not value:
+        return None
+
+    parsed_value = parse_datetime(value)
+    if parsed_value is not None:
+        return parsed_value
+
+    # Query-string decoding can turn "+03:00" into " 03:00".
+    repaired_value = QUERYSTRING_OFFSET_RE.sub("+", value, count=1)
+    if repaired_value != value:
+        return parse_datetime(repaired_value)
+
+    return None
 
 
 def serialize_aggregated_content(record):
@@ -52,10 +70,8 @@ def compare_content(request):
         request.query_params.get("app_content_updated_at")
         or request.query_params.get("app_content_created_at")
     )
-    try:
-        parsed_app_content_timestamp = parse_datetime(app_content_timestamp)
-    except Exception as e:
-        logger.error("Failed to parse app_content_timestamp: %s", e)
+    parsed_app_content_timestamp = parse_content_timestamp(app_content_timestamp)
+    if not app_content_timestamp or not parsed_app_content_timestamp:
         return Response(
             {
                 "status": "FAIL",
@@ -65,6 +81,7 @@ def compare_content(request):
             },
             status=HTTPStatus.BAD_REQUEST,
         )
+
     latest_content = AggregatedContent.objects.order_by("-updated_at").first()
 
     if latest_content is None:
