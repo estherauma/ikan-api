@@ -318,6 +318,34 @@ def aggregate_learning_hub_subchapter(item, **context):
     )
 
 
+def aggregate_sub_chapter_list(item, **context):
+    base_url = context.get("base_url")
+    page_content = aggregate_dynamic_zone(
+        item.get("dynamic_zone", []),
+        base_url=base_url,
+    )
+
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "id": item.get("prismic_id") or item.get("id"),
+            "type": "sub_chapter_list",
+            "language": item.get("locale"),
+            "pageIcon": aggregate_image(item.get("page_icon"), base_url),
+            "pageAudio": aggregate_media_reference(item.get("page_audio"), base_url) or empty_media(),
+            "pageTitle": item.get("page_title") or "Title",
+            "pageVideo": aggregate_media_reference(item.get("page_video"), base_url) or empty_media(),
+            "page_name": item.get("uid"),
+            "pageContent": page_content,
+            "disclaimerText": item.get("disclaimer_text"),
+            "pageTitleAudio": aggregate_media_reference(item.get("title_audio"), base_url),
+            "pageDescription": aggregate_rich_text(item.get("page_description")),
+            "analyticsEventName": item.get("analytics_event_name"),
+        },
+    )
+
+
 def aggregate_learning_hub_subchapter_list(item, **context):
     base_url = context.get("base_url")
     page_content = aggregate_dynamic_zone(
@@ -356,6 +384,7 @@ CUSTOM_TYPE_AGGREGATORS = {
     "language_text": aggregate_language_text,
     "menu_content": aggregate_menu_content,
     "page": aggregate_page,
+    "sub_chapter_list": aggregate_sub_chapter_list,
     "learning_hub_subchapter": aggregate_learning_hub_subchapter,
     "learning_hub_subchapter_list": aggregate_learning_hub_subchapter_list,
 }
