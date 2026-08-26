@@ -52,7 +52,19 @@ def compare_content(request):
         request.query_params.get("app_content_updated_at")
         or request.query_params.get("app_content_created_at")
     )
-    parsed_app_content_timestamp = parse_datetime(app_content_timestamp)
+    try:
+        parsed_app_content_timestamp = parse_datetime(app_content_timestamp)
+    except Exception as e:
+        logger.error("Failed to parse app_content_timestamp: %s", e)
+        return Response(
+            {
+                "status": "FAIL",
+                "data": "",
+                "new": False,
+                "error_messages": ["Invalid app_content_created_at format."],
+            },
+            status=HTTPStatus.BAD_REQUEST,
+        )
     latest_content = AggregatedContent.objects.order_by("-updated_at").first()
 
     if latest_content is None:
