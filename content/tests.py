@@ -386,9 +386,10 @@ class ContentViewsTests(TestCase):
     def test_updated_content_view_dispatches_publish_event(self, service_cls):
         service_instance = service_cls.return_value
         service_instance.handle_publish_event.return_value = (Mock(), 1)
+        payload = {"model": "ikan", "event": "entry.publish", "entry": {"id": 681}}
         request = self.factory.post(
             "/api/v1/content/updated",
-            {"model": "ikan", "event": "entry.publish", "entry": {"id": 681}},
+            payload,
             format="json",
             HTTP_X_API_KEY="secret",
         )
@@ -398,7 +399,7 @@ class ContentViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         service_instance.handle_publish_event.assert_called_once_with(
             collection_name="ikans",
-            payload=request.data,
+            payload=payload,
         )
 
     @patch.object(UpdatedContentView, "STRAPI_WEBHOOK_API_KEY", "secret")
@@ -406,9 +407,10 @@ class ContentViewsTests(TestCase):
     def test_updated_content_view_dispatches_remove_event(self, service_cls):
         service_instance = service_cls.return_value
         service_instance.handle_remove_event.return_value = (Mock(), 1)
+        payload = {"model": "ikan", "event": "entry.unpublish", "entry": {"uid": "home", "locale": "en-us"}}
         request = self.factory.post(
             "/api/v1/content/updated",
-            {"model": "ikan", "event": "entry.unpublish", "entry": {"uid": "home", "locale": "en-us"}},
+            payload,
             format="json",
             HTTP_X_API_KEY="secret",
         )
@@ -418,7 +420,7 @@ class ContentViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         service_instance.handle_remove_event.assert_called_once_with(
             collection_name="ikans",
-            payload=request.data,
+            payload=payload,
         )
 
     @patch.object(UpdatedContentView, "STRAPI_WEBHOOK_API_KEY", "secret")
