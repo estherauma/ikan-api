@@ -51,6 +51,7 @@ urlpatterns = [
     # api urls
     path('api/v1/', include('companies.urls.api')),
     path('api/v1/', include('contracts.urls.api')),
+    path('api/v1/content/', include('content.urls')),
     path('api/v1/', include('survey.urls.api')),
     path('api/v1/', include('vessels.urls.api')),
     path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),

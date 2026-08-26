@@ -10,5 +10,6 @@ urlpatterns = [
     path('', welcome, name='welcome'),
     path('health/', health, name="health"),
     path('renderers/', sample_data, name='sample'),
-    path('content/', include('prismic.urls'))
+    # TODO: Remove this once we have migrated to the new content API
+    path('content-v1/', include('prismic.urls'))
 ]
