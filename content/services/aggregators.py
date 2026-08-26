@@ -175,6 +175,19 @@ def aggregate_language_text(item, **context):
     )
 
 
+def aggregate_menu_content(item, **context):
+    return (
+        item.get("uid"),
+        item.get("locale"),
+        {
+            "page_name": item.get("uid"),
+            "page_title": item.get("page_title"),
+            "last_updated": item.get("last_published_at"),
+            "data": aggregate_dynamic_zone(item.get("dynamic_zone", [])),
+        },
+    )
+
+
 def aggregate_form_questions(item, **context):
     form_questions = []
     additional_text = []
@@ -310,6 +323,7 @@ CUSTOM_TYPE_AGGREGATORS = {
     "create_content_area": aggregate_create_content_area,
     "form_questions": aggregate_form_questions,
     "language_text": aggregate_language_text,
+    "menu_content": aggregate_menu_content,
     "learning_hub_subchapter": aggregate_learning_hub_subchapter,
     "learning_hub_subchapter_list": aggregate_learning_hub_subchapter_list,
 }

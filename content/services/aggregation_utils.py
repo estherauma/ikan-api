@@ -72,6 +72,23 @@ def aggregate_common_text_component(component, **_context):
     }
 
 
+def aggregate_menu_content_component(component, **_context):
+    icon = component.get("icon")
+    roles = component.get("roles")
+    icon_path = component.get("icon_path")
+    return {
+        "key": component.get("key"),
+        "url": component.get("url"),
+        "icon": icon or None,
+        "label": component.get("label"),
+        "roles": roles or None,
+        "title": component.get("title"),
+        "enabled": component.get("enabled"),
+        "position": component.get("position"),
+        "icon_path": icon_path or None,
+    }
+
+
 def aggregate_language_text_component(component, **_context):
     return {
         "key": component.get("key"),
@@ -541,6 +558,7 @@ DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.dropdown-content": aggregate_dropdown_content_component,
     "ikan.heading": aggregate_heading_component,
     "ikan.language-text": aggregate_language_text_component,
+    "ikan.menu-content": aggregate_menu_content_component,
     "ikan.audio": aggregate_audio_component,
     "ikan.case-study-linked": aggregate_case_study_component,
     "ikan.question": aggregate_question_component,
