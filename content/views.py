@@ -16,6 +16,13 @@ from content.services import ContentAggregationService
 logger = logging.getLogger(__name__)
 
 
+def serialize_aggregated_content(record):
+    data = AggregatedContentSerializer(record, many=False).data
+    # For backward compatibility, we set the created_at field to the updated_at value
+    data["created_at"] = data["updated_at"]
+    return data
+
+
 class AggregatedContentView(APIView):
     def get(self, request):
         latest = AggregatedContent.objects.order_by("-created_at").first()
@@ -29,11 +36,10 @@ class AggregatedContentView(APIView):
                 HTTPStatus.OK,
             )
 
-        serializer = AggregatedContentSerializer(latest, many=False)
         return Response(
             {
                 "status": "OK",
-                "data": [serializer.data],
+                "data": [serialize_aggregated_content(latest)],
                 "error_messages": [],
             },
             HTTPStatus.OK,
@@ -42,9 +48,12 @@ class AggregatedContentView(APIView):
 
 @api_view(["GET"])
 def compare_content(request):
-    app_content_created_at = request.query_params.get("app_content_created_at")
-    parsed_app_content_created_at = parse_datetime(app_content_created_at)
-    latest_content = AggregatedContent.objects.order_by("-created_at").first()
+    app_content_timestamp = (
+        request.query_params.get("app_content_updated_at")
+        or request.query_params.get("app_content_created_at")
+    )
+    parsed_app_content_timestamp = parse_datetime(app_content_timestamp)
+    latest_content = AggregatedContent.objects.order_by("-updated_at").first()
 
     if latest_content is None:
         return Response(
@@ -57,10 +66,10 @@ def compare_content(request):
             status=HTTPStatus.OK,
         )
 
-    serializer = AggregatedContentSerializer(latest_content, many=False)
-    latest_content_created_at = parse_datetime(serializer.data["created_at"])
+    serialized_content = serialize_aggregated_content(latest_content)
+    latest_content_updated_at = parse_datetime(serialized_content["updated_at"])
 
-    if latest_content_created_at == parsed_app_content_created_at:
+    if latest_content_updated_at == parsed_app_content_timestamp:
         return Response(
             {
                 "status": "OK",
@@ -74,7 +83,7 @@ def compare_content(request):
     return Response(
         {
             "status": "OK",
-            "data": [serializer.data],
+            "data": [serialized_content],
             "new": True,
             "error_messages": [],
         },
