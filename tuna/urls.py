@@ -21,9 +21,16 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
+from decouple import config
 
 from accounts.views.web import get_base, select_language
 from tuna.views import UploadFileView, DownloadFileView, UploadTempFileView
+
+use_strapi_content = config(
+    "USE_STRAPI_CONTENT",
+    default=False,
+    cast=bool,
+)
 
 # Swagger documentation setup
 schema_view = get_schema_view(
@@ -79,3 +86,8 @@ urlpatterns = [
     path('select-language/', select_language, name='select_language'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if use_strapi_content:
+    urlpatterns.append(path('api/v1/content/', include('content.urls')))
+else:
+    urlpatterns.append(path('api/v1/content/', include('prismic.urls')))

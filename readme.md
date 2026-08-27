@@ -53,10 +53,20 @@ python manage.py seedrolesandusers
 
 This command is important because the mobile app depends on the default roles created by `accounts.management.commands`.
 
-### 6. Fetch Prismic data
+### 6. Sync  Strapi content
+
+Fetch linked content in this order before running the full sync, because `create_content_area` content depends on `case_study` content:
 
 ```bash
-python manage.py fetch_prismic_data
+python manage.py sync_content --collection=ikans --custom-type=case_study
+python manage.py sync_content --collection=ikans --custom-type=create_content_area
+python manage.py sync_content --collection=ikans
+```
+
+You can also sync a specific  custom type:
+
+```bash
+python manage.py sync_content --collection=ikans --custom-type=page
 ```
 
 ### 7. Start the development server
