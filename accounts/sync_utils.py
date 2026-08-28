@@ -45,7 +45,6 @@ OWNED_SYNC_MODELS = {
     "inline_questions": (InlineQuestion, InLineQuestionSerializer),
     "documents": (Document, DocumentSerializer),
     "passports": (Passport, PassportSerializer),
-    "notifications": (Notification, NotificationSerializer),
 }
 
 
@@ -279,6 +278,15 @@ def _upsert_created_by_record(model, serializer_class, user, record):
     return data
 
 
+def _upsert_notification(user, record):
+    """Notifications aren't owner-scoped - any authenticated user can create/update any notification."""
+    queryset = Notification.objects.all()
+    instance = _match_existing(queryset, record)
+    extra_fields = None if instance else {"user": user.id}
+    _, data = _upsert_record(NotificationSerializer, queryset, record, extra_fields=extra_fields)
+    return data
+
+
 def _ensure_owner_role(user, label):
     """Only vessel owners/agents (or superusers) may push companies, vessels or contracts."""
     roles = set(user.groups.values_list("name", flat=True))
@@ -461,6 +469,11 @@ def sync_push_data(user, payload):
             "contracts", payload["contracts"],
             lambda record: _upsert_contract_with_clauses(user, record, errors), results, errors,
         )
+
+    _sync_section(
+        "notifications", payload.get("notifications"),
+        lambda record: _upsert_notification(user, record), results, errors,
+    )
 
     _sync_section(
         "profiles", payload.get("profiles"), lambda record: _upsert_profile(user, record, errors), results, errors
