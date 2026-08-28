@@ -67,6 +67,200 @@ class AggregatorsTests(TestCase):
         self.assertNotIn("home", aggregated_data.get("en-us", {}))
         self.assertIn("sidemenu", aggregated_data["en-us"])
 
+    @patch("content.services.aggregators.config", return_value="https://cms.example.com")
+    def test_aggregate_documents_includes_video_area_components_from_strapi(self, _config):
+        aggregated_data, aggregated_count = aggregate_documents(
+            [
+                {
+                    "id": 240,
+                    "custom_type": "create_content_area",
+                    "uid": "tfa-training-video",
+                    "locale": "en-us",
+                    "page_title": "Know Your Rights Video & Quiz",
+                    "dynamic_zone": [
+                        {
+                            "id": 4,
+                            "thumbnail": None,
+                            "video_link": "https://www.youtube.com/watch?v=lJJe1QS2wIE",
+                            "__component": "ikan.video-area",
+                        }
+                    ],
+                },
+            ]
+        )
+
+        self.assertEqual(aggregated_count, 1)
+        video_area = aggregated_data["en-us"]["tfa-training-video"]["pageContent"][0]
+        self.assertEqual(video_area["type"], "video")
+        self.assertEqual(
+            video_area["mediaData"],
+            {
+                "url": "https://www.youtube.com/watch?v=lJJe1QS2wIE",
+                "kind": "web",
+            },
+        )
+        self.assertIsNone(video_area["thumbnail"])
+
+    @patch("content.services.aggregators.config", return_value="https://cms.example.com")
+    def test_aggregate_learning_hub_subchapter_attaches_second_follow_up_question(self, _config):
+        aggregated_data, aggregated_count = aggregate_documents(
+            [
+                {
+                    "id": 279,
+                    "custom_type": "learning_hub_subchapter",
+                    "uid": "subchapter-4.1",
+                    "locale": "en-us",
+                    "page_title": "Subchapter 4.1",
+                    "dynamic_zone": [
+                        {
+                            "id": 1,
+                            "__component": "ikan.question",
+                            "question_key": "work_past_end_Date",
+                            "question": [
+                                {
+                                    "type": "paragraph",
+                                    "children": [
+                                        {
+                                            "type": "text",
+                                            "text": "Did you continue to work past the end date described in the contract?",
+                                        }
+                                    ],
+                                }
+                            ],
+                            "is_required": True,
+                            "question_type": "radio",
+                            "question_audio": None,
+                            "roles": None,
+                            "display_question": True,
+                            "repeatable_zone": [
+                                {
+                                    "options": "Yes",
+                                    "option_description": None,
+                                    "roles": None,
+                                    "follow_up_question": "Did you agree to this extended work period?",
+                                    "follow_up_question_key": "agree_extend_work",
+                                    "follow_up_question_link": "",
+                                    "follow_up_question_type": "radio",
+                                    "display_followup_question": True,
+                                    "follow_up_question_options": "Yes\nNo",
+                                    "is_required": True,
+                                },
+                                {
+                                    "options": "No",
+                                    "option_description": None,
+                                    "roles": None,
+                                    "follow_up_question": None,
+                                    "follow_up_question_key": "no_extend",
+                                    "follow_up_question_link": "",
+                                    "follow_up_question_type": "text",
+                                    "display_followup_question": True,
+                                    "follow_up_question_options": None,
+                                    "is_required": True,
+                                },
+                            ],
+                        },
+                        {
+                            "id": 2,
+                            "__component": "ikan.second-follow-up-question",
+                            "roles": None,
+                            "is_required": False,
+                            "question_key": "work_past_end_Date",
+                            "follow_up_question_key": "agree_extend_work",
+                            "follow_up_question_option": "No",
+                            "second_follow_up_question": "Get help here",
+                            "second_follow_up_question_key": "get_help_no_agree_extend",
+                            "second_follow_up_question_link": "/help",
+                            "second_follow_up_question_type": "link",
+                            "display_second_followup_question": True,
+                            "second_follow_up_question_options": None,
+                        },
+                    ],
+                },
+            ]
+        )
+
+        self.assertEqual(aggregated_count, 1)
+        question = aggregated_data["en-us"]["subchapter-4.1"]["pageContent"][0]
+        second_follow_up = question["options"][0]["followUpQuestion"]["options"][1]["secondFollowUpQuestion"]
+
+        self.assertEqual(second_follow_up["key"], "get_help_no_agree_extend")
+        self.assertEqual(second_follow_up["question"], "Get help here")
+        self.assertEqual(second_follow_up["questionLink"], "/help")
+        self.assertEqual(second_follow_up["questionType"], "link")
+
+    @patch("content.services.aggregators.config", return_value="https://cms.example.com")
+    def test_aggregate_learning_hub_subchapter_leaves_unmatched_second_follow_up_question_unattached(
+        self,
+        _config,
+    ):
+        aggregated_data, aggregated_count = aggregate_documents(
+            [
+                {
+                    "id": 279,
+                    "custom_type": "learning_hub_subchapter",
+                    "uid": "subchapter-4.1",
+                    "locale": "en-us",
+                    "page_title": "Subchapter 4.1",
+                    "dynamic_zone": [
+                        {
+                            "id": 1,
+                            "__component": "ikan.question",
+                            "question_key": "work_past_end_Date",
+                            "question": [
+                                {
+                                    "type": "paragraph",
+                                    "children": [
+                                        {
+                                            "type": "text",
+                                            "text": "Did you continue to work past the end date described in the contract?",
+                                        }
+                                    ],
+                                }
+                            ],
+                            "is_required": True,
+                            "question_type": "radio",
+                            "question_audio": None,
+                            "roles": None,
+                            "display_question": True,
+                            "repeatable_zone": [
+                                {
+                                    "options": "Yes",
+                                    "option_description": None,
+                                    "roles": None,
+                                    "follow_up_question": "Did you agree to this extended work period?",
+                                    "follow_up_question_key": "agree_extend_work",
+                                    "follow_up_question_link": "",
+                                    "follow_up_question_type": "radio",
+                                    "display_followup_question": True,
+                                    "follow_up_question_options": "Yes\nNo",
+                                    "is_required": True,
+                                }
+                            ],
+                        },
+                        {
+                            "id": 2,
+                            "__component": "ikan.second-follow-up-question",
+                            "roles": None,
+                            "is_required": False,
+                            "question_key": "different_question_key",
+                            "follow_up_question_key": "agree_extend_work",
+                            "follow_up_question_option": "No",
+                            "second_follow_up_question": "Get help here",
+                            "second_follow_up_question_key": "get_help_no_agree_extend",
+                            "second_follow_up_question_link": "/help",
+                            "second_follow_up_question_type": "link",
+                            "display_second_followup_question": True,
+                            "second_follow_up_question_options": None,
+                        },
+                    ],
+                },
+            ]
+        )
+
+        self.assertEqual(aggregated_count, 1)
+        question = aggregated_data["en-us"]["subchapter-4.1"]["pageContent"][0]
+        self.assertIsNone(question["options"][0]["followUpQuestion"]["options"][1]["secondFollowUpQuestion"])
+
 
 class ContentAggregationServiceTests(TestCase):
     def setUp(self):
