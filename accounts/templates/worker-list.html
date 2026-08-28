@@ -89,10 +89,22 @@
                                         <div class="modal-body">
                                             <form method="POST" action="{% url 'accounts:resend-access-code' %}">
                                                 {% csrf_token %}
-                                                <div class="mb-3 fs-4 text-center">
-                                                    {{ auth_common_text.resendCodeToUser }} <span class="fw-bold">{{ user.email }}</span>
-                                                    <input id="email" type="hidden" name="email" value="{{ user.email }}">
-                                                </div>
+                                                {% if user.email %}
+                                                    <div class="mb-3 fs-4 text-center">
+                                                        {{ auth_common_text.resendCodeToUser }} <span class="fw-bold">{{ user.email }}</span>
+                                                        <input id="email" type="hidden" name="email" value="{{ user.email }}">
+                                                    </div>
+                                                {% endif %}
+                                                {% if not user.email and user.mobile %}
+                                                    <div class="mb-3 fs-4 text-center">
+                                                        {{ auth_common_text.resendCodeToUser }} <span class="fw-bold">{{ user.mobile }}</span>
+                                                        <input id="mobile" type="hidden" name="mobile" value="{{ user.mobile }}">
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <!-- Pass origin of the form submission, since same form/logic is used in both workerslist and userslist -->
+                                                <input type="hidden" name="form-origin" value="worker-list">
+                                                
                                                 <div class="mb-3 text-center">
                                                     <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.resendCode }}</button>
                                                 </div>
