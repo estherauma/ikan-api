@@ -9,6 +9,7 @@ class OTPVerification:
         self.account_sid = config('TWILIO_ACCOUNT_SID')
         self.auth_token = config('TWILIO_AUTH_TOKEN')
         self.verify_service_sid = config('TWILIO_VERIFY_SERVICE_SID')
+        self.messaging_service_sid = config('TWILIO_MESSAGING_SERVICE_SID')
         self.client = Client(self.account_sid, self.auth_token)
 
     def send_otp(self, phone_number, locale='en'):
@@ -125,10 +126,9 @@ class OTPVerification:
             }
 
     def send_sms(self, phone_number, message):
-        # TODO: set up a dedicated phone number for sending SMS and use it here
         message = self.client.messages.create(
             body=message,
-            from_=config('TWILIO_PHONE_NUMBER'),
+            messaging_service_sid=self.messaging_service_sid,
             to=phone_number
         )
         return message.sid
