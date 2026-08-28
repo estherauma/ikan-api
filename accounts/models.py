@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 import secrets
 from django.contrib.auth import get_user_model
+from accounts.utils import get_user_queryset
 
 
 class UserManager(BaseUserManager):
@@ -107,7 +108,8 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     def vessel_owners(self):
         role_queryset = self.groups.filter(Q(name='taiwanese_agent') | Q(name='indonesian_agent'))
         if role_queryset.exists():
-            vo_queryset = User.objects.filter(agent_relationships__agent=self, agent_relationships__status='active')
+            vo_queryset = get_user_queryset().filter(agent_relationships__agent=self,
+                                                     agent_relationships__status='active')
             return vo_queryset if vo_queryset.exists() else None
         return None
 
@@ -117,8 +119,8 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     @property
     def agents(self):
         if self.groups.filter(name='vessel_owner').exists():
-            agent_queryset = User.objects.filter(vessel_owner_relationships__vessel_owner=self,
-                                                 vessel_owner_relationships__status='active')
+            agent_queryset = get_user_queryset().filter(vessel_owner_relationships__vessel_owner=self,
+                                                        vessel_owner_relationships__status='active')
             return agent_queryset if agent_queryset.exists() else None
         return None
 

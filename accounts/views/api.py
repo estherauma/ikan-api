@@ -7,6 +7,7 @@ from accounts.serializers import (
     OTPGenerateSerializer, OTPVerifySerializer
 )
 
+from accounts.sync_utils import get_sync_data, sync_push_data
 from accounts.views.web import get_locale_from_request
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
@@ -42,6 +43,7 @@ from companies.serializers import UserCompanySerializer
 class LoginView(APIView):
     serializer_class = LoginSerializer
     permission_classes = (AllowAny,)
+    throttle_scope = 'login'
 
     def post(self, request):
         """
@@ -112,7 +114,7 @@ class LoginView(APIView):
             }, status.HTTP_400_BAD_REQUEST)
 
         if user:
-            if user.is_active:
+            if user.is_active and user.is_verified:
                 if user.check_password(password):
                     identity_manager = JwtManager()
                     if user.groups.exists():
@@ -152,6 +154,7 @@ class LoginView(APIView):
                 'token': token,
                 'is_first_login': is_first_login,
                 'user_data': payload,
+                'sync_data': get_sync_data(user),
             }
         },
             status.HTTP_200_OK
@@ -1290,3 +1293,44 @@ class CheckPhoneNumberUniquenessView(APIView):
             "unique": not exists,
             "phone_number": phone_number
         }, status.HTTP_200_OK)
+
+
+class SyncUserData(APIView):
+    """
+    API endpoint for syncing user data.
+    Requires authentication.
+    """
+    permission_classes = (IsAuthenticated,)
+    throttle_scope = 'sync'
+
+    def get(self, request):
+        """
+        Sync user data.
+
+        Returns the user's data (to be synced to the mobile app) based on their role and permissions.
+        """
+        user = request.user
+        profile = UserProfileSerializer(user).data
+
+        return Response({
+            'status': 'OK',
+            'data': {
+                'user_data': profile,
+                'sync_data': get_sync_data(user),
+            }
+        })
+
+    def post(self, request):
+        """
+        Push records created/updated on the mobile app while offline, to be synced to the server.
+        """
+        result = sync_push_data(request.user, request.data)
+
+        return Response({
+            'status': 'OK',
+            'data': {
+                'pushed_data': result['pushed_data'],
+                'survey_synced': result['survey_synced'],
+                'errors': result['errors'],
+            }
+        })

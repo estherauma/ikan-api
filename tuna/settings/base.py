@@ -183,11 +183,19 @@ REST_FRAMEWORK = {
         "accounts.backends.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    # views opt in via `throttle_scope`; unscoped views are left unthrottled
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.ScopedRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "10/min",
+        "sync": "30/min",
+    },
 }
 
 # jwt token settings
 TOKEN_ISSUER = config("TOKEN_ISSUER", "50Eight")
-TOKEN_EXPIRATION_TIME = config("TOKEN_EXPIRATION_TIME", default=10520064)
+TOKEN_EXPIRATION_TIME = config("TOKEN_EXPIRATION_TIME", default=2592000)  # 30 days
 
 
 # cors settings
