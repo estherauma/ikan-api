@@ -42,7 +42,7 @@ def _get_managed_workers(user):
 
 
 def _get_worker_vessels(user):
-    """Vessels a worker is attached to, derived from the fishers party clause on their contracts."""
+    """Vessels that a worker is attached to, derived from the party B clause on their contracts."""
     party_b_clauses = ContractClause.objects.filter(
         contract__contract_user_access__user=user,
         kind="contract-clauses-parties-requirement-fishers",
@@ -59,7 +59,8 @@ def _get_worker_vessels(user):
         except (AttributeError, json.JSONDecodeError):
             continue
 
-    return Vessel.objects.filter(Q(app_ref__in=vessel_app_refs) | Q(created_by=user.id))
+    return Vessel.objects.prefetch_related('vessel_image').filter(
+        Q(app_ref__in=vessel_app_refs) | Q(created_by=user.id))
 
 
 def _get_contract_data(contracts):
