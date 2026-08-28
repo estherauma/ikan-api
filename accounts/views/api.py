@@ -10,7 +10,7 @@ from accounts.serializers import (
 from accounts.views.web import get_locale_from_request
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
-from common.twilio import OTPVerification
+from common.twilio import TwilioService
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
 from prismic.utils import PrismicUtils
 
@@ -219,7 +219,7 @@ class RegisterView(APIView):
         # if data.get('phone_number'):
         #     # Send verification otp code to phone number
         #     try:
-        #         otp_service = OTPVerification()
+        #         otp_service = TwilioService()
         #         locale = get_locale_from_request(request)
         #         otp_service.send_otp(user.mobile, locale=locale)
         #     except Exception:
@@ -330,7 +330,7 @@ class RequestPasswordReset(APIView):
             )
         elif user and phone_number:
             try:
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 locale = get_locale_from_request(request)
                 otp_service.send_otp(user.mobile, locale=locale)
                 return Response(

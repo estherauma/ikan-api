@@ -4,7 +4,7 @@ from decouple import config
 from django.contrib import messages
 
 
-class OTPVerification:
+class TwilioService:
     def __init__(self):
         self.account_sid = config('TWILIO_ACCOUNT_SID')
         self.auth_token = config('TWILIO_AUTH_TOKEN')
@@ -136,7 +136,7 @@ class OTPVerification:
 
 def send_verification_code(request, user, auth_common_text=None):
     try:
-        otp_service = OTPVerification()
+        otp_service = TwilioService()
         locale = get_locale_from_request(request)
         otp_service.send_otp(user.mobile, locale=locale)
     except Exception:
@@ -146,7 +146,7 @@ def send_verification_code(request, user, auth_common_text=None):
 
 def check_verification_code(request, phone_number, otp_code, auth_common_text=None):
     try:
-        otp_service = OTPVerification()
+        otp_service = TwilioService()
         verification_result = otp_service.check_otp(otp_code, phone_number)
         return verification_result.get('status') == 'approved'
     except Exception:

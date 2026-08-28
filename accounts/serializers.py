@@ -3,7 +3,7 @@ from accounts.models import User, UserBank, UserBeneficiaries
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
-from common.twilio import OTPVerification, check_verification_code
+from common.twilio import TwilioService, check_verification_code
 from django.db.models import Q
 
 
@@ -259,7 +259,7 @@ class OTPGenerateSerializer(serializers.Serializer):
         try:
             phone_number = self.validated_data['phone_number']
             locale = self.validated_data.get('locale', 'en')
-            otp_service = OTPVerification()
+            otp_service = TwilioService()
             response = otp_service.send_otp(phone_number, locale)
             return response
         except Exception as e:
@@ -305,7 +305,7 @@ class OTPVerifySerializer(serializers.Serializer):
         try:
             phone_number = self.validated_data['phone_number']
             otp_code = self.validated_data['otp_code']
-            otp_service = OTPVerification()
+            otp_service = TwilioService()
             response = otp_service.check_otp(otp_code, phone_number)
             return response
         except Exception as e:

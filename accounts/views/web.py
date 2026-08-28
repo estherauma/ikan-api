@@ -19,7 +19,7 @@ from django.contrib.auth.models import Group
 from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship
-from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
+from common.twilio import TwilioService, send_verification_code, get_locale_from_request
 
 
 @login_required(login_url='/account/login')
@@ -229,7 +229,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
                                                       'Account created successfully. \
                                                         Please verify your phone number to activate your account.'))
                 try:
-                    otp_service = OTPVerification()
+                    otp_service = TwilioService()
                     locale = get_locale_from_request(request)
                     send_result = otp_service.send_otp(user.mobile, locale=locale)
                     if not send_result.get('success'):
@@ -317,7 +317,7 @@ def invite_user(request):
             # TODO: to be worked on with api/mobile changes
             if form.cleaned_data.get('has_phone_number'):
                 try:
-                    otp_service = OTPVerification()
+                    otp_service = TwilioService()
                     # locale = get_locale_from_request(request)
                     # otp_service.send_otp(user.mobile, locale=locale)
                     # add message asking user to verify their phone number and to set password using the mobile app
@@ -478,7 +478,7 @@ class RegisterWebView(View):
                                                   'Account created successfully. \
                                                     Please verify your phone number to activate your account.'))
             try:
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 locale = get_locale_from_request(request)
                 send_result = otp_service.send_otp(user.mobile, locale=locale)
                 if not send_result.get('success'):
@@ -505,7 +505,7 @@ class VerifyPhoneNumber(View):
         if user_id_from_login:
             try:
                 user = User.objects.get(id=user_id_from_login)
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 locale = get_locale_from_request(request)
                 send_result = otp_service.send_otp(user.mobile, locale=locale)
                 if not send_result.get('success'):
@@ -532,7 +532,7 @@ class VerifyPhoneNumber(View):
         if user_id and otp_code:
             user = User.objects.get(id=user_id)
             try:
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 verification_resp = otp_service.check_otp(otp_code, user.mobile)
                 verification_status = verification_resp.get('status')
                 if verification_status == 'approved':
@@ -596,7 +596,7 @@ def resend_otp(request):
     user_id = request.session.get('user_id')
     if user_id:
         user = User.objects.get(id=user_id)
-        otp_service = OTPVerification()
+        otp_service = TwilioService()
         locale = get_locale_from_request(request)
         send_result = otp_service.send_otp(user.mobile, locale=locale)
         if send_result.get('success'):
