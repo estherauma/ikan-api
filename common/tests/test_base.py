@@ -1,9 +1,14 @@
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from faker import Faker
 
 
 class BaseTestCase(APITestCase):
+    def setUp(self):
+        # throttle counters live in the cache and would otherwise leak between tests
+        cache.clear()
+
     def set_up(self):
         self.faker = Faker()
 

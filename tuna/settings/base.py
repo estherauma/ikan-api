@@ -17,6 +17,7 @@ import json
 from google.oauth2 import service_account
 from dotenv import load_dotenv
 from django.contrib.messages import constants as message_constants
+from common.logging_config import build_logging_config
 
 load_dotenv()
 
@@ -42,6 +43,7 @@ ALLOWED_HOSTS = config(
 INSTALLED_APPS = [
     "accounts",
     "companies",
+    "content",
     "contracts",
     "corsheaders",
     "common",
@@ -181,11 +183,19 @@ REST_FRAMEWORK = {
         "accounts.backends.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    # views opt in via `throttle_scope`; unscoped views are left unthrottled
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.ScopedRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "10/min",
+        "sync": "30/min",
+    },
 }
 
 # jwt token settings
 TOKEN_ISSUER = config("TOKEN_ISSUER", "50Eight")
-TOKEN_EXPIRATION_TIME = config("TOKEN_EXPIRATION_TIME", default=10520064)
+TOKEN_EXPIRATION_TIME = config("TOKEN_EXPIRATION_TIME", default=2592000)  # 30 days
 
 
 # cors settings
@@ -235,3 +245,5 @@ GS_DEFAULT_ACL = None
 MESSAGE_TAGS = {
     message_constants.ERROR: "danger",
 }
+
+LOGGING = build_logging_config()
