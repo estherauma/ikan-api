@@ -401,7 +401,10 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
 class ContractsDataView(LoginRequiredMixin, View):
     def get(self, request):
         super_user = self.request.user.is_superuser
-        contracts = Contract.objects.all() if super_user else Contract.objects.filter(created_by=request.user.id)
+        contracts = Contract.objects.all() if super_user else Contract.objects.filter(
+            Q(created_by=request.user.id) |
+            Q(contract_user_access__user=request.user.id)
+        )
         contracts_list = []
         for contract in contracts:
             contract = {
