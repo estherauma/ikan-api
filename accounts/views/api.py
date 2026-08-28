@@ -7,7 +7,7 @@ from accounts.serializers import (
     OTPGenerateSerializer, OTPVerifySerializer
 )
 
-from accounts.utils import get_sync_data
+from accounts.sync_utils import get_sync_data, sync_push_data
 from accounts.views.web import get_locale_from_request
 from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
@@ -1317,5 +1317,20 @@ class SyncUserData(APIView):
             'data': {
                 'user_data': profile,
                 'sync_data': get_sync_data(user),
+            }
+        })
+
+    def post(self, request):
+        """
+        Push records created/updated on the mobile app while offline, to be synced to the server.
+        """
+        result = sync_push_data(request.user, request.data)
+
+        return Response({
+            'status': 'OK',
+            'data': {
+                'pushed_data': result['pushed_data'],
+                'survey_synced': result['survey_synced'],
+                'errors': result['errors'],
             }
         })
