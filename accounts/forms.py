@@ -422,7 +422,8 @@ class InviteUser(forms.Form):
 
 
 class ResendTokenForm(forms.Form):
-    email = forms.EmailField(widget=forms.HiddenInput())
+    email = forms.EmailField(widget=forms.HiddenInput(), required=False)
+    mobile = forms.CharField(widget=forms.HiddenInput(), required=False)
 
 
 class LoginForm(forms.Form):
