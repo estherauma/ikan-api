@@ -16,9 +16,8 @@ from mydocuments.models import Document, Passport
 from mydocuments.serializers import DocumentSerializer, PassportSerializer
 from notifications.models import Notification
 from notifications.serializers import NotificationSerializer
-from survey.models import Survey, InlineQuestion, LearningHubProgress
+from survey.models import InlineQuestion, LearningHubProgress
 from survey.serializers import (
-    SurveySerializer,
     InLineQuestionSerializer,
     LearningHubProgressSerializer,
 )
@@ -26,8 +25,20 @@ from vessels.models import Vessel
 from vessels.serializers import VesselSerializer
 from wages.models import Wage
 from wages.serializers import WageSerializer
+from accounts.utils import get_user_queryset
 
 AGENT_ROLES = ("taiwanese_agent", "indonesian_agent")
+
+
+def _get_managed_workers(user):
+    user_groups = user.groups.values_list("name", flat=True)
+
+    if "vessel_owner" in user_groups:
+        return get_user_queryset().filter(created_by=user)
+    elif any(role in AGENT_ROLES for role in user_groups):
+        return get_user_queryset().filter(recruited_by=user)
+    else:
+        return User.objects.none()
 
 
 def _get_worker_vessels(user):
@@ -68,9 +79,9 @@ def _get_contract_data(contracts):
 def _get_own_data(user):
     """Data every user owns and can always sync, regardless of role."""
     return {
-        "survey_responses": SurveySerializer(
-            Survey.objects.filter(user=user), many=True
-        ).data,
+        # "survey_responses": SurveySerializer(
+        #     Survey.objects.filter(user=user), many=True
+        # ).data,
         "inline_questions": InLineQuestionSerializer(
             InlineQuestion.objects.filter(user=user), many=True
         ).data,
@@ -103,14 +114,14 @@ def _get_worker_sync_data(user):
 
 
 def _get_vessel_owner_sync_data(user):
-    added_users = User.objects.filter(created_by=user.id)
+    workers_added_by_vo = _get_managed_workers(user)
     agents = user.agents
-    users = User.objects.filter(pk=user.id) | added_users
+    users = get_user_queryset().filter(pk=user.id) | workers_added_by_vo
     if agents is not None:
         users = users | agents
 
     contracts = Contract.objects.filter(
-        Q(created_by=user.id) | Q(contract_user_access__user__in=added_users)
+        Q(created_by=user.id) | Q(contract_user_access__user__in=workers_added_by_vo)
     ).distinct()
 
     data = {
@@ -123,7 +134,7 @@ def _get_vessel_owner_sync_data(user):
         ).data,
         "users": UserProfileSerializer(users.distinct(), many=True).data,
         "wages": WageSerializer(
-            Wage.objects.filter(user__in=added_users), many=True
+            Wage.objects.filter(user__in=workers_added_by_vo), many=True
         ).data,
     }
     data.update(_get_contract_data(contracts))
@@ -132,21 +143,21 @@ def _get_vessel_owner_sync_data(user):
 
 
 def _get_agent_sync_data(user):
-    recruited_users = User.objects.filter(recruited_by=user)
+    workers_recruited_by_agent = _get_managed_workers(user)
     vessel_owners = user.vessel_owners
-    users = User.objects.filter(pk=user.id) | recruited_users
+    users = get_user_queryset().filter(pk=user.id) | workers_recruited_by_agent
     if vessel_owners is not None:
         users = users | vessel_owners
 
     contracts = Contract.objects.filter(
-        Q(created_by=user.id) | Q(contract_user_access__user__in=recruited_users)
+        Q(created_by=user.id) | Q(contract_user_access__user__in=workers_recruited_by_agent)
     ).distinct()
 
     data = {
         "profile": UserProfileSerializer(user).data,
         "users": UserProfileSerializer(users.distinct(), many=True).data,
         "wages": WageSerializer(
-            Wage.objects.filter(user__in=recruited_users), many=True
+            Wage.objects.filter(user__in=workers_recruited_by_agent), many=True
         ).data,
     }
     data.update(_get_contract_data(contracts))
@@ -169,7 +180,8 @@ def _get_admin_sync_data(user):
     """Superusers can access everything."""
     data = {
         "profile": UserProfileSerializer(user).data,
-        "users": UserProfileSerializer(User.objects.all(), many=True).data,
+        "users": UserProfileSerializer(
+            get_user_queryset().all(), many=True).data,
         "companies": CompanySerializer(Company.objects.all(), many=True).data,
         "vessels": VesselSerializer(Vessel.objects.all(), many=True).data,
         "wages": WageSerializer(Wage.objects.all(), many=True).data,
