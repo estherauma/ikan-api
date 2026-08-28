@@ -19,7 +19,8 @@ from django.contrib.auth.models import Group
 from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship
-from common.twilio import OTPVerification, send_verification_code, get_locale_from_request
+from common.twilio import TwilioService, send_verification_code, get_locale_from_request
+from django.db.models import Q
 from accounts.utils import get_workers
 
 
@@ -225,7 +226,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
                                                       'Account created successfully. \
                                                         Please verify your phone number to activate your account.'))
                 try:
-                    otp_service = OTPVerification()
+                    otp_service = TwilioService()
                     locale = get_locale_from_request(request)
                     send_result = otp_service.send_otp(user.mobile, locale=locale)
                     if not send_result.get('success'):
@@ -305,22 +306,26 @@ def invite_user(request):
                                    auth_common_text.get('userCreatedErrorSendingEmail',
                                                         'User created but an error occurred while sending the email. \
                                                             Please contact support.'))
-            # TODO: to be worked on with api/mobile changes
-            # if form.cleaned_data.get('has_phone_number'):
-            #     try:
-            #         otp_service = OTPVerification()
-            #         # locale = get_locale_from_request(request)
-            #         # otp_service.send_otp(user.mobile, locale=locale)
-            #         # add message asking user to verify their phone number and to set password using the mobile app
-            #         message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
-            #                                        Please download the IKAN mobile app to verify your phone number \
-            #                                        and set your password. Your access code is: ') + user.access_code
-            #         otp_service.send_sms(user.mobile, message)
-            #     except Exception:
-            #         messages.error(request,
-            #                        auth_common_text.get('userCreatedErrorSendingSMS',
-            #                                             'User created but an error occurred while sending the SMS. \
-            #                                               Please contact support.'))
+            if form.cleaned_data.get('has_phone_number'):
+                try:
+                    otp_service = TwilioService()
+                    # message = auth_common_text.get('workerInviteSMSMessage', 'You have been invited to join IKAN. \
+                    #                                Please download the IKAN mobile app to verify your phone number \
+                    #                                and set your password. Your access code is: ') + user.access_code
+                    # TODO: Add translation
+                    message = auth_common_text.get('workerInviteSMSMessage',
+                                                   'Your access code to use IKAN is:') + user.access_code
+                    otp_service.send_sms(user.mobile, message)
+                    # TODO: Add translation
+                    messages.success(request,
+                                     auth_common_text.get('userCreatedSMSSuccess',
+                                                          'User created and SMS sent successfully.'))
+                except Exception:
+                    # TODO: Add translation
+                    messages.error(request,
+                                   auth_common_text.get('userCreatedErrorSendingSMS',
+                                                        'User created but an error occurred while sending the SMS. \
+                                                          Please contact support.'))
 
             if form_origin == 'worker-list':
                 return redirect('accounts:workers')
@@ -355,32 +360,58 @@ class ResendAcessCode(View):
         return render(request, 'user-list.html', {'form': form})
 
     def post(self, request):
+        form_origin = request.POST.get("form-origin", "")
         form = ResendTokenForm(data=request.POST)
 
         if form.is_valid():
-            user = User.objects.get(email=form.cleaned_data.get('email'))
+            email = form.cleaned_data.get('email')
+            print('email', email)
+            mobile = form.cleaned_data.get('mobile')
+            print('mobile', mobile)
+
+            if email:
+                user = User.objects.get(email=email)
+            elif mobile:
+                user = User.objects.get(Q(mobile=mobile) | Q(telephone=mobile))
+            else:
+                messages.error(request, 'No valid email or phone number provided.')
+                if form_origin == 'worker-list':
+                    return redirect('accounts:workers')
+                return redirect('/account/users')
+
             user.access_code = get_access_code()
             user.save()
 
             # Send verification email with access code
             prismic_utils = PrismicUtils(request)
             auth_common_text = prismic_utils.get_page_text('auth-common-text')
-            email = TunaEmailHelper()
-            success = email.tuna_send_email(
-                to_emails=[user.email],
-                subject=auth_common_text.get('yourIKANAccessToken', 'Your IKAN access token'),
-                body={
-                    'email': user.email,
-                    'access_token': user.access_code,
-                },
-                template=EmailTemplate.ACCESS_TOKEN.value,
-                auth_common_text=auth_common_text,
-            )
-            if success:
-                messages.success(request, 'The access code was resent successfully.')
-            else:
-                messages.error(request, 'An error occurred while resending the user access code.')
-
+            if email:
+                email_helper = TunaEmailHelper()
+                success = email_helper.tuna_send_email(
+                    to_emails=[user.email],
+                    subject=auth_common_text.get('yourIKANAccessToken', 'Your IKAN access token'),
+                    body={
+                        'email': user.email,
+                        'access_token': user.access_code,
+                    },
+                    template=EmailTemplate.ACCESS_TOKEN.value,
+                    auth_common_text=auth_common_text,
+                )
+                if success:
+                    messages.success(request, 'The access code was resent successfully.')
+                else:
+                    messages.error(request, 'An error occurred while resending the user access code.')
+            if mobile:
+                try:
+                    twilio_service = TwilioService()
+                    message = auth_common_text.get('yourIKANAccessToken',
+                                                   'Your IKAN access token') + f": {user.access_code}"
+                    twilio_service.send_sms(mobile, message)
+                    messages.success(request, 'The access code was resent successfully via SMS.')
+                except Exception as e:
+                    messages.error(request, f'An error occurred while resending the user access code via SMS: {str(e)}')
+            if form_origin == 'worker-list':
+                return redirect('accounts:workers')
             return redirect('/account/users')
 
 
@@ -469,7 +500,7 @@ class RegisterWebView(View):
                                                   'Account created successfully. \
                                                     Please verify your phone number to activate your account.'))
             try:
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 locale = get_locale_from_request(request)
                 send_result = otp_service.send_otp(user.mobile, locale=locale)
                 if not send_result.get('success'):
@@ -496,7 +527,7 @@ class VerifyPhoneNumber(View):
         if user_id_from_login:
             try:
                 user = User.objects.get(id=user_id_from_login)
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 locale = get_locale_from_request(request)
                 send_result = otp_service.send_otp(user.mobile, locale=locale)
                 if not send_result.get('success'):
@@ -523,7 +554,7 @@ class VerifyPhoneNumber(View):
         if user_id and otp_code:
             user = User.objects.get(id=user_id)
             try:
-                otp_service = OTPVerification()
+                otp_service = TwilioService()
                 verification_resp = otp_service.check_otp(otp_code, user.mobile)
                 verification_status = verification_resp.get('status')
                 if verification_status == 'approved':
@@ -587,7 +618,7 @@ def resend_otp(request):
     user_id = request.session.get('user_id')
     if user_id:
         user = User.objects.get(id=user_id)
-        otp_service = OTPVerification()
+        otp_service = TwilioService()
         locale = get_locale_from_request(request)
         send_result = otp_service.send_otp(user.mobile, locale=locale)
         if send_result.get('success'):
