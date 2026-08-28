@@ -1329,7 +1329,6 @@ class SyncUserData(APIView):
         return Response({
             'status': 'OK',
             'data': {
-                'pushed_data': result['pushed_data'],
                 'survey_synced': result['survey_synced'],
                 'errors': result['errors'],
             }
