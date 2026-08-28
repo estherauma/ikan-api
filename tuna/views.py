@@ -110,6 +110,9 @@ class UploadFileView(APIView):
             elif request.data['entity_type'] == 'vessel_image':
                 vessel_id = request.data.get('vessel_id')
                 vessel = Vessel.objects.get(pk=vessel_id)
+                if vessel_id is None and request.data.get('vessel_app_ref') is not None:
+                    vessel_app_ref = request.data.get('vessel_app_ref')
+                    vessel = Vessel.objects.get(app_ref=vessel_app_ref)
                 if VesselImage.objects.filter(vessel=vessel).exists():
                     vessel_image = VesselImage.objects.get(vessel=vessel)
                     if (
@@ -142,6 +145,9 @@ class UploadFileView(APIView):
             elif request.data['entity_type'] == 'contract':
                 contract_id = request.data.get('contract_id')
                 contract = Contract.objects.get(pk=contract_id)
+                if contract_id is None and request.data.get('contract_app_ref') is not None:
+                    contract_app_ref = request.data.get('contract_app_ref')
+                    contract = Contract.objects.get(app_ref=contract_app_ref)
                 if ContractDocument.objects.filter(contract=contract).exists():
                     contract_document = ContractDocument.objects.get(contract=contract)
                     if (
