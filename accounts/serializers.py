@@ -213,15 +213,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'first_name', 'last_name')
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        exclude = ['password', 'reset_password_token', 'is_superuser',
-                   'is_staff', 'groups', 'access_code', 'user_permissions']
-        read_only_fields = ['is_active', 'is_verified', 'is_staff', 'is_superuser',
-                            'groups', 'user_permissions', 'access_code', 'reset_password_token', 'email']
-
-
 class UserBankDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBank
@@ -232,6 +223,24 @@ class UserBeneficiarySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBeneficiaries
         fields = '__all__'
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    roles = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name',
+        source='groups'
+    )
+    bank_accounts = UserBankDetailsSerializer(many=True, read_only=True, source='userbank_set')
+    beneficiaries = UserBeneficiarySerializer(many=True, read_only=True, source='userbeneficiaries_set')
+
+    class Meta:
+        model = User
+        exclude = ['password', 'reset_password_token', 'is_superuser',
+                   'is_staff', 'groups', 'access_code', 'user_permissions']
+        read_only_fields = ['is_active', 'is_verified', 'is_staff', 'is_superuser',
+                            'groups', 'user_permissions', 'access_code', 'reset_password_token', 'email']
 
 
 class OTPGenerateSerializer(serializers.Serializer):
