@@ -377,7 +377,7 @@ class SyncPushDataExtendedTestCase(TestCase):
         self.unmanaged_worker.refresh_from_db()
         self.assertNotEqual(self.unmanaged_worker.first_name, 'Nope')
 
-    def test_notification_push_is_scoped_to_the_requesting_user(self):
+    def test_notification_push_can_update_another_users_notification(self):
         other_user_notification = Notification.objects.create(
             user=self.unmanaged_worker, title='Not yours', message='msg', status='unread')
 
@@ -390,7 +390,8 @@ class SyncPushDataExtendedTestCase(TestCase):
 
         self.assertEqual(len(result['pushed_data']['notifications']), 2)
         other_user_notification.refresh_from_db()
-        self.assertEqual(other_user_notification.title, 'Not yours')
+        self.assertEqual(other_user_notification.title, 'Hijacked')
+        self.assertEqual(other_user_notification.user_id, self.unmanaged_worker.id)
         self.assertEqual(Notification.objects.get(app_ref='notif-1').user_id, self.worker.id)
 
     def test_learning_hub_progress_pushed_as_single_object(self):
