@@ -2,13 +2,12 @@ from decouple import config
 
 from content.services.aggregation_utils import (
     DYNAMIC_ZONE_COMPONENT_AGGREGATORS,
-    aggregate_form_question_component,
     aggregate_image,
+    attach_second_follow_up_questions,
     aggregate_media,
     aggregate_rich_text,
     aggregate_text,
     aggregate_media_reference,
-    aggregate_additional_text_component,
     empty_media,
 )
 
@@ -225,10 +224,18 @@ def aggregate_form_questions(item, **context):
 
     for component in item.get("dynamic_zone", []):
         component_name = component.get("__component")
+        aggregator = DYNAMIC_ZONE_COMPONENT_AGGREGATORS.get(component_name)
+        if not aggregator:
+            continue
+
+        aggregated_component = aggregator(component, **context)
+        if aggregated_component is None:
+            continue
+
         if component_name == "ikan.form-question":
-            form_questions.append(aggregate_form_question_component(component))
+            form_questions.append(aggregated_component)
         elif component_name == "ikan.additional-text":
-            additional_text = aggregate_additional_text_component(component)
+            additional_text = aggregated_component
 
     return (
         item.get("uid"),
@@ -246,13 +253,23 @@ def aggregate_form_questions(item, **context):
 def aggregate_create_content_area(item, **context):
     base_url = context.get("base_url")
     existing_content = context.get("existing_content")
-    page_content = aggregate_dynamic_zone(
+    dynamic_zone_entries = aggregate_dynamic_zone_entries(
         item.get("dynamic_zone", []),
         base_url=base_url,
         existing_content=existing_content or {},
         parent_uid=item.get("uid"),
         locale=item.get("locale"),
     )
+    page_content = []
+    second_follow_up_questions = []
+
+    for entry in dynamic_zone_entries:
+        if entry["component"] == "ikan.second-follow-up-question":
+            second_follow_up_questions.append(entry["data"])
+        else:
+            page_content.append(entry["data"])
+
+    attach_second_follow_up_questions(page_content, second_follow_up_questions)
 
     return (
         item.get("uid"),
@@ -287,12 +304,17 @@ def aggregate_learning_hub_subchapter(item, **context):
     )
     subchapter_subtopics = []
     page_content = []
+    second_follow_up_questions = []
 
     for entry in dynamic_zone_entries:
         if entry["component"] == "ikan.subchapter-subtopics":
             subchapter_subtopics = entry["data"]
+        elif entry["component"] == "ikan.second-follow-up-question":
+            second_follow_up_questions.append(entry["data"])
         else:
             page_content.append(entry["data"])
+
+    attach_second_follow_up_questions(page_content, second_follow_up_questions)
 
     return (
         item.get("uid"),
