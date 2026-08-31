@@ -199,7 +199,7 @@ else:
             option = next((opt for opt in options if opt['value'] == option_value), None)
             if option:
                 return option.get('label', option_value)
-            return option['label'] if option['label'] else option_value
+            return option_value
 
         def get_field_labels_from_form_questions(self, form_questions, property_name=None):
             """
