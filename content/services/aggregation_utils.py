@@ -246,7 +246,7 @@ def aggregate_web_link(url):
     return {
         "url": url,
         "kind": "web",
-        }
+    }
 
 
 def aggregate_media_reference(value, base_url):
@@ -348,6 +348,31 @@ def aggregate_question_component(zone, base_url, **_context):
     }
 
 
+def aggregate_second_follow_up_question_component(zone, **_context):
+    return {
+        "question_key": zone.get("question_key"),
+        "follow_up_question_key": zone.get("follow_up_question_key"),
+        "follow_up_question_option": zone.get("follow_up_question_option"),
+        "secondFollowUpQuestion": {
+            "key": zone.get("second_follow_up_question_key"),
+            "roles": split_roles(zone.get("roles")) if zone.get("roles") else None,
+            "options": [
+                {
+                    "option": option,
+                    "description": None,
+                    "secondFollowUpQuestion": None,
+                }
+                for option in aggregate_option_entries(zone.get("second_follow_up_question_options"))
+            ],
+            "question": zone.get("second_follow_up_question"),
+            "isRequired": zone.get("is_required"),
+            "questionLink": zone.get("second_follow_up_question_link") or None,
+            "questionType": zone.get("second_follow_up_question_type"),
+            "displayquestion": bool(zone.get("display_second_followup_question")),
+        },
+    }
+
+
 def aggregate_warning_box_component(zone, base_url, **_context):
     return {
         "icon": aggregate_image(zone.get("icon"), base_url),
@@ -415,6 +440,7 @@ def aggregate_case_study_component(
         linked_uid,
         linked_locale or locale,
     )
+
     if existing_case_study is None:
         return None
 
@@ -427,7 +453,10 @@ def aggregate_case_study_component(
 def aggregate_video_area_component(zone, base_url, **_context):
     return {
         "type": "video",
-        "mediaData": aggregate_media_reference(zone.get("video_link"), base_url),
+        "mediaData": {
+            "url": zone.get("video_link"), 
+            "kind": "web"
+        },
         "thumbnail": aggregate_image(zone.get("thumbnail"), base_url),
     }
 
@@ -563,11 +592,51 @@ def find_existing_aggregated_case_study(existing_content, uid, locale):
     return existing_page
 
 
+def attach_second_follow_up_questions(page_content, second_follow_up_questions):
+    if not page_content or not second_follow_up_questions:
+        return page_content
+
+    for item in page_content:
+        if item.get("type") != "questions":
+            continue
+
+        second_follow_up_lookup = {
+            (
+                second_follow_up.get("follow_up_question_key"),
+                second_follow_up.get("follow_up_question_option"),
+            ): second_follow_up.get("secondFollowUpQuestion")
+            for second_follow_up in second_follow_up_questions
+            if second_follow_up.get("question_key") == item.get("key")
+        }
+        if not second_follow_up_lookup:
+            continue
+
+        for option in item.get("options") or []:
+            follow_up_question = option.get("followUpQuestion")
+            if not isinstance(follow_up_question, dict):
+                continue
+
+            follow_up_question_key = follow_up_question.get("key")
+            for follow_up_option in follow_up_question.get("options") or []:
+                second_follow_up_question = second_follow_up_lookup.get(
+                    (
+                        follow_up_question_key,
+                        follow_up_option.get("option"),
+                    )
+                )
+                if second_follow_up_question is None:
+                    continue
+                follow_up_option["secondFollowUpQuestion"] = second_follow_up_question
+
+    return page_content
+
+
 DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.additional-text": aggregate_additional_text_component,
     "ikan.clickable-list": aggregate_clickable_list_component,
     "ikan.common-text": aggregate_common_text_component,
     "ikan.dropdown-content": aggregate_dropdown_content_component,
+    "ikan.form-question": aggregate_form_question_component,
     "ikan.heading": aggregate_heading_component,
     "ikan.language-text": aggregate_language_text_component,
     "ikan.menu-content": aggregate_menu_content_component,
@@ -575,6 +644,7 @@ DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.audio": aggregate_audio_component,
     "ikan.case-study-linked": aggregate_case_study_component,
     "ikan.question": aggregate_question_component,
+    "ikan.second-follow-up-question": aggregate_second_follow_up_question_component,
     "ikan.subchapter-subtopics": aggregate_subchapter_subtopics_component,
     "ikan.single-image": aggregate_single_image_component,
     "ikan.text-area": aggregate_text_area_component,
@@ -582,5 +652,8 @@ DYNAMIC_ZONE_COMPONENT_AGGREGATORS = {
     "ikan.warning-box": aggregate_warning_box_component,
     "ikan.video-area": aggregate_video_area_component,
     "jgw.case-study": aggregate_case_study_component,
+    "jgw.single-image": aggregate_single_image_component,
     "jgw.warning-box": aggregate_warning_box_component,
+    "jgw.video-area": aggregate_video_area_component,
+    "jgw.dropdown-content": aggregate_dropdown_content_component,
 }
