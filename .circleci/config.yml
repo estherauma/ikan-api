@@ -47,7 +47,28 @@ cmd_add_google_creds: &cmd_add_google_creds
     command: |
       echo $GOOGLE_CRED | base64 --decode > google_cred.json
 
-jobs: 
+jobs:
+  scan-secrets:
+    docker:
+      - image: trufflesecurity/trufflehog:3.97.0
+    steps:
+      - checkout:
+          method: full
+
+      - run:
+          name: Scan changes for secrets
+          command: |
+            git fetch origin dev
+
+            BASE_COMMIT=$(git merge-base HEAD origin/dev)
+
+            echo "Scanning for secrets since commit: $BASE_COMMIT"
+
+            trufflehog git file://. \
+              --since-commit "$BASE_COMMIT" \
+              --branch "$CIRCLE_BRANCH" \
+              --fail
+
   build:
     docker:
       - image: cimg/python:3.9.1
@@ -91,13 +112,17 @@ workflows:
   version: 2
   build-and-test:
     jobs:
-      - build
+      - scan-secrets
+      - build:
+          requires:
+            - scan-secrets
       - test:
           requires:
             - build
       - deploy:
           requires:
             - test
+            - scan-secrets
           filters:
             branches:
               only: dev
