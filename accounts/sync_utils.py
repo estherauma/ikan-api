@@ -272,7 +272,7 @@ def _upsert_owned_record(model, serializer_class, owner, record):
 
 def _upsert_learning_hub_progress(user, record):
     """Create or update learning hub progress for the user from the request."""
-    queryset = LearningHubProgress.objects.filter(user=user).order_by("-created_at")
+    queryset = LearningHubProgress.objects.filter(user=user).order_by("created_at")
     if record.get("app_ref"):
         queryset = queryset.filter(app_ref=record["app_ref"])
     instance = _match_existing(queryset, record) or queryset.first()
