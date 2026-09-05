@@ -402,6 +402,29 @@ class SyncPushDataExtendedTestCase(TestCase):
         self.assertEqual(LearningHubProgress.objects.filter(user=self.worker).count(), 1)
         self.assertNotIsInstance(result['pushed_data']['learning_hub_progress'], list)
 
+    def test_learning_hub_progress_updates_existing_record_and_uses_request_user(self):
+        # Create initial record
+        sync_push_data(self.worker, {
+            'learning_hub_progress': {'progress_data': [{'chapter': 1, 'complete': True}]},
+        })
+        self.assertEqual(LearningHubProgress.objects.filter(user=self.worker).count(), 1)
+
+        # Push update without online_ref/app_ref and with an attempt to set another user
+        result = sync_push_data(self.worker, {
+            'learning_hub_progress': {
+                'user': self.unmanaged_worker.id,
+                'progress_data': [{'chapter': 1, 'complete': True}, {'chapter': 2, 'complete': True}],
+            },
+        })
+
+        self.assertEqual(LearningHubProgress.objects.filter(user=self.worker).count(), 1)
+        self.assertEqual(LearningHubProgress.objects.filter(user=self.unmanaged_worker).count(), 0)
+
+        progress = LearningHubProgress.objects.get(user=self.worker)
+        self.assertEqual(len(progress.progress_data), 2)
+        self.assertEqual(progress.progress_data[1]['chapter'], 2)
+        self.assertEqual(result['pushed_data']['learning_hub_progress']['progress_data'], progress.progress_data)
+
     def test_one_bad_record_does_not_abort_the_rest_of_the_section_or_other_sections(self):
         result = sync_push_data(self.worker, {
             'survey_responses': [

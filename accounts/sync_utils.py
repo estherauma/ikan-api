@@ -270,6 +270,25 @@ def _upsert_owned_record(model, serializer_class, owner, record):
     return data
 
 
+def _upsert_learning_hub_progress(user, record):
+    """Create or update learning hub progress for the user from the request."""
+    queryset = LearningHubProgress.objects.filter(user=user).order_by("-created_at")
+    if record.get("app_ref"):
+        queryset = queryset.filter(app_ref=record["app_ref"])
+    instance = _match_existing(queryset, record) or queryset.first()
+    data = {k: v for k, v in record.items() if k not in ("id", "online_ref")}
+    data["user"] = user.id
+
+    incoming_updated_at = parse_datetime(data["updated_at"]) if data.get("updated_at") else None
+    if instance and incoming_updated_at and instance.updated_at and incoming_updated_at <= instance.updated_at:
+        return LearningHubProgressSerializer(instance).data
+
+    serializer = LearningHubProgressSerializer(instance, data=data, partial=bool(instance))
+    serializer.is_valid(raise_exception=True)
+    instance = serializer.save()
+    return serializer.data
+
+
 def _upsert_created_by_record(model, serializer_class, user, record):
     """Create or update a single record `user` (VO/agent) owns via created_by, e.g. companies/vessels."""
     _, data = _upsert_record(
@@ -436,8 +455,8 @@ def sync_push_data(user, payload):
     learning_hub_progress = payload.get("learning_hub_progress")
     if learning_hub_progress:
         try:
-            results["learning_hub_progress"] = _upsert_owned_record(
-                LearningHubProgress, LearningHubProgressSerializer, user, learning_hub_progress
+            results["learning_hub_progress"] = _upsert_learning_hub_progress(
+                user, learning_hub_progress
             )
         except Exception as exc:
             logger.exception("Sync push failed for learning_hub_progress")
