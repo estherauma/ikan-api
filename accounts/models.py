@@ -91,7 +91,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     @property
     def is_admin(self):
-        return self.is_superuser
+        return self.is_superuser or self.groups.filter(name='admin').exists()
 
     @property
     def name_on_contract(self):
