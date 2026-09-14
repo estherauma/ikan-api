@@ -122,6 +122,10 @@ If you are setting up a new installation, ensure that you set up those roles.
 To run the command, just run `python manage.py seedrolesandusers`
 
 
+## Trader and Vessel Owner Relationship ERD
+
+![Trader and Vessel Owner Relationship ERD](static/erds/trader_vessel_owner_erd.png)
+
 # API documentation
 Currently, the API documentation is done using swagger. To access the documentation, run the app and navigate to `/api/docs/`
 

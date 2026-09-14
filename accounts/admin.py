@@ -1,5 +1,5 @@
 from django.contrib import admin
-from accounts.models import AgentVesselOwnerRelationship, User, UserBank, UserBeneficiaries
+from accounts.models import AgentVesselOwnerRelationship, TraderVesselOwnerRelationship, User, UserBank, UserBeneficiaries
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
@@ -67,3 +67,4 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserBank)
 admin.site.register(UserBeneficiaries)
 admin.site.register(AgentVesselOwnerRelationship)
+admin.site.register(TraderVesselOwnerRelationship)

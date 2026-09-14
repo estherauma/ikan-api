@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def seed_users_and_roles(self):
         role_names = ['vessel_owner', 'taiwanese_agent',
-                      'indonesian_agent', 'worker', 'buyer', 'public']
+                      'indonesian_agent', 'worker', 'buyer', 'public', 'trader', 'admin']
         roles = []
 
         for role_name in role_names:
