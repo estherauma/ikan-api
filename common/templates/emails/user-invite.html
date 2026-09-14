@@ -1,0 +1,26 @@
+{% extends "themes/v1/auth-base.html" %}
+
+{% block title %}Set up your IKAN account{% endblock %}
+
+{% block body_class %}verify-email-content{% endblock %}
+
+{% block content %}
+  <div class="section-wrapper">
+    <p class="welcome-text"><strong>{{ auth_common_text.welcomeToIKAN }}</strong></p>
+    <p>
+      {{ auth_common_text.hello }}
+      {% if body.first_name %}{{ body.first_name }}{% else %}{{ auth_common_text.helloThere }}{% endif %},
+    </p>
+    <p>
+      {{ auth_common_text.userInviteEmailText|default:"You have been invited to join IKAN. Use the link below to set up your password and access your dashboard." }}
+    </p>
+    <p>
+      <a href="{{ body.dashboard_link }}">
+        {{ auth_common_text.setUpPassword|default:"Set up password" }}
+      </a>
+    </p>
+    <p>
+      {{ auth_common_text.ignoreIfNotSignedUp }}
+    </p>
+  </div>
+{% endblock %}

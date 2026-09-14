@@ -1,0 +1,212 @@
+{% extends "themes/v1/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        {% if messages %}
+            <div class="row mt-4">
+                <div class="col">
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row mb-2 mt-4 px-4 align-items-center">
+            <div class="col">
+                <h1 class="mb-0 secondary-color">Traders</h1>
+            </div>
+            <div class="col d-flex justify-content-end">
+                <button type="button" class="btn btn-large primary-button" data-bs-toggle="modal" data-bs-target="#invite-trader-modal">
+                    <i class="mdi mdi-plus"></i>
+                    Add Trader
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table
+                id="datatable"
+                class="table dt-responsive nowrap w-100"
+                data-page-length="20"
+                data-hide-controls="true"
+                data-sortable-columns="0,1,2,5"
+            >
+                <thead>
+                    <tr>
+                        <th>{{ auth_common_text.firstName }}</th>
+                        <th>{{ auth_common_text.lastName }}</th>
+                        <th>{{ auth_common_text.email }}</th>
+                        <th>{{ auth_common_text.mobileNumber }}</th>
+                        <th>{{ auth_common_text.accessCode }}</th>
+                        <th>{{ auth_common_text.isActive }}?</th>
+                        <th>{{ common_text.actions }}</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for trader in traders %}
+                    <tr>
+                        <td>{{ trader.first_name }}</td>
+                        <td>{{ trader.last_name }}</td>
+                        <td>{{ trader.email }}</td>
+                        <td>{{ trader.mobile | default:"N/A" }}</td>
+                        <td>{{ trader.access_code | default:"N/A" }}</td>
+                        <td>{{ trader.is_active }}</td>
+                        <td>
+                            {% if not trader.is_active %}
+                                <button
+                                    id="btn-reset-invite"
+                                    class="ikan-secondary-button btn btn-sm mb-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#reset-invite-modal-{{ trader.id }}"
+                                    data-user-id="{{ trader.pk }}"
+                                    data-url="{% url 'accounts-api:user-detail' pk=trader.id %}"
+                                >
+                                    {{ auth_common_text.resetInvite|default:"Resend invite" }}
+                                </button>
+
+                                <div id="reset-invite-modal-{{ trader.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header d-flex">
+                                                <div class="text-center w-100">
+                                                    <h3 class="modal-title ikan-primary-color">{{ auth_common_text.resetInvite|default:"Resend Invite" }}</h3>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                                            </div>
+
+                                            <div class="modal-body reset-invite-modal-body text-center">
+                                                <form
+                                                    class="reset-invite-form w-100"
+                                                    method="POST"
+                                                    action="{% url 'accounts:resend-user-invite' %}"
+                                                >
+                                                    {% csrf_token %}
+                                                        <div class="mb-3 fs-4 text-center">
+                                                            Resend invite <span class="fw-bold">{{ trader.email }}</span>
+                                                            <input id="email" type="hidden" name="email" value="{{ trader.email }}">
+                                                        </div>
+                                                    <input type="hidden" name="form-origin" value="trader-list">
+                                                    <div class="mb-3 text-center">
+                                                        <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.resetInvite|default:"Reset invite" }}</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="invite-trader-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header invite-trader-modal-header">
+                    <h4 class="modal-title primary-color invite-trader-modal-title">Add Trader</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                </div>
+
+                <div class="modal-body invite-trader-modal-body">
+                    <form
+                        id="invite-trader-form"
+                        class="w-100"
+                        action="{% url 'accounts:invite-user' %}"
+                        method="POST"
+                    >
+                        {% csrf_token %}
+                        {% for field in invite_user_form %}
+                            {% if field.name != 'role' %}
+                                <div class="form-field w-100">
+                                    {% if field.name == 'email_or_phone' %}
+                                        <label for="trader_email">{{ auth_common_text.email|default:"Email" }}</label>
+                                        <span class="text-danger">*</span>
+                                        <input
+                                            type="email"
+                                            class="form-control mb-3 w-100"
+                                            id="trader_email"
+                                            name="email_or_phone"
+                                            placeholder="{{ auth_common_text.enterYourEmail|default:'Enter your email' }}"
+                                            value="{{ field.value|default:'' }}"
+                                            required
+                                        >
+                                    {% else %}
+                                        {{ field.label_tag }}
+                                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        <div class="w-100">
+                                            {{ field }}
+                                        </div>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="text-danger">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        <input type="hidden" name="role" value="trader">
+                        <input type="hidden" name="form-origin" value="trader-list">
+
+                        <div class="form-actions">
+                            <button class="btn cancel-button" type="button" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn primary-button" type="submit">Add Trader</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #invite-trader-form {
+        display: block;
+        width: 100%;
+    }
+
+    #invite-trader-form .form-field,
+    #invite-trader-form .form-control {
+        width: 100%;
+    }
+
+    #invite-trader-modal .invite-trader-modal-body {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    #invite-trader-modal .invite-trader-modal-title {
+        font-size: 1.5rem;
+    }
+
+    #invite-trader-modal .modal-content {
+        border-radius: 16px;
+    }
+
+    .reset-invite-modal-body .reset-invite-form {
+        display: block;
+        width: 100%;
+    }
+</style>
+
+{% if show_invite_modal %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inviteModal = document.getElementById("invite-trader-modal");
+            if (inviteModal && window.bootstrap) {
+                const modal = new bootstrap.Modal(inviteModal);
+                modal.show();
+            }
+        });
+    </script>
+{% endif %}
+{% endblock %}

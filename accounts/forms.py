@@ -317,6 +317,52 @@ class PasswordResetForm(forms.Form):
                                                                              'Reset Password Token')
 
 
+class AccountSetupForm(forms.Form):
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'password1',
+            'placeholder': 'Enter your password',
+            'autocomplete': 'new-password'
+        })
+    )
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'password2',
+            'placeholder': 'Confirm your password',
+            'autocomplete': 'new-password'
+        })
+    )
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+
+        if password1 != password2:
+            raise forms.ValidationError(self.auth_common_text.get('passwordsDoNotMatch', 'Passwords do not match.'))
+
+        try:
+            validate_password(password2, self.user)
+        except ValidationError as error:
+            raise forms.ValidationError(error.messages)
+
+        return password2
+
+    def __init__(self, *args, **kwargs):
+        auth_common_text = kwargs.pop('auth_common_text', {})
+        self.user = kwargs.pop('user', None)
+        self.auth_common_text = auth_common_text
+        super().__init__(*args, **kwargs)
+        if auth_common_text:
+            self.fields['password1'].widget.attrs['placeholder'] = auth_common_text.get('enterYourPassword',
+                                                                                        'Enter your password')
+            self.fields['password2'].widget.attrs['placeholder'] = auth_common_text.get('confirmYourPassword',
+                                                                                        'Confirm your password')
+            self.fields['password1'].label = auth_common_text.get('password', 'Password')
+            self.fields['password2'].label = auth_common_text.get('confirmPassword', 'Confirm Password')
+
+
 class InviteUser(forms.Form):
     email_or_phone = forms.CharField(
         widget=forms.TextInput(attrs={

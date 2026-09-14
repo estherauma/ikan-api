@@ -1,0 +1,108 @@
+.card-body {
+    overflow: auto;
+}
+
+table th,
+table td {
+    font-size: 1rem;
+    min-width: 80px;
+}
+
+table th {
+    color: var(--color-secondary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.85rem !important;
+}
+
+table .view-btn,
+table button {
+    white-space: nowrap;
+}
+
+.dataTables_info {
+    color: var(--color-secondary);
+}
+
+.dataTables_paginate {
+    margin-top: 1rem;
+}
+
+.dataTables_paginate .pagination {
+    justify-content: flex-end;
+}
+
+.dataTables_paginate .page-link {
+    color: var(--color-secondary);
+}
+
+.dataTables_paginate .page-item.active .page-link {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: #fff;
+}
+
+.dataTables_paginate .page-link:hover,
+.dataTables_paginate .page-link:focus {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: #fff;
+}
+
+.dataTables_filter input:focus,
+.dataTables_length select:focus {
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 0 0 0.15rem rgba(27, 87, 237, 0.15);
+}
+
+form label,
+.form-label {
+    color: var(--color-secondary) ;
+    /* font-weight: 400 !important; */
+    font-size: 1rem;
+}
+
+.modal form {
+    margin: 0;
+}
+
+.modal form .form-field {
+    margin-bottom: 1rem;
+}
+
+.modal form  {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+}
+
+.modal form .form-control,
+.modal form .form-select {
+    min-height: 44px;
+    border-color: rgba(25, 25, 112, 0.18);
+    border-radius: 6px;
+}
+
+.modal form .form-control:focus,
+.modal form .form-select:focus {
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 0 0 0.15rem rgba(27, 87, 237, 0.15);
+}
+
+.modal form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.btn.cancel-button {
+    background-color: #fff;
+    border-color: rgba(25, 25, 112, 0.28);
+    color: var(--color-secondary);
+}
+
+.btn.cancel-button:hover {
+    background-color: rgba(53, 101, 255, 0.08);
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+}

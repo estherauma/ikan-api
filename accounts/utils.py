@@ -1,3 +1,11 @@
+import random
+from urllib.parse import urlencode
+
+from decouple import config
+
+from common.email import TunaEmailHelper, EmailTemplate
+
+
 def get_user_queryset():
     """
     Returns a queryset of all users with related groups, banks, and beneficiaries prefetched.
@@ -23,3 +31,27 @@ def get_workers(request):
         return get_user_queryset().filter(groups__name='worker', created_by=request.user.id)
     else:
         return User.objects.none()
+
+
+def send_user_invite_email(user, auth_common_text=None):
+    auth_common_text = auth_common_text or {}
+    user.reset_password_token = random.randrange(111111, 999999)
+    user.access_code = None
+    user.save()
+
+    email_helper = TunaEmailHelper()
+    link_query_string = urlencode({
+        'email': user.email,
+        'token': user.reset_password_token,
+    })
+    dashboard_link = f'{config("BASE_URL")}/account/setup-account?{link_query_string}'
+    return email_helper.tuna_send_email(
+        to_emails=[user.email],
+        subject=auth_common_text.get('userInviteSubject', 'Set up your IKAN account'),
+        body={
+            'first_name': user.first_name,
+            'dashboard_link': dashboard_link,
+        },
+        template=EmailTemplate.USER_INVITE.value,
+        auth_common_text=auth_common_text,
+    )

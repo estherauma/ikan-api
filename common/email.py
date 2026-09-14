@@ -11,6 +11,7 @@ class EmailTemplate(Enum):
     VERIFY_EMAIL = 'verify-email.html'
     PASSWORD_RESET_REQUEST = 'password-reset-request.html'
     ACCESS_TOKEN = 'access-code.html'
+    USER_INVITE = 'user-invite.html'
 
 
 class TunaEmailHelper:
