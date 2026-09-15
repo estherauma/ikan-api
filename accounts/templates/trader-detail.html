@@ -1,0 +1,93 @@
+{% extends "themes/v1/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h1 class="mb-0 secondary-color">
+                {% if trader.first_name or trader.last_name %}
+                    {{ trader.first_name }} {{ trader.last_name }}
+                {% else %}
+                    {{ trader.email }}
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="secondary-color mb-3">Trader Details</h3>
+
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.email|default:"Email" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.email|default:"N/A" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.firstName|default:"First Name" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.first_name|default:"N/A" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.lastName|default:"Last Name" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.last_name|default:"N/A" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.mobileNumber|default:"Mobile Number" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.mobile|default:"N/A" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.isActive|default:"Is Active" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.is_active }}</div>
+                    </div>
+                    <div class="row py-2">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.accessCode|default:"Access Code" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.access_code|default:"N/A" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="secondary-color mb-0">Attached Vessel Owners</h3>
+                        <button type="button" class="btn btn-large primary-button">
+                            <i class="mdi mdi-plus"></i>
+                            Attach Vessel Owner
+                        </button>
+                    </div>
+
+                    <table class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <th>{{ auth_common_text.firstName|default:"First Name" }}</th>
+                                <th>{{ auth_common_text.lastName|default:"Last Name" }}</th>
+                                <th>{{ auth_common_text.email|default:"Email" }}</th>
+                                <th>{{ auth_common_text.mobileNumber|default:"Mobile Number" }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for relationship in vessel_owner_relationships %}
+                                <tr>
+                                    <td>{{ relationship.vessel_owner.first_name|default:"N/A" }}</td>
+                                    <td>{{ relationship.vessel_owner.last_name|default:"N/A" }}</td>
+                                    <td>{{ relationship.vessel_owner.email|default:"N/A" }}</td>
+                                    <td>{{ relationship.vessel_owner.mobile|default:"N/A" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-secondary">
+                                        No vessel owners attached to this trader.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

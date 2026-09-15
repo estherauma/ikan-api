@@ -2,7 +2,7 @@ from django.urls import path
 from accounts.views.web import invite_user, logout_user, \
     UserListView, RegisterWebView, RegisterSuccess, \
     RequestPasswordReset, ResetPassword, LoginView, \
-    ResendAcessCode, UserDetailView, TradersListView, WorkersListView, change_language, \
+    ResendAcessCode, UserDetailView, TradersListView, TraderDetailView, WorkersListView, change_language, \
     VerifyPhoneNumber, verify_phone_number_success, verify_phone_number_failure, \
     resend_otp, resend_password_reset_token, CreateAgentVesselownerRelationshipView, AccountSetup, ResendUserInvite
 
@@ -25,6 +25,7 @@ urlpatterns = [
     path("profile/<pk>/", UserDetailView.as_view(), name="profile"),
     path('workers', WorkersListView.as_view(), name='workers'),
     path('traders', TradersListView.as_view(), name='traders'),
+    path('traders/<pk>/', TraderDetailView.as_view(), name='trader-details'),
     path('change-language', change_language, name='change-language'),
     path('verify-phone-number', VerifyPhoneNumber.as_view(), name='verify-phone-number'),
     path('verify-phone-number/success', verify_phone_number_success, name='verify-phone-number-success'),

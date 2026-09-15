@@ -2,7 +2,6 @@ from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm, \
     LoginForm, RegistrationForm, PasswordResetForm, RequestPasswordResetForm, \
     CreateAgentVesselownerRelationshipForm, AccountSetupForm
 from django.shortcuts import redirect, render
-from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic.list import ListView
@@ -21,9 +20,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
 from prismic.utils import PrismicUtils
-from accounts.models import User, AgentVesselOwnerRelationship
+from accounts.models import User, AgentVesselOwnerRelationship, TraderVesselOwnerRelationship
 from common.twilio import TwilioService, send_verification_code, get_locale_from_request
 from django.db.models import Q
+from accounts.mixins import RoleRequiredMixin
 from accounts.utils import get_workers, send_user_invite_email
 
 
@@ -253,16 +253,11 @@ class WorkersListView(LoginRequiredMixin, ListView):
             return render(request, 'worker-list.html', context)
 
 
-class TradersListView(LoginRequiredMixin, ListView):
+class TradersListView(LoginRequiredMixin, RoleRequiredMixin, ListView):
     model = User
     context_object_name = 'traders'
     template_name = 'trader-list.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        user_roles = request.user.groups.values_list('name', flat=True)
-        if not request.user.is_superuser and 'admin' not in user_roles:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
+    required_roles = ['admin']
 
     def get_queryset(self):
         return User.objects.filter(groups__name='trader').prefetch_related('groups')
@@ -276,6 +271,26 @@ class TradersListView(LoginRequiredMixin, ListView):
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         context['show_invite_modal'] = False
+        return context
+
+
+class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
+    model = User
+    template_name = 'trader-detail.html'
+    context_object_name = 'trader'
+    required_roles = ['admin']
+
+    def get_queryset(self):
+        return User.objects.filter(groups__name='trader').prefetch_related('groups')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
+        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        context['auth_common_text'] = auth_common_text
+        context['vessel_owner_relationships'] = TraderVesselOwnerRelationship.objects.filter(
+            trader=self.object,
+        ).select_related('vessel_owner')
         return context
 
 

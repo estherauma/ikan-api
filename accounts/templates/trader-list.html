@@ -50,7 +50,11 @@
                 <tbody>
                     {% for trader in traders %}
                     <tr>
-                        <td>{{ trader.first_name }}</td>
+                        <td>
+                            <a href="{% url 'accounts:trader-details' pk=trader.id %}">
+                                {{ trader.first_name|default:"View" }}
+                            </a>
+                        </td>
                         <td>{{ trader.last_name }}</td>
                         <td>{{ trader.email }}</td>
                         <td>{{ trader.mobile | default:"N/A" }}</td>
