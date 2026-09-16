@@ -33,15 +33,13 @@
                 class="table dt-responsive nowrap w-100"
                 data-page-length="20"
                 data-hide-controls="true"
-                data-sortable-columns="0,1,2,5"
+                data-sortable-columns="0,1,4"
             >
                 <thead>
                     <tr>
-                        <th>{{ auth_common_text.firstName }}</th>
-                        <th>{{ auth_common_text.lastName }}</th>
+                        <th>Name</th>
                         <th>{{ auth_common_text.email }}</th>
                         <th>{{ auth_common_text.mobileNumber }}</th>
-                        <th>{{ auth_common_text.accessCode }}</th>
                         <th>{{ auth_common_text.isActive }}?</th>
                         <th>{{ common_text.actions }}</th>
                     </tr>
@@ -52,51 +50,59 @@
                     <tr>
                         <td>
                             <a href="{% url 'accounts:trader-details' pk=trader.id %}">
-                                {{ trader.first_name|default:"View" }}
+                                {% if trader.first_name or trader.last_name %}
+                                    {{ trader.first_name }} {{ trader.last_name }}
+                                {% else %}
+                                    View
+                                {% endif %}
                             </a>
                         </td>
-                        <td>{{ trader.last_name }}</td>
                         <td>{{ trader.email }}</td>
-                        <td>{{ trader.mobile | default:"N/A" }}</td>
-                        <td>{{ trader.access_code | default:"N/A" }}</td>
+                        <td>{{ trader.mobile | default:"-" }}</td>
                         <td>{{ trader.is_active }}</td>
                         <td>
                             {% if not trader.is_active %}
                                 <button
                                     id="btn-reset-invite"
-                                    class="ikan-secondary-button btn btn-sm mb-1"
+                                    class="btn btn-outline-secondary btn-sm mb-1 reset-invite-button"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#reset-invite-modal-{{ trader.id }}"
+                                    data-bs-target="#resend-invite-modal-{{ trader.id }}"
                                     data-user-id="{{ trader.pk }}"
                                     data-url="{% url 'accounts-api:user-detail' pk=trader.id %}"
                                 >
-                                    {{ auth_common_text.resetInvite|default:"Resend invite" }}
+                                    {{ auth_common_text.resetInvite|default:"Resend Invite" }}
                                 </button>
 
-                                <div id="reset-invite-modal-{{ trader.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog">
+                                <div id="resend-invite-modal-{{ trader.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
                                             <div class="modal-header d-flex">
                                                 <div class="text-center w-100">
-                                                    <h3 class="modal-title ikan-primary-color">{{ auth_common_text.resetInvite|default:"Resend Invite" }}</h3>
+                                                    <h3 class="modal-title secondary-color">{{ auth_common_text.resetInvite|default:"Resend Invite" }}</h3>
                                                 </div>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                                             </div>
 
-                                            <div class="modal-body reset-invite-modal-body text-center">
+                                            <div class="modal-body resend-invite-modal-body text-center">
                                                 <form
                                                     class="reset-invite-form w-100"
                                                     method="POST"
                                                     action="{% url 'accounts:resend-user-invite' %}"
+                                                    data-resend-invite-form
                                                 >
                                                     {% csrf_token %}
+                                                    <div
+                                                        class="alert d-none"
+                                                        role="alert"
+                                                        data-resend-invite-message
+                                                    ></div>
                                                         <div class="mb-3 fs-4 text-center">
                                                             Resend invite <span class="fw-bold">{{ trader.email }}</span>
                                                             <input id="email" type="hidden" name="email" value="{{ trader.email }}">
                                                         </div>
                                                     <input type="hidden" name="form-origin" value="trader-list">
                                                     <div class="mb-3 text-center">
-                                                        <button class="btn ikan-primary-button" type="submit">{{ auth_common_text.resetInvite|default:"Reset invite" }}</button>
+                                                        <button class="btn primary-button " type="submit">{{ auth_common_text.resetInvite|default:"Reset invite" }}</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -116,7 +122,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header invite-trader-modal-header">
-                    <h4 class="modal-title primary-color invite-trader-modal-title">Add Trader</h4>
+                    <h4 class="modal-title secondary-color invite-trader-modal-title">Add Trader</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                 </div>
 
@@ -126,8 +132,14 @@
                         class="w-100"
                         action="{% url 'accounts:invite-user' %}"
                         method="POST"
+                        data-invite-trader-form
                     >
                         {% csrf_token %}
+                        <div
+                            id="invite-trader-errors"
+                            class="alert alert-danger d-none"
+                            role="alert"
+                        ></div>
                         {% for field in invite_user_form %}
                             {% if field.name != 'role' %}
                                 <div class="form-field w-100">
@@ -143,12 +155,14 @@
                                             value="{{ field.value|default:'' }}"
                                             required
                                         >
+                                        <ul class="errorlist d-none" data-field-errors="email_or_phone"></ul>
                                     {% else %}
                                         {{ field.label_tag }}
                                         {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                                         <div class="w-100">
                                             {{ field }}
                                         </div>
+                                        <ul class="errorlist d-none" data-field-errors="{{ field.name }}"></ul>
                                     {% endif %}
                                     {% if field.errors %}
                                         <div class="text-danger">
@@ -170,6 +184,8 @@
             </div>
         </div>
     </div>
+
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="resend-invite-loader" loader_text="Resending invite..." only %}
 </div>
 
 <style>
@@ -196,9 +212,23 @@
         border-radius: 16px;
     }
 
-    .reset-invite-modal-body .reset-invite-form {
+    .resend-invite-modal-body .reset-invite-form {
         display: block;
         width: 100%;
+    }
+
+    .reset-invite-button {
+        border-radius: 4px;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .reset-invite-submit-button {
+        border-radius: 0;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        padding: 0.25rem 0.5rem;
     }
 </style>
 
@@ -213,4 +243,8 @@
         });
     </script>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/js/traders.js"></script>
 {% endblock %}

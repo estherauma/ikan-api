@@ -4,6 +4,15 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from enum import Enum
 from decouple import config
+from common.logger import logger
+
+
+def mask_email_for_logs(email):
+    return f'{email[:3]}***' if email else ''
+
+
+def mask_email_list_for_logs(emails):
+    return [mask_email_for_logs(email) for email in emails or []]
 
 
 class EmailTemplate(Enum):
@@ -34,8 +43,11 @@ class TunaEmailHelper:
             # Wrap in try-catch and show error message
             send_mail(subject, plain_message, from_email, to_emails, html_message=html_message)
             return True  # Email sent successfully
-        except Exception as e:
-            # Handle the exception and log or display an error message
-            # TODO: Send to sentry
-            print(e)
+        except Exception:
+            logger.exception(
+                'Failed to send email subject=%s template=%s to=%s',
+                subject,
+                template,
+                mask_email_list_for_logs(to_emails),
+            )
             return False  # Email sending failed

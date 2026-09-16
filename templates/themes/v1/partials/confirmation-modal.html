@@ -9,7 +9,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title ikan-primary-color" data-confirmation-modal-title>{{ title }}</h4>
+                <h4 class="modal-title {{ title_class|default:'ikan-primary-color' }}" data-confirmation-modal-title>{{ title }}</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
             </div>
 

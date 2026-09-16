@@ -34,27 +34,23 @@
 
                     <div class="row py-2 border-bottom">
                         <div class="col-sm-5 fw-semibold">{{ auth_common_text.email|default:"Email" }}</div>
-                        <div class="col-sm-7 text-secondary">{{ trader.email|default:"N/A" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.email|default:"-" }}</div>
                     </div>
                     <div class="row py-2 border-bottom">
                         <div class="col-sm-5 fw-semibold">{{ auth_common_text.firstName|default:"First Name" }}</div>
-                        <div class="col-sm-7 text-secondary">{{ trader.first_name|default:"N/A" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.first_name|default:"-" }}</div>
                     </div>
                     <div class="row py-2 border-bottom">
                         <div class="col-sm-5 fw-semibold">{{ auth_common_text.lastName|default:"Last Name" }}</div>
-                        <div class="col-sm-7 text-secondary">{{ trader.last_name|default:"N/A" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.last_name|default:"-" }}</div>
                     </div>
                     <div class="row py-2 border-bottom">
                         <div class="col-sm-5 fw-semibold">{{ auth_common_text.mobileNumber|default:"Mobile Number" }}</div>
-                        <div class="col-sm-7 text-secondary">{{ trader.mobile|default:"N/A" }}</div>
-                    </div>
-                    <div class="row py-2 border-bottom">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.isActive|default:"Is Active" }}</div>
-                        <div class="col-sm-7 text-secondary">{{ trader.is_active }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.mobile|default:"-" }}</div>
                     </div>
                     <div class="row py-2">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.accessCode|default:"Access Code" }}</div>
-                        <div class="col-sm-7 text-secondary">{{ trader.access_code|default:"N/A" }}</div>
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.isActive|default:"Is Active" }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.is_active }}</div>
                     </div>
                 </div>
             </div>
@@ -79,8 +75,7 @@
                     <table class="table dt-responsive nowrap w-100">
                         <thead>
                             <tr>
-                                <th>{{ auth_common_text.firstName|default:"First Name" }}</th>
-                                <th>{{ auth_common_text.lastName|default:"Last Name" }}</th>
+                                <th>{{ auth_common_text.firstName|default:"Name" }}</th>
                                 <th>{{ auth_common_text.email|default:"Email" }}</th>
                                 <th>{{ auth_common_text.mobileNumber|default:"Mobile Number" }}</th>
                                 <th>{{ common_text.actions|default:"Actions" }}</th>
@@ -91,12 +86,11 @@
                                 <tr>
                                     <td>
                                         <a href="{% url 'accounts:user-details' pk=relationship.vessel_owner.id %}">
-                                            {{ relationship.vessel_owner.first_name|default:"N/A" }}
+                                            {{ relationship.vessel_owner.first_name|default:"View" }}
                                         </a>
                                     </td>
-                                    <td>{{ relationship.vessel_owner.last_name|default:"N/A" }}</td>
-                                    <td>{{ relationship.vessel_owner.email|default:"N/A" }}</td>
-                                    <td>{{ relationship.vessel_owner.mobile|default:"N/A" }}</td>
+                                    <td>{{ relationship.vessel_owner.email|default:"-" }}</td>
+                                    <td>{{ relationship.vessel_owner.mobile|default:"-" }}</td>
                                     <td>
                                         <button
                                             type="button"
@@ -111,7 +105,7 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center text-secondary">
+                                    <td colspan="4" class="text-center text-secondary">
                                         No vessel owners attached to this trader.
                                     </td>
                                 </tr>
@@ -133,7 +127,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title ikan-primary-color">Attach Vessel Owners</h4>
+                    <h4 class="modal-title secondary-color">Attach Vessel Owners</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                 </div>
 
@@ -160,7 +154,7 @@
         </div>
     </div>
 
-    {% include "themes/v1/partials/confirmation-modal.html" with modal_id="remove-vessel-owner-modal" title="Remove Vessel Owner" message="You are removing this vessel owner from the trader. You can attach them again later." confirm_text="Remove" cancel_text="Cancel" confirm_button_class="primary-button" only %}
+    {% include "themes/v1/partials/confirmation-modal.html" with modal_id="remove-vessel-owner-modal" title="Remove Vessel Owner" title_class="secondary-color" message="You are removing this vessel owner from the trader. You can attach them again later." confirm_text="Remove" cancel_text="Cancel" confirm_button_class="primary-button" only %}
 
     {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="attach-vessel-owners-loader" loader_text="Attaching vessel owners..." only %}
 </div>

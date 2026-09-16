@@ -1,48 +1,35 @@
-document.addEventListener('DOMContentLoaded', function () {
+function getFullscreenLoader() {
+  return document.querySelector('[data-fullscreen-loader]');
+}
+
+function showFullscreenLoader(message) {
+  const loader = getFullscreenLoader();
+  const loaderText = loader?.querySelector('.fullscreen-loader-text');
+
+  if (!loader) return;
+
+  if (loaderText) {
+    loaderText.textContent = message;
+  }
+  loader.classList.remove('d-none');
+}
+
+function hideFullscreenLoader() {
+  getFullscreenLoader()?.classList.add('d-none');
+}
+
+function getCsrfToken() {
+  return document.querySelector("[name='csrfmiddlewaretoken']")?.value || '';
+}
+
+function initAttachVesselOwners() {
   const modalElement = document.getElementById('attach-vessel-owners-modal');
   const attachVesselOwnersForm = document.getElementById(
     'attach-vessel-owners-form',
   );
-  const removeVesselOwnerModalElement = document.getElementById(
-    'remove-vessel-owner-modal',
-  );
-  const removeVesselOwnerButtons = document.querySelectorAll(
-    '[data-remove-vessel-owner-button]',
-  );
-  const removeVesselOwnerConfirmButton =
-    removeVesselOwnerModalElement?.querySelector(
-      '[data-confirmation-modal-confirm]',
-    );
-  const removeVesselOwnerMessage = removeVesselOwnerModalElement?.querySelector(
-    '[data-confirmation-modal-message]',
-  );
-  const removeVesselOwnerErrors = removeVesselOwnerModalElement?.querySelector(
-    '[data-confirmation-modal-errors]',
-  );
-  const attachVesselOwnersLoader = document.querySelector(
-    '[data-fullscreen-loader]',
-  );
-  const loaderText = attachVesselOwnersLoader?.querySelector(
-    '.fullscreen-loader-text',
-  );
 
-  if (!modalElement || !attachVesselOwnersForm || !attachVesselOwnersLoader)
+  if (!modalElement || !attachVesselOwnersForm || !getFullscreenLoader())
     return;
-  let removeVesselOwnerUrl = null;
-  const removeVesselOwnerDefaultText =
-    removeVesselOwnerConfirmButton?.textContent || 'Remove';
-
-  function showLoader(message) {
-    if (loaderText) {
-      loaderText.textContent = message;
-    }
-    attachVesselOwnersLoader.classList.remove('d-none');
-  }
-
-  function getCsrfToken() {
-    return attachVesselOwnersForm.querySelector("[name='csrfmiddlewaretoken']")
-      .value;
-  }
 
   function resetAttachVesselOwnersForm() {
     attachVesselOwnersForm.reset();
@@ -82,6 +69,64 @@ document.addEventListener('DOMContentLoaded', function () {
     );
   }
 
+  attachVesselOwnersForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    showAttachVesselOwnersErrors({});
+    showFullscreenLoader('Attaching vessel owners...');
+
+    window.IkanForms.submitJsonForm(attachVesselOwnersForm)
+      .then(({ ok, data }) => {
+        if (!ok || !data.success) {
+          showAttachVesselOwnersErrors(data.errors);
+          hideFullscreenLoader();
+
+          return;
+        }
+
+        bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+        window.location.reload();
+      })
+      .catch(() => {
+        showAttachVesselOwnersErrors({
+          error: ['Something went wrong. Please try again.'],
+        });
+        hideFullscreenLoader();
+      });
+  });
+
+  window.addEventListener('pageshow', function () {
+    hideFullscreenLoader();
+  });
+
+  modalElement.addEventListener('hidden.bs.modal', function () {
+    resetAttachVesselOwnersForm();
+  });
+}
+
+function initRemoveVesselOwners() {
+  const removeVesselOwnerModalElement = document.getElementById(
+    'remove-vessel-owner-modal',
+  );
+  const removeVesselOwnerButtons = document.querySelectorAll(
+    '[data-remove-vessel-owner-button]',
+  );
+  const removeVesselOwnerConfirmButton =
+    removeVesselOwnerModalElement?.querySelector(
+      '[data-confirmation-modal-confirm]',
+    );
+  const removeVesselOwnerMessage = removeVesselOwnerModalElement?.querySelector(
+    '[data-confirmation-modal-message]',
+  );
+  const removeVesselOwnerErrors = removeVesselOwnerModalElement?.querySelector(
+    '[data-confirmation-modal-errors]',
+  );
+
+  if (!removeVesselOwnerModalElement || !removeVesselOwnerConfirmButton) return;
+
+  let removeVesselOwnerUrl = null;
+  const removeVesselOwnerDefaultText =
+    removeVesselOwnerConfirmButton.textContent || 'Remove';
+
   function showRemoveVesselOwnerError(message) {
     if (!removeVesselOwnerErrors) return;
 
@@ -95,46 +140,11 @@ document.addEventListener('DOMContentLoaded', function () {
       removeVesselOwnerErrors.classList.add('d-none');
       removeVesselOwnerErrors.textContent = '';
     }
-    if (removeVesselOwnerConfirmButton) {
-      removeVesselOwnerConfirmButton.disabled = false;
-      removeVesselOwnerConfirmButton.textContent = removeVesselOwnerDefaultText;
-    }
+    removeVesselOwnerConfirmButton.disabled = false;
+    removeVesselOwnerConfirmButton.textContent = removeVesselOwnerDefaultText;
   }
 
-  attachVesselOwnersForm.addEventListener('submit', function (event) {
-    event.preventDefault();
-    showAttachVesselOwnersErrors({});
-    showLoader('Attaching vessel owners...');
-
-    window.IkanForms.submitJsonForm(attachVesselOwnersForm)
-      .then(({ ok, data }) => {
-        if (!ok || !data.success) {
-          showAttachVesselOwnersErrors(data.errors);
-          attachVesselOwnersLoader.classList.add('d-none');
-
-          return;
-        }
-
-        bootstrap.Modal.getOrCreateInstance(modalElement).hide();
-        window.location.reload();
-      })
-      .catch(() => {
-        showAttachVesselOwnersErrors({
-          error: ['Something went wrong. Please try again.'],
-        });
-        attachVesselOwnersLoader.classList.add('d-none');
-      });
-  });
-
-  window.addEventListener('pageshow', function () {
-    hideLoader();
-  });
-
-  modalElement.addEventListener('hidden.bs.modal', function () {
-    resetAttachVesselOwnersForm();
-  });
-
-  removeVesselOwnerModalElement?.addEventListener(
+  removeVesselOwnerModalElement.addEventListener(
     'hidden.bs.modal',
     function () {
       resetRemoveVesselOwnerModal();
@@ -154,20 +164,18 @@ document.addEventListener('DOMContentLoaded', function () {
         removeVesselOwnerErrors.classList.add('d-none');
         removeVesselOwnerErrors.textContent = '';
       }
-      if (removeVesselOwnerConfirmButton) {
-        removeVesselOwnerConfirmButton.disabled = false;
-        removeVesselOwnerConfirmButton.textContent =
-          removeVesselOwnerDefaultText;
-      }
+      removeVesselOwnerConfirmButton.disabled = false;
+      removeVesselOwnerConfirmButton.textContent =
+        removeVesselOwnerDefaultText;
 
       bootstrap.Modal.getOrCreateInstance(removeVesselOwnerModalElement).show();
     });
   });
 
-  removeVesselOwnerConfirmButton?.addEventListener('click', function () {
+  removeVesselOwnerConfirmButton.addEventListener('click', function () {
     if (!removeVesselOwnerUrl) return;
 
-    showLoader('Removing vessel owner...');
+    showFullscreenLoader('Removing vessel owner...');
     removeVesselOwnerConfirmButton.disabled = true;
     removeVesselOwnerConfirmButton.textContent = 'Removing...';
 
@@ -190,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
           removeVesselOwnerConfirmButton.disabled = false;
           removeVesselOwnerConfirmButton.textContent =
             removeVesselOwnerDefaultText;
-          hideLoader();
+          hideFullscreenLoader();
           return;
         }
 
@@ -204,7 +212,180 @@ document.addEventListener('DOMContentLoaded', function () {
         removeVesselOwnerConfirmButton.disabled = false;
         removeVesselOwnerConfirmButton.textContent =
           removeVesselOwnerDefaultText;
-        hideLoader();
+        hideFullscreenLoader();
       });
   });
+}
+
+function initResendTraderInvites() {
+  const resendInviteForms = document.querySelectorAll(
+    '[data-resend-invite-form]',
+  );
+
+  resendInviteForms.forEach((form) => {
+    const submitButton = form.querySelector(
+      'button[type="submit"], input[type="submit"]',
+    );
+    const messageContainer = form.querySelector(
+      '[data-resend-invite-message]',
+    );
+    const modalElement = form.closest('.modal');
+    const defaultButtonText = submitButton?.textContent || 'Resend invite';
+
+    function showResendInviteMessage(message, isSuccess) {
+      if (!messageContainer) return;
+
+      messageContainer.textContent = message;
+      messageContainer.classList.remove(
+        'd-none',
+        'alert-success',
+        'alert-danger',
+      );
+      messageContainer.classList.add(
+        isSuccess ? 'alert-success' : 'alert-danger',
+      );
+    }
+
+    function resetSubmitButton() {
+      if (!submitButton) return;
+
+      submitButton.disabled = false;
+      submitButton.textContent = defaultButtonText;
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      if (messageContainer) {
+        messageContainer.classList.add('d-none');
+        messageContainer.textContent = '';
+      }
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Resending...';
+      }
+
+      showFullscreenLoader('Resending invite...');
+
+      window.IkanForms.submitJsonForm(form)
+        .then(({ ok, data }) => {
+          if (ok && data.success && modalElement) {
+            bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+          }
+
+          showResendInviteMessage(
+            data.message || 'The invite was reset successfully.',
+            ok && data.success,
+          );
+        })
+        .catch(() => {
+          showResendInviteMessage(
+            'Something went wrong. Please try again.',
+            false,
+          );
+        })
+        .finally(() => {
+          hideFullscreenLoader();
+          resetSubmitButton();
+        });
+    });
+
+    window.addEventListener('pageshow', function () {
+      hideFullscreenLoader();
+      resetSubmitButton();
+    });
+  });
+}
+
+function initInviteTrader() {
+  const inviteTraderForm = document.querySelector('[data-invite-trader-form]');
+  const inviteTraderModalElement = document.getElementById(
+    'invite-trader-modal',
+  );
+  const inviteTraderErrors = document.getElementById('invite-trader-errors');
+
+  if (!inviteTraderForm || !inviteTraderModalElement) return;
+
+  const submitButton = inviteTraderForm.querySelector(
+    'button[type="submit"], input[type="submit"]',
+  );
+  const defaultButtonText = submitButton?.textContent || 'Add Trader';
+
+  function resetSubmitButton() {
+    if (!submitButton) return;
+
+    submitButton.disabled = false;
+    submitButton.textContent = defaultButtonText;
+  }
+
+  function clearInviteTraderErrors() {
+    window.IkanForms.clearFormErrors(inviteTraderForm, inviteTraderErrors);
+  }
+
+  function showInviteTraderErrors(errors, message) {
+    window.IkanForms.renderFormErrors(
+      inviteTraderForm,
+      errors,
+      inviteTraderErrors,
+    );
+
+    if (
+      message &&
+      inviteTraderErrors &&
+      inviteTraderErrors.classList.contains('d-none')
+    ) {
+      inviteTraderErrors.textContent = message;
+      inviteTraderErrors.classList.remove('d-none');
+    }
+  }
+
+  inviteTraderForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    clearInviteTraderErrors();
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Adding...';
+    }
+    showFullscreenLoader('Adding trader...');
+
+    window.IkanForms.submitJsonForm(inviteTraderForm)
+      .then(({ ok, data }) => {
+        if (!ok || !data.success) {
+          showInviteTraderErrors(data.errors || {}, data.message);
+          hideFullscreenLoader();
+          resetSubmitButton();
+          return;
+        }
+
+        bootstrap.Modal.getOrCreateInstance(inviteTraderModalElement).hide();
+        window.location.reload();
+      })
+      .catch(() => {
+        showInviteTraderErrors(
+          {},
+          'Something went wrong. Please try again.',
+        );
+        hideFullscreenLoader();
+        resetSubmitButton();
+      });
+  });
+
+  inviteTraderModalElement.addEventListener('hidden.bs.modal', function () {
+    inviteTraderForm.reset();
+    clearInviteTraderErrors();
+    resetSubmitButton();
+  });
+
+  window.addEventListener('pageshow', function () {
+    hideFullscreenLoader();
+    resetSubmitButton();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  initAttachVesselOwners();
+  initRemoveVesselOwners();
+  initResendTraderInvites();
+  initInviteTrader();
 });

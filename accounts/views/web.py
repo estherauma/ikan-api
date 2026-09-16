@@ -391,14 +391,20 @@ def invite_user(request):
                 if is_trader_invite:
                     success = send_user_invite_email(user, auth_common_text)
                     if not success:
-                        messages.error(
-                            request,
-                            auth_common_text.get(
+                        return JsonResponse({
+                            'success': False,
+                            'message': auth_common_text.get(
                                 'userCreatedErrorSendingEmail',
                                 'User created but an error occurred while sending the email. Please contact support.'
-                            )
-                        )
-                    return redirect('accounts:traders')
+                            ),
+                        }, status=500)
+                    return JsonResponse({
+                        'success': True,
+                        'message': auth_common_text.get(
+                            'userCreatedEmailSuccess',
+                            'User created and email sent successfully.'
+                        ),
+                    })
 
                 email = TunaEmailHelper()
                 success = email.tuna_send_email(
@@ -412,13 +418,13 @@ def invite_user(request):
                     auth_common_text=auth_common_text,
                 )
                 if not success:
-                    messages.error(
-                        request,
-                        auth_common_text.get(
+                    return JsonResponse({
+                        'success': False,
+                        'message': auth_common_text.get(
                             'userCreatedErrorSendingEmail',
                             'User created but an error occurred while sending the email. Please contact support.'
-                        )
-                    )
+                        ),
+                    }, status=500)
             if form.cleaned_data.get('has_phone_number'):
                 try:
                     otp_service = TwilioService()
@@ -429,27 +435,28 @@ def invite_user(request):
                     message = auth_common_text.get('workerInviteSMSMessage',
                                                    'Your access code to use IKAN is:') + user.access_code
                     otp_service.send_sms(user.mobile, message)
-                    # TODO: Add translation
-                    messages.success(request,
-                                     auth_common_text.get('userCreatedSMSSuccess',
-                                                          'User created and SMS sent successfully.'))
                 except Exception:
-                    # TODO: Add translation
-                    messages.error(request,
-                                   auth_common_text.get('userCreatedErrorSendingSMS',
-                                                        'User created but an error occurred while sending the SMS. \
-                                                          Please contact support.'))
+                    return JsonResponse({
+                        'success': False,
+                        'message': auth_common_text.get(
+                            'userCreatedErrorSendingSMS',
+                            'User created but an error occurred while sending the SMS. Please contact support.'
+                        ),
+                    }, status=500)
 
-            if form_origin == 'worker-list':
-                return redirect('accounts:workers')
-            return redirect('accounts:users')
+            return JsonResponse({
+                'success': True,
+                'message': auth_common_text.get(
+                    'userCreatedSuccess',
+                    'User created successfully.'
+                ),
+            })
         else:
-            context['show_invite_modal'] = True
-            # prefill form with submitted data
-            for field in form.fields:
-                if field in form.data:
-                    form.fields[field].widget.attrs['value'] = form.data[field]
-            context['invite_user_form'] = form
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors.get_json_data(),
+                'message': 'Error validating form!',
+            }, status=400)
 
     if form_origin == 'worker-list':
         messages.error(request, 'Error validating form!')
@@ -536,23 +543,31 @@ class ResendUserInvite(LoginRequiredMixin, View):
     def post(self, request):
         form = ResendTokenForm(data=request.POST)
         if not form.is_valid():
-            messages.error(request, 'No valid email provided.')
-            return redirect('accounts:traders')
+            return JsonResponse({
+                'success': False,
+                'message': 'No valid email provided.',
+            }, status=400)
 
         email = form.cleaned_data.get('email')
 
         user = User.objects.filter(email=email, groups__name='trader').first()
         if not user:
-            messages.error(request, 'Trader does not exist.')
-            return redirect('accounts:traders')
+            return JsonResponse({
+                'success': False,
+                'message': 'Trader does not exist.',
+            }, status=404)
 
         auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
         success = send_user_invite_email(user, auth_common_text)
         if success:
-            messages.success(request, 'The invite was reset successfully.')
-        else:
-            messages.error(request, 'An error occurred while resetting the invite.')
-        return redirect('accounts:traders')
+            return JsonResponse({
+                'success': True,
+                'message': 'The invite was reset successfully.',
+            })
+        return JsonResponse({
+            'success': False,
+            'message': 'An error occurred while resetting the invite.',
+        }, status=500)
 
 
 class RegisterSuccess(View):
