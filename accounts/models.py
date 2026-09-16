@@ -68,6 +68,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     is_verified = models.BooleanField(_('verified'), default=False)
     is_staff = models.BooleanField(default=False)
     reset_password_token = models.CharField(null=True, blank=True, max_length=125)
+    reset_password_token_created_at = models.DateTimeField(null=True, blank=True)
     profile_image = models.ImageField(null=True, blank=True)
     access_code = models.CharField(_('access code'), null=True, blank=True, max_length=30)
     position = models.CharField(_('position'), null=True, blank=True, max_length=30)

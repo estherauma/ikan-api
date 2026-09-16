@@ -16,10 +16,10 @@ from common.utils import get_access_code
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
-from django.http import JsonResponse
 from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import TwilioService, send_verification_code, get_locale_from_request
@@ -255,6 +255,31 @@ class WorkersListView(LoginRequiredMixin, ListView):
 
 @login_required(login_url='/account/login')
 def invite_user(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
+
+    def get_origin_response_target():
+        if form_origin == 'worker-list':
+            return 'worker-list.html', 'accounts:workers'
+        return 'user-list.html', 'accounts:users'
+
+    def render_invite_form_with_errors(form):
+        template_name, _ = get_origin_response_target()
+        context['invite_user_form'] = form
+        context['show_invite_modal'] = True
+        messages.error(request, 'Error validating form!')
+        return render(request, template_name, context)
+
+    def invite_success_response(message):
+        _, redirect_url = get_origin_response_target()
+        messages.success(request, message)
+        return redirect(redirect_url)
+
+    def invite_error_response(message):
+        _, redirect_url = get_origin_response_target()
+        messages.error(request, message)
+        return redirect(redirect_url)
+
     context = {}
     context['invite_user_form'] = InviteUser()
     context['resend_token_form'] = ResendTokenForm()
@@ -273,42 +298,37 @@ def invite_user(request):
             if request.user.groups.filter(name='taiwanese_agent').exists() or \
                request.user.groups.filter(name='indonesian_agent').exists():
                 recruited_by = request.user
-            is_trader_invite = form.cleaned_data.get('role') == 'trader' and form.cleaned_data.get('has_email')
+            role_name = form.cleaned_data.get('role')
+            sends_invite_link = role_name in ['admin', 'trader'] and form.cleaned_data.get('has_email')
             user = User.objects.create_user(
                 email=form.cleaned_data.get('email'),
                 mobile=form.cleaned_data.get('mobile'),
                 first_name=form.cleaned_data.get('first_name'),
                 last_name=form.cleaned_data.get('last_name'),
                 is_active=False,
-                access_code=None if is_trader_invite else get_access_code(),
+                access_code=None if sends_invite_link else get_access_code(),
                 created_by=request.user.id,
                 updated_by=request.user.id,
                 recruited_by=recruited_by,
             )
             # Save user group/role
-            group = Group.objects.get(name=form.cleaned_data.get('role'))
+            group = Group.objects.get(name=role_name)
             user.groups.add(group)
 
             if form.cleaned_data.get('has_email'):
                 prismic_utils = PrismicUtils(request)
                 auth_common_text = prismic_utils.get_page_text('auth-common-text')
-                if is_trader_invite:
+                if sends_invite_link:
                     success = send_user_invite_email(user, auth_common_text)
                     if not success:
-                        return JsonResponse({
-                            'success': False,
-                            'message': auth_common_text.get(
-                                'userCreatedErrorSendingEmail',
-                                'User created but an error occurred while sending the email. Please contact support.'
-                            ),
-                        }, status=500)
-                    return JsonResponse({
-                        'success': True,
-                        'message': auth_common_text.get(
+                        return invite_error_response(auth_common_text.get(
+                            'userCreatedErrorSendingEmail',
+                            'User created but an error occurred while sending the email. Please contact support.'
+                        ))
+                    return invite_success_response(auth_common_text.get(
                             'userCreatedEmailSuccess',
                             'User created and email sent successfully.'
-                        ),
-                    })
+                    ))
 
                 email = TunaEmailHelper()
                 success = email.tuna_send_email(
@@ -322,13 +342,10 @@ def invite_user(request):
                     auth_common_text=auth_common_text,
                 )
                 if not success:
-                    return JsonResponse({
-                        'success': False,
-                        'message': auth_common_text.get(
-                            'userCreatedErrorSendingEmail',
-                            'User created but an error occurred while sending the email. Please contact support.'
-                        ),
-                    }, status=500)
+                    return invite_error_response(auth_common_text.get(
+                        'userCreatedErrorSendingEmail',
+                        'User created but an error occurred while sending the email. Please contact support.'
+                    ))
             if form.cleaned_data.get('has_phone_number'):
                 try:
                     otp_service = TwilioService()
@@ -340,27 +357,17 @@ def invite_user(request):
                                                    'Your access code to use IKAN is:') + user.access_code
                     otp_service.send_sms(user.mobile, message)
                 except Exception:
-                    return JsonResponse({
-                        'success': False,
-                        'message': auth_common_text.get(
-                            'userCreatedErrorSendingSMS',
-                            'User created but an error occurred while sending the SMS. Please contact support.'
-                        ),
-                    }, status=500)
+                    return invite_error_response(auth_common_text.get(
+                        'userCreatedErrorSendingSMS',
+                        'User created but an error occurred while sending the SMS. Please contact support.'
+                    ))
 
-            return JsonResponse({
-                'success': True,
-                'message': auth_common_text.get(
-                    'userCreatedSuccess',
-                    'User created successfully.'
-                ),
-            })
+            return invite_success_response(auth_common_text.get(
+                'userCreatedSuccess',
+                'User created successfully.'
+            ))
         else:
-            return JsonResponse({
-                'success': False,
-                'errors': form.errors.get_json_data(),
-                'message': 'Error validating form!',
-            }, status=400)
+            return render_invite_form_with_errors(form)
 
     if form_origin == 'worker-list':
         messages.error(request, 'Error validating form!')
