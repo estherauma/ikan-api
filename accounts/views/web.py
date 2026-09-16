@@ -24,7 +24,7 @@ from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import TwilioService, send_verification_code, get_locale_from_request
 from django.db.models import Q
-from accounts.utils import get_workers, send_user_invite_email
+from accounts.utils import get_workers, is_user_invite_token_valid, send_user_invite_email
 
 
 @login_required(login_url='/account/login')
@@ -836,11 +836,14 @@ class AccountSetup(View):
         token = self.request.GET.get('token') or self.request.POST.get('token')
         if not email or not token:
             return None
-        return User.objects.filter(
+        user = User.objects.filter(
             email=email,
             reset_password_token=token,
             is_active=False,
         ).first()
+        if not is_user_invite_token_valid(user):
+            return None
+        return user
 
     def get(self, request):
         context = self.get_context_data()
@@ -852,6 +855,8 @@ class AccountSetup(View):
         user = self.get_invited_user()
         if not user:
             context['invalid_link'] = True
+            messages.error(request, auth_common_text.get(
+                'invalidAccountSetupLink', 'This account setup link is invalid or has expired.'))
             return render(request, template_name=self.template_name, context=context)
 
         form = AccountSetupForm(data=request.POST, auth_common_text=auth_common_text, user=user)
@@ -861,6 +866,7 @@ class AccountSetup(View):
 
         user.set_password(form.cleaned_data.get('password1'))
         user.reset_password_token = None
+        user.reset_password_token_created_at = None
         user.is_verified = True
         user.is_active = True
         user.save()
