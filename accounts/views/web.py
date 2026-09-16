@@ -1,7 +1,7 @@
 from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm, \
     LoginForm, RegistrationForm, PasswordResetForm, RequestPasswordResetForm, \
     CreateAgentVesselownerRelationshipForm, AccountSetupForm, AttachTraderVesselOwnersForm
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic.list import ListView
@@ -331,6 +331,21 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
         ]
         TraderVesselOwnerRelationship.objects.bulk_create(relationships)
         messages.success(request, 'Vessel owner(s) attached successfully.')
+        return JsonResponse({'success': True})
+
+
+class RemoveTraderVesselOwnerRelationshipView(LoginRequiredMixin, RoleRequiredMixin, View):
+    required_roles = ['admin']
+
+    def post(self, request, pk, relationship_pk):
+        trader = get_object_or_404(User.objects.filter(groups__name='trader'), pk=pk)
+        relationship = get_object_or_404(
+            TraderVesselOwnerRelationship,
+            pk=relationship_pk,
+            trader=trader,
+        )
+        relationship.delete()
+        messages.success(request, 'Vessel owner detached successfully.')
         return JsonResponse({'success': True})
 
 

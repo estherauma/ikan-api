@@ -4,7 +4,8 @@ from accounts.views.web import invite_user, logout_user, \
     RequestPasswordReset, ResetPassword, LoginView, \
     ResendAcessCode, UserDetailView, TradersListView, TraderDetailView, WorkersListView, change_language, \
     VerifyPhoneNumber, verify_phone_number_success, verify_phone_number_failure, \
-    resend_otp, resend_password_reset_token, CreateAgentVesselownerRelationshipView, AccountSetup, ResendUserInvite
+    resend_otp, resend_password_reset_token, CreateAgentVesselownerRelationshipView, AccountSetup, ResendUserInvite, \
+    RemoveTraderVesselOwnerRelationshipView
 
 app_name = 'accounts'
 
@@ -26,6 +27,8 @@ urlpatterns = [
     path('workers', WorkersListView.as_view(), name='workers'),
     path('traders', TradersListView.as_view(), name='traders'),
     path('traders/<pk>/', TraderDetailView.as_view(), name='trader-details'),
+    path('traders/<pk>/vessel-owner-relationships/<relationship_pk>/remove',
+         RemoveTraderVesselOwnerRelationshipView.as_view(), name='remove-trader-vessel-owner-relationship'),
     path('change-language', change_language, name='change-language'),
     path('verify-phone-number', VerifyPhoneNumber.as_view(), name='verify-phone-number'),
     path('verify-phone-number/success', verify_phone_number_success, name='verify-phone-number-success'),

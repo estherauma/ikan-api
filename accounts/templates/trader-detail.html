@@ -83,6 +83,7 @@
                                 <th>{{ auth_common_text.lastName|default:"Last Name" }}</th>
                                 <th>{{ auth_common_text.email|default:"Email" }}</th>
                                 <th>{{ auth_common_text.mobileNumber|default:"Mobile Number" }}</th>
+                                <th>{{ common_text.actions|default:"Actions" }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -96,10 +97,21 @@
                                     <td>{{ relationship.vessel_owner.last_name|default:"N/A" }}</td>
                                     <td>{{ relationship.vessel_owner.email|default:"N/A" }}</td>
                                     <td>{{ relationship.vessel_owner.mobile|default:"N/A" }}</td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            data-remove-vessel-owner-button
+                                            data-remove-url="{% url 'accounts:remove-trader-vessel-owner-relationship' pk=trader.id relationship_pk=relationship.id %}"
+                                            data-vessel-owner-name="{{ relationship.vessel_owner.first_name|default:'' }} {{ relationship.vessel_owner.last_name|default:'' }}"
+                                        >
+                                            Remove
+                                        </button>
+                                    </td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center text-secondary">
+                                    <td colspan="5" class="text-center text-secondary">
                                         No vessel owners attached to this trader.
                                     </td>
                                 </tr>
@@ -147,6 +159,8 @@
             </div>
         </div>
     </div>
+
+    {% include "themes/v1/partials/confirmation-modal.html" with modal_id="remove-vessel-owner-modal" title="Remove Vessel Owner" message="You are removing this vessel owner from the trader. You can attach them again later." confirm_text="Remove" cancel_text="Cancel" confirm_button_class="primary-button" only %}
 
     {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="attach-vessel-owners-loader" loader_text="Attaching vessel owners..." only %}
 </div>
