@@ -36,6 +36,9 @@ class TraderWebViewsTestCase(TestCase):
             last_name='Owner',
         )
         self.client.force_login(self.admin)
+        session = self.client.session
+        session['language'] = 'en'
+        session.save()
 
     def test_trader_list_renders_from_traders_app(self):
         response = self.client.get(reverse('traders:traders'))
