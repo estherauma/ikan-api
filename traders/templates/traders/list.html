@@ -31,9 +31,9 @@
             <table
                 id="datatable"
                 class="table dt-responsive nowrap w-100"
-                data-page-length="20"
+                data-page-length="10"
                 data-hide-controls="true"
-                data-sortable-columns="0,1,4"
+                data-sortable-columns="0,1"
             >
                 <thead>
                     <tr>
@@ -246,5 +246,10 @@
 {% endblock %}
 
 {% block scripts %}
+    <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/js/pages/datatables.js"></script>
     <script src="/static/js/traders.js"></script>
 {% endblock %}
