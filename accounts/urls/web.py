@@ -2,10 +2,9 @@ from django.urls import path
 from accounts.views.web import invite_user, logout_user, \
     UserListView, RegisterWebView, RegisterSuccess, \
     RequestPasswordReset, ResetPassword, LoginView, \
-    ResendAcessCode, UserDetailView, TradersListView, TraderDetailView, WorkersListView, change_language, \
+    ResendAcessCode, UserDetailView, WorkersListView, change_language, \
     VerifyPhoneNumber, verify_phone_number_success, verify_phone_number_failure, \
-    resend_otp, resend_password_reset_token, CreateAgentVesselownerRelationshipView, AccountSetup, ResendUserInvite, \
-    RemoveTraderVesselOwnerRelationshipView
+    resend_otp, resend_password_reset_token, CreateAgentVesselownerRelationshipView, AccountSetup
 
 app_name = 'accounts'
 
@@ -19,16 +18,11 @@ urlpatterns = [
     path('users/<pk>/', UserDetailView.as_view(), name='user-details'),
     path('users/invite', invite_user, name='invite-user'),
     path('users/resend-access-code', ResendAcessCode.as_view(), name='resend-access-code'),
-    path('users/resend-invite', ResendUserInvite.as_view(), name='resend-user-invite'),
     path('register', RegisterWebView.as_view(), name='web-register'),
     path('register-success', RegisterSuccess.as_view(), name='register-success'),
     path("logout", logout_user, name="logout"),
     path("profile/<pk>/", UserDetailView.as_view(), name="profile"),
     path('workers', WorkersListView.as_view(), name='workers'),
-    path('traders', TradersListView.as_view(), name='traders'),
-    path('traders/<pk>/', TraderDetailView.as_view(), name='trader-details'),
-    path('traders/<pk>/vessel-owner-relationships/<relationship_pk>/remove',
-         RemoveTraderVesselOwnerRelationshipView.as_view(), name='remove-trader-vessel-owner-relationship'),
     path('change-language', change_language, name='change-language'),
     path('verify-phone-number', VerifyPhoneNumber.as_view(), name='verify-phone-number'),
     path('verify-phone-number/success', verify_phone_number_success, name='verify-phone-number-success'),

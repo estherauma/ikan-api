@@ -96,7 +96,7 @@
                                             type="button"
                                             class="btn btn-outline-secondary btn-sm"
                                             data-remove-vessel-owner-button
-                                            data-remove-url="{% url 'accounts:remove-trader-vessel-owner-relationship' pk=trader.id relationship_pk=relationship.id %}"
+                                            data-remove-url="{% url 'traders:remove-vessel-owner-relationship' pk=trader.id relationship_pk=relationship.id %}"
                                             data-vessel-owner-name="{{ relationship.vessel_owner.first_name|default:'' }} {{ relationship.vessel_owner.last_name|default:'' }}"
                                         >
                                             Remove
@@ -137,16 +137,16 @@
                     <form
                         id="attach-vessel-owners-form"
                         class="searchable-multi-select-form"
-                        action="{% url 'accounts:trader-details' pk=trader.id %}"
+                        action="{% url 'traders:details' pk=trader.id %}"
                         method="POST"
                     >
                         {% csrf_token %}
 
                         {% include "themes/v1/partials/searchable-multi-select.html" with input_id="vessel-owner-search" field=attach_vessel_owners_form.vessel_owners field_name="vessel_owners" options=available_vessel_owner_options search_placeholder="Search vessel owners" empty_text="No vessel owners available to attach." no_results_text="No matching vessel owners found." hide_selected_summary=True only %}
 
-                        <div class="mb-3 text-center">
-                            <input class="btn ikan-primary-button" type="submit" value="Attach Vessel Owners">
+                        <div class="mb-3 d-flex justify-content-end gap-2">
                             <button class="btn btn-light ms-1" type="button" data-bs-dismiss="modal">Cancel</button>
+                            <input class="btn primary-button" type="submit" value="Attach">
                         </div>
                     </form>
                 </div>

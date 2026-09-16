@@ -49,7 +49,7 @@
                     {% for trader in traders %}
                     <tr>
                         <td>
-                            <a href="{% url 'accounts:trader-details' pk=trader.id %}">
+                            <a href="{% url 'traders:details' pk=trader.id %}">
                                 {% if trader.first_name or trader.last_name %}
                                     {{ trader.first_name }} {{ trader.last_name }}
                                 {% else %}
@@ -87,7 +87,7 @@
                                                 <form
                                                     class="reset-invite-form w-100"
                                                     method="POST"
-                                                    action="{% url 'accounts:resend-user-invite' %}"
+                                                    action="{% url 'traders:resend-invite' %}"
                                                     data-resend-invite-form
                                                 >
                                                     {% csrf_token %}
@@ -130,7 +130,7 @@
                     <form
                         id="invite-trader-form"
                         class="w-100"
-                        action="{% url 'accounts:invite-user' %}"
+                        action="{% url 'traders:invite-trader' %}"
                         method="POST"
                         data-invite-trader-form
                     >
