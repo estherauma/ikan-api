@@ -2,6 +2,18 @@
 
 {% block content %}
 <div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="row mb-3 align-items-center">
         <div class="col">
             <h1 class="mb-0 secondary-color">
@@ -53,7 +65,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="secondary-color mb-0">Attached Vessel Owners</h3>
-                        <button type="button" class="btn btn-large primary-button">
+                        <button
+                            type="button"
+                            class="btn btn-large primary-button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#attach-vessel-owners-modal"
+                        >
                             <i class="mdi mdi-plus"></i>
                             Attach Vessel Owner
                         </button>
@@ -71,7 +88,11 @@
                         <tbody>
                             {% for relationship in vessel_owner_relationships %}
                                 <tr>
-                                    <td>{{ relationship.vessel_owner.first_name|default:"N/A" }}</td>
+                                    <td>
+                                        <a href="{% url 'accounts:user-details' pk=relationship.vessel_owner.id %}">
+                                            {{ relationship.vessel_owner.first_name|default:"N/A" }}
+                                        </a>
+                                    </td>
                                     <td>{{ relationship.vessel_owner.last_name|default:"N/A" }}</td>
                                     <td>{{ relationship.vessel_owner.email|default:"N/A" }}</td>
                                     <td>{{ relationship.vessel_owner.mobile|default:"N/A" }}</td>
@@ -89,5 +110,48 @@
             </div>
         </div>
     </div>
+
+    <div
+        id="attach-vessel-owners-modal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title ikan-primary-color">Attach Vessel Owners</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="attach-vessel-owners-errors" class="alert alert-danger d-none"></div>
+
+                    <form
+                        id="attach-vessel-owners-form"
+                        class="searchable-multi-select-form"
+                        action="{% url 'accounts:trader-details' pk=trader.id %}"
+                        method="POST"
+                    >
+                        {% csrf_token %}
+
+                        {% include "themes/v1/partials/searchable-multi-select.html" with input_id="vessel-owner-search" field=attach_vessel_owners_form.vessel_owners field_name="vessel_owners" options=available_vessel_owner_options search_placeholder="Search vessel owners" empty_text="No vessel owners available to attach." no_results_text="No matching vessel owners found." hide_selected_summary=True only %}
+
+                        <div class="mb-3 text-center">
+                            <input class="btn ikan-primary-button" type="submit" value="Attach Vessel Owners">
+                            <button class="btn btn-light ms-1" type="button" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="attach-vessel-owners-loader" loader_text="Attaching vessel owners..." only %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/js/traders.js"></script>
 {% endblock %}

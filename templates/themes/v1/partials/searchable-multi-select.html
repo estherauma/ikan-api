@@ -1,0 +1,82 @@
+<div data-searchable-multi-select>
+    <div class="mb-3">
+        <label for="{{ input_id }}">
+            {{ field.label }}
+        </label>
+        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+
+        {% if field.help_text %}
+            <span class="fst-italic ms-1" style="color: var(--ct-gray);">
+                {{ field.help_text }}
+            </span>
+        {% endif %}
+
+        <div class="searchable-multi-select">
+            <input
+                id="{{ input_id }}"
+                type="text"
+                class="form-control searchable-multi-select-input"
+                placeholder="{{ search_placeholder }}"
+                autocomplete="off"
+                data-searchable-multi-select-input
+            >
+            <div
+                class="searchable-multi-select-dropdown border rounded shadow-sm"
+                data-searchable-multi-select-dropdown
+            >
+                {% for option in options %}
+                    <label
+                        class="searchable-multi-select-option"
+                        data-searchable-multi-select-option-row
+                        data-search-text="{{ option.search_text }}"
+                    >
+                        <input
+                            class="searchable-multi-select-checkbox"
+                            type="checkbox"
+                            name="{{ field_name }}"
+                            value="{{ option.value }}"
+                            data-searchable-multi-select-option
+                            data-selected-label="{{ option.label }}"
+                            {% if option.selected %}checked{% endif %}
+                        >
+                        <span class="searchable-multi-select-option-text">
+                            {{ option.label }}
+                        </span>
+                    </label>
+                {% empty %}
+                    <div class="searchable-multi-select-empty text-secondary">
+                        {{ empty_text }}
+                    </div>
+                {% endfor %}
+                <div
+                    class="searchable-multi-select-empty text-secondary d-none"
+                    data-searchable-multi-select-no-results
+                >
+                    {{ no_results_text }}
+                </div>
+            </div>
+        </div>
+
+        <ul
+            class="errorlist{% if not field.errors %} d-none{% endif %}"
+            data-field-errors="{{ field_name }}"
+        >
+            {% for error in field.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if not hide_selected_summary %}
+        <div class="mb-3">
+            <label class="form-label">{{ selected_label }}</label>
+            <div
+                class="searchable-multi-select-selected border rounded p-2 text-secondary"
+                data-searchable-multi-select-selected
+                data-empty-text="{{ selected_empty_text }}"
+            >
+                {{ selected_empty_text }}
+            </div>
+        </div>
+    {% endif %}
+</div>

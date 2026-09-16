@@ -1,6 +1,6 @@
 from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm, \
     LoginForm, RegistrationForm, PasswordResetForm, RequestPasswordResetForm, \
-    CreateAgentVesselownerRelationshipForm, AccountSetupForm
+    CreateAgentVesselownerRelationshipForm, AccountSetupForm, AttachTraderVesselOwnersForm
 from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -19,6 +19,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
+from django.http import JsonResponse
 from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship, TraderVesselOwnerRelationship
 from common.twilio import TwilioService, send_verification_code, get_locale_from_request
@@ -291,7 +292,46 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
         context['vessel_owner_relationships'] = TraderVesselOwnerRelationship.objects.filter(
             trader=self.object,
         ).select_related('vessel_owner')
+        attach_vessel_owners_form = kwargs.get(
+            'attach_vessel_owners_form',
+            AttachTraderVesselOwnersForm(trader=self.object),
+        )
+        selected_vessel_owner_ids = attach_vessel_owners_form.data.getlist('vessel_owners')
+        available_vessel_owner_options = []
+        for vessel_owner in attach_vessel_owners_form.fields['vessel_owners'].queryset:
+            name = f'{vessel_owner.first_name} {vessel_owner.last_name}'.strip()
+            contact = vessel_owner.email or vessel_owner.mobile
+            label = name or contact
+            available_vessel_owner_options.append({
+                'value': vessel_owner.id,
+                'label': label,
+                'search_text': f'{name} {contact}',
+                'selected': str(vessel_owner.id) in selected_vessel_owner_ids,
+            })
+
+        context['attach_vessel_owners_form'] = attach_vessel_owners_form
+        context['available_vessel_owner_options'] = available_vessel_owner_options
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = AttachTraderVesselOwnersForm(data=request.POST, trader=self.object)
+
+        if not form.is_valid():
+            return JsonResponse({'success': False, 'errors': form.errors.get_json_data()}, status=400)
+
+        relationships = [
+            TraderVesselOwnerRelationship(
+                trader=self.object,
+                vessel_owner=vessel_owner,
+                created_by=request.user.id,
+                updated_by=request.user.id,
+            )
+            for vessel_owner in form.cleaned_data['vessel_owners']
+        ]
+        TraderVesselOwnerRelationship.objects.bulk_create(relationships)
+        messages.success(request, 'Vessel owner(s) attached successfully.')
+        return JsonResponse({'success': True})
 
 
 @login_required(login_url='/account/login')

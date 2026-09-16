@@ -5,7 +5,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.models import Group
-from accounts.models import User, AgentVesselOwnerRelationship
+from accounts.models import User, AgentVesselOwnerRelationship, TraderVesselOwnerRelationship
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Q
@@ -655,3 +655,29 @@ class CreateAgentVesselownerRelationshipForm(forms.Form):
                     "Agent and vessel owner cannot be the same user."
                 )
         return cleaned_data
+
+
+class AttachTraderVesselOwnersForm(forms.Form):
+    vessel_owners = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.trader = kwargs.pop('trader')
+        super().__init__(*args, **kwargs)
+
+        attached_vessel_owner_ids = TraderVesselOwnerRelationship.objects.filter(
+            trader=self.trader,
+        ).values_list('vessel_owner_id', flat=True)
+        self.fields['vessel_owners'].queryset = User.objects.filter(
+            groups__name='vessel_owner'
+        ).exclude(
+            id__in=attached_vessel_owner_ids
+        ).order_by('first_name', 'last_name', 'email')
+
+    def clean_vessel_owners(self):
+        vessel_owners = self.cleaned_data['vessel_owners']
+        if not vessel_owners:
+            raise forms.ValidationError('Select at least one vessel owner.')
+        return vessel_owners
