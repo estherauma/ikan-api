@@ -2,15 +2,11 @@ function getFullscreenLoader() {
   return document.querySelector('[data-fullscreen-loader]');
 }
 
-function showFullscreenLoader(message) {
+function showFullscreenLoader() {
   const loader = getFullscreenLoader();
-  const loaderText = loader?.querySelector('.fullscreen-loader-text');
 
   if (!loader) return;
 
-  if (loaderText) {
-    loaderText.textContent = message;
-  }
   loader.classList.remove('d-none');
 }
 
@@ -72,7 +68,7 @@ function initAttachVesselOwners() {
   attachVesselOwnersForm.addEventListener('submit', function (event) {
     event.preventDefault();
     showAttachVesselOwnersErrors({});
-    showFullscreenLoader('Attaching vessel owners...');
+    showFullscreenLoader();
 
     window.IkanForms.submitJsonForm(attachVesselOwnersForm)
       .then(({ ok, data }) => {
@@ -175,7 +171,7 @@ function initRemoveVesselOwners() {
   removeVesselOwnerConfirmButton.addEventListener('click', function () {
     if (!removeVesselOwnerUrl) return;
 
-    showFullscreenLoader('Removing vessel owner...');
+    showFullscreenLoader();
     removeVesselOwnerConfirmButton.disabled = true;
     removeVesselOwnerConfirmButton.textContent = 'Removing...';
 
@@ -265,7 +261,7 @@ function initResendTraderInvites() {
         submitButton.textContent = 'Resending...';
       }
 
-      showFullscreenLoader('Resending invite...');
+      showFullscreenLoader();
 
       window.IkanForms.submitJsonForm(form)
         .then(({ ok, data }) => {
@@ -274,7 +270,7 @@ function initResendTraderInvites() {
           }
 
           showResendInviteMessage(
-            data.message || 'The invite was reset successfully.',
+            data.message,
             ok && data.success,
           );
         })
@@ -347,7 +343,7 @@ function initInviteTrader() {
       submitButton.disabled = true;
       submitButton.textContent = 'Adding...';
     }
-    showFullscreenLoader('Adding trader...');
+    showFullscreenLoader();
 
     window.IkanForms.submitJsonForm(inviteTraderForm)
       .then(({ ok, data }) => {

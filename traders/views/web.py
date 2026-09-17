@@ -29,6 +29,7 @@ class TradersListView(LoginRequiredMixin, RoleRequiredMixin, ListView):
         context['traders'] = self.get_queryset()
         prismic_utils = PrismicUtils(self.request)
         context['auth_common_text'] = prismic_utils.get_page_text('auth-common-text')
+        context['common_text'] = prismic_utils.get_common_text()
         context['show_invite_modal'] = False
         return context
 
@@ -39,6 +40,7 @@ class InviteTraderView(LoginRequiredMixin, RoleRequiredMixin, View):
     def post(self, request):
         form = InviteUser(request.POST)
         auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
+        common_text = PrismicUtils(request).get_common_text()
 
         if not form.is_valid():
             return JsonResponse({
@@ -61,20 +63,20 @@ class InviteTraderView(LoginRequiredMixin, RoleRequiredMixin, View):
         user.groups.add(trader_group)
 
         if form.cleaned_data.get('has_email'):
-            success = send_user_invite_email(user, auth_common_text)
+            success = send_user_invite_email(user, {**auth_common_text, **common_text})
             if not success:
                 return JsonResponse({
                     'success': False,
-                    'message': auth_common_text.get(
-                        'userCreatedErrorSendingEmail',
+                    'message': common_text.get(
+                        'errorOccurred',
                         'User created but an error occurred while sending the email. Please contact support.'
                     ),
                 }, status=500)
 
         return JsonResponse({
             'success': True,
-            'message': auth_common_text.get(
-                'userCreatedEmailSuccess',
+            'message': common_text.get(
+                'userCreatedSuccessMsg',
                 'User created and email sent successfully.'
             ),
         })
@@ -93,6 +95,7 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         prismic_utils = PrismicUtils(self.request)
         context['auth_common_text'] = prismic_utils.get_page_text('auth-common-text')
+        context['common_text'] = prismic_utils.get_common_text()
         context['vessel_owner_relationships'] = TraderVesselOwnerRelationship.objects.filter(
             trader=self.object,
         ).select_related('vessel_owner')
@@ -134,7 +137,8 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
             for vessel_owner in form.cleaned_data['vessel_owners']
         ]
         TraderVesselOwnerRelationship.objects.bulk_create(relationships)
-        messages.success(request, 'Vessel owner(s) attached successfully.')
+        common_text = PrismicUtils(request).get_common_text()
+        messages.success(request, common_text.get('VOattachSuccessMsg', 'Vessel owners attached successfully.'))
         return JsonResponse({'success': True})
 
 
@@ -149,7 +153,6 @@ class RemoveTraderVesselOwnerRelationshipView(LoginRequiredMixin, RoleRequiredMi
             trader=trader,
         )
         relationship.delete()
-        messages.success(request, 'Vessel owner detached successfully.')
         return JsonResponse({'success': True})
 
 
@@ -158,10 +161,14 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
 
     def post(self, request):
         form = ResendTokenForm(data=request.POST)
+        common_text = PrismicUtils(request).get_page_text('common-text')
+        auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
+        
         if not form.is_valid():
             return JsonResponse({
                 'success': False,
-                'message': 'No valid email provided.',
+                'errors': form.errors.get_json_data(),
+                'message': common_text.get('errorOccurred', 'No valid email provided.'),
             }, status=400)
 
         email = form.cleaned_data.get('email')
@@ -169,17 +176,16 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
         if not user:
             return JsonResponse({
                 'success': False,
-                'message': 'Trader does not exist.',
+                'message': common_text.get('userDoesnotExist', 'User does not exist.'),
             }, status=404)
 
-        auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
-        success = send_user_invite_email(user, auth_common_text)
+        success = send_user_invite_email(user, {**auth_common_text, **common_text})
         if success:
             return JsonResponse({
                 'success': True,
-                'message': 'The invite was reset successfully.',
+                'message': common_text.get('sentInviteSuccessMsg', 'The invite was sent successfully.'),
             })
         return JsonResponse({
             'success': False,
-            'message': 'An error occurred while resetting the invite.',
+            'message': common_text.get('errorOccurred', 'An error occurred while resetting the invite.'),
         }, status=500)

@@ -17,12 +17,12 @@
 
         <div class="row mb-2 mt-4 px-4 align-items-center">
             <div class="col">
-                <h1 class="mb-0 secondary-color">Traders</h1>
+                <h1 class="mb-0 secondary-color">{{ common_text.traders }}</h1>
             </div>
             <div class="col d-flex justify-content-end">
                 <button type="button" class="btn btn-large primary-button" data-bs-toggle="modal" data-bs-target="#invite-trader-modal">
                     <i class="mdi mdi-plus"></i>
-                    Add Trader
+                    {{ common_text.addTrader }}
                 </button>
             </div>
         </div>
@@ -37,7 +37,7 @@
             >
                 <thead>
                     <tr>
-                        <th>Name</th>
+                        <th>{{ common_text.name }}</th>
                         <th>{{ auth_common_text.email }}</th>
                         <th>{{ auth_common_text.mobileNumber }}</th>
                         <th>{{ auth_common_text.isActive }}?</th>
@@ -53,7 +53,7 @@
                                 {% if trader.first_name or trader.last_name %}
                                     {{ trader.first_name }} {{ trader.last_name }}
                                 {% else %}
-                                    View
+                                    {{ common_text.view }}
                                 {% endif %}
                             </a>
                         </td>
@@ -70,7 +70,7 @@
                                     data-user-id="{{ trader.pk }}"
                                     data-url="{% url 'accounts-api:user-detail' pk=trader.id %}"
                                 >
-                                    {{ auth_common_text.resetInvite|default:"Resend Invite" }}
+                                    {{ common_text.resendInvite }}
                                 </button>
 
                                 <div id="resend-invite-modal-{{ trader.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -78,7 +78,7 @@
                                         <div class="modal-content">
                                             <div class="modal-header d-flex">
                                                 <div class="text-center w-100">
-                                                    <h3 class="modal-title secondary-color">{{ auth_common_text.resetInvite|default:"Resend Invite" }}</h3>
+                                                    <h3 class="modal-title secondary-color">{{ common_text.resendInvite }}</h3>
                                                 </div>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                                             </div>
@@ -97,12 +97,12 @@
                                                         data-resend-invite-message
                                                     ></div>
                                                         <div class="mb-3 fs-4 text-center">
-                                                            Resend invite <span class="fw-bold">{{ trader.email }}</span>
+                                                           {{ common_text.resendInvite }} <span class="fw-bold">{{ trader.email }}</span>
                                                             <input id="email" type="hidden" name="email" value="{{ trader.email }}">
                                                         </div>
                                                     <input type="hidden" name="form-origin" value="trader-list">
                                                     <div class="mb-3 text-center">
-                                                        <button class="btn primary-button " type="submit">{{ auth_common_text.resetInvite|default:"Reset invite" }}</button>
+                                                        <button class="btn primary-button " type="submit">{{ common_text.resendInvite }}</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -122,7 +122,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header invite-trader-modal-header">
-                    <h4 class="modal-title secondary-color invite-trader-modal-title">Add Trader</h4>
+                    <h4 class="modal-title secondary-color invite-trader-modal-title">{{ common_text.addTrader }}</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
                 </div>
 
@@ -151,7 +151,6 @@
                                             class="form-control mb-3 w-100"
                                             id="trader_email"
                                             name="email_or_phone"
-                                            placeholder="{{ auth_common_text.enterYourEmail|default:'Enter your email' }}"
                                             value="{{ field.value|default:'' }}"
                                             required
                                         >
@@ -176,8 +175,8 @@
                         <input type="hidden" name="form-origin" value="trader-list">
 
                         <div class="form-actions">
-                            <button class="btn cancel-button" type="button" data-bs-dismiss="modal">Cancel</button>
-                            <button class="btn primary-button" type="submit">Add Trader</button>
+                            <button class="btn cancel-button" type="button" data-bs-dismiss="modal">{{ common_text.cancel }}</button>
+                            <button class="btn primary-button" type="submit">{{ common_text.addTrader }}</button>
                         </div>
                     </form>
                 </div>
@@ -185,7 +184,7 @@
         </div>
     </div>
 
-    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="resend-invite-loader" loader_text="Resending invite..." only %}
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="resend-invite-loader" loader_text=common_text.loadingText only %}
 </div>
 
 <style>

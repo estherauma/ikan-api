@@ -12,11 +12,11 @@
       {% if body.first_name %}{{ body.first_name }}{% else %}{{ auth_common_text.helloThere }}{% endif %},
     </p>
     <p>
-      {{ auth_common_text.userInviteEmailText|default:"You have been invited to join IKAN. Use the link below to set up your password and access your dashboard." }}
+      {{ auth_common_text.userInviteEmailText }}
     </p>
     <p>
       <a href="{{ body.dashboard_link }}">
-        {{ auth_common_text.setUpPassword|default:"Set up password" }}
+        {{ auth_common_text.setUpPassword }}
       </a>
     </p>
     <p>
