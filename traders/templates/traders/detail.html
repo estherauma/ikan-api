@@ -99,7 +99,7 @@
                                             data-remove-url="{% url 'traders:remove-vessel-owner-relationship' pk=trader.id relationship_pk=relationship.id %}"
                                             data-vessel-owner-name="{{ relationship.vessel_owner.first_name|default:'' }} {{ relationship.vessel_owner.last_name|default:'' }}"
                                         >
-                                            Remove
+                                            {{ common_text.remove }}
                                         </button>
                                     </td>
                                 </tr>
@@ -128,7 +128,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title secondary-color">{{ common_text.attachVesselOwners }}</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ common_text.close }}" style="margin-right: 0;"></button>
                 </div>
 
                 <div class="modal-body">

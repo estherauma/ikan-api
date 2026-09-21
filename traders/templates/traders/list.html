@@ -80,7 +80,7 @@
                                                 <div class="text-center w-100">
                                                     <h3 class="modal-title secondary-color">{{ common_text.resendInvite }}</h3>
                                                 </div>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ common_text.close }}" style="margin-right: 0;"></button>
                                             </div>
 
                                             <div class="modal-body resend-invite-modal-body text-center">
@@ -144,7 +144,7 @@
                             {% if field.name != 'role' %}
                                 <div class="form-field w-100">
                                     {% if field.name == 'email_or_phone' %}
-                                        <label for="trader_email">{{ auth_common_text.email|default:"Email" }}</label>
+                                        <label for="trader_email">{{ common_text.email }}</label>
                                         <span class="text-danger">*</span>
                                         <input
                                             type="email"
