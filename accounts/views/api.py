@@ -124,7 +124,6 @@ class LoginView(APIView):
                             'id': user.pk,
                             'firstName': user.first_name,
                             'lastName': user.last_name,
-                            'isAdmin': user.is_admin,
                             'role': list(user.groups.values_list('name', flat=True))[0],
                             'roles': list(user.groups.values_list('name', flat=True)) if user.groups.exists() else [],
                         }

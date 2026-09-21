@@ -71,6 +71,7 @@ urlpatterns = [
     # web urls
     path('', get_base, name='base'),
     path('account/', include('accounts.urls.web')),
+    path('traders/', include('traders.urls')),
     path('contracts/', include('contracts.urls.web')),
     path('companies/', include('companies.urls.web')),
     path('surveys/', include('survey.urls.web')),

@@ -1,0 +1,98 @@
+{% extends "themes/v1/auth-base.html" %}
+
+{% block content %}
+<div class="account-pages mt-5 mb-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 col-xl-4">
+                <div class="card bg-pattern">
+                    <div class="card-body p-4">
+                        {% include 'themes/v1/partials/messages.html' %}
+
+                        <div class="text-center mx-2 m-auto">
+                            {% include 'themes/v1/partials/ikan-logo.html' %}
+                            <h2 class="mb-3 mt-3 ikan-primary-color">
+                                {{ auth_common_text.setupAccount|default:'Set up account' }}
+                            </h2>
+                        </div>
+
+                        {% if invalid_link %}
+                            <div class="alert alert-danger">
+                                {{ auth_common_text.invalidAccountSetupLink|default:'This account setup link is invalid or has expired.' }}
+                            </div>
+                            <div class="text-center mt-4">
+                                <a href="{% url 'accounts:login' %}" class="ikan-dark-blue-100">
+                                    {{ auth_common_text.login|default:'Login' }}
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="mb-3">
+                                <label class="form-label">{{ auth_common_text.email|default:'Email' }}</label>
+                                <p class="form-control-plaintext">{{ email }}</p>
+                            </div>
+
+                            <form
+                                role="form"
+                                method="post"
+                                action="{% url 'accounts:setup-account' %}"
+                                class="ikan-form"
+                                autocomplete="off"
+                            >
+                                {% csrf_token %}
+                                <input type="hidden" name="email" value="{{ email }}">
+                                <input type="hidden" name="token" value="{{ token }}">
+
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+
+                                <div class="mb-3">
+                                    <label for="password1" class="form-label">
+                                        {{ auth_common_text.password|default:'Password' }}
+                                    </label>
+                                    <div class="input-group input-group-merge">
+                                        {{ form.password1 }}
+                                        <div class="input-group-text" data-password="false">
+                                            <span class="password-eye"></span>
+                                        </div>
+                                    </div>
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password1.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password2" class="form-label">
+                                        {{ auth_common_text.confirmPassword|default:'Confirm Password' }}
+                                    </label>
+                                    <div class="input-group input-group-merge">
+                                        {{ form.password2 }}
+                                        <div class="input-group-text" data-password="false">
+                                            <span class="password-eye"></span>
+                                        </div>
+                                    </div>
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password2.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="text-center d-grid my-4">
+                                    <button class="ikan-primary-button w-75 mx-auto" type="submit">
+                                        {{ auth_common_text.setupAccount|default:'Set up account' }}
+                                    </button>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

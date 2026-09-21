@@ -1,0 +1,165 @@
+{% extends "themes/v1/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h1 class="mb-0 secondary-color">
+                {% if trader.first_name or trader.last_name %}
+                    {{ trader.first_name }} {{ trader.last_name }}
+                {% else %}
+                    {{ trader.email }}
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="secondary-color mb-3">{{ common_text.traderDetails }}</h3>
+
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.email}}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.email|default:"-" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.firstName }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.first_name|default:"-" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.lastName}}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.last_name|default:"-" }}</div>
+                    </div>
+                    <div class="row py-2 border-bottom">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.mobileNumber}}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.mobile|default:"-" }}</div>
+                    </div>
+                    <div class="row py-2">
+                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.isActive }}</div>
+                        <div class="col-sm-7 text-secondary">{{ trader.is_active }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="secondary-color mb-0">{{ common_text.attachedVesselOwners }}</h3>
+                        <button
+                            type="button"
+                            class="btn btn-large primary-button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#attach-vessel-owners-modal"
+                        >
+                            <i class="mdi mdi-plus"></i>
+                            {{ common_text.attachVesselOwners }}
+                        </button>
+                    </div>
+
+                    <table class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <th>{{ common_text.name }}</th>
+                                <th>{{ auth_common_text.email }}</th>
+                                <th>{{ auth_common_text.mobileNumber }}</th>
+                                <th>{{ common_text.actions }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for relationship in vessel_owner_relationships %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'accounts:user-details' pk=relationship.vessel_owner.id %}">
+                                            {{ relationship.vessel_owner.first_name|default:common_text.view }}
+                                        </a>
+                                    </td>
+                                    <td>{{ relationship.vessel_owner.email|default:"-" }}</td>
+                                    <td>{{ relationship.vessel_owner.mobile|default:"-" }}</td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            data-remove-vessel-owner-button
+                                            data-remove-url="{% url 'traders:remove-vessel-owner-relationship' pk=trader.id relationship_pk=relationship.id %}"
+                                            data-vessel-owner-name="{{ relationship.vessel_owner.first_name|default:'' }} {{ relationship.vessel_owner.last_name|default:'' }}"
+                                        >
+                                            {{ common_text.remove }}
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-secondary">
+                                        {{ common_text.noVesselOwnersAvailable }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="attach-vessel-owners-modal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title secondary-color">{{ common_text.attachVesselOwners }}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ common_text.close }}" style="margin-right: 0;"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="attach-vessel-owners-errors" class="alert alert-danger d-none"></div>
+
+                    <form
+                        id="attach-vessel-owners-form"
+                        class="searchable-multi-select-form"
+                        action="{% url 'traders:details' pk=trader.id %}"
+                        method="POST"
+                    >
+                        {% csrf_token %}
+
+                        {% include "themes/v1/partials/searchable-multi-select.html" with input_id="vessel-owner-search" field=attach_vessel_owners_form.vessel_owners field_name="vessel_owners" options=available_vessel_owner_options search_placeholder=common_text.searchVesselOwners empty_text=common_text.noVesselOwnersAvailable no_results_text=common_text.noVesselOwnersAvailable hide_selected_summary=True only %}
+
+                        <div class="mb-3 d-flex justify-content-end gap-2">
+                            <button class="btn btn-light ms-1" type="button" data-bs-dismiss="modal">{{ common_text.cancel }}</button>
+                            <input class="btn primary-button" type="submit" value="{{ common_text.attach }}">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "themes/v1/partials/confirmation-modal.html" with modal_id="remove-vessel-owner-modal" title=common_text.removeVesselOwner title_class="secondary-color" message=common_text.removeConfirmMsg confirm_text=common_text.remove cancel_text=common_text.cancel confirm_button_class="primary-button" only %}
+
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="attach-vessel-owners-loader" loader_text=common_text.loadingText only %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/js/traders.js"></script>
+{% endblock %}

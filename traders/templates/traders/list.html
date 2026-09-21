@@ -1,0 +1,254 @@
+{% extends "themes/v1/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        {% if messages %}
+            <div class="row mt-4">
+                <div class="col">
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row mb-2 mt-4 px-4 align-items-center">
+            <div class="col">
+                <h1 class="mb-0 secondary-color">{{ common_text.traders }}</h1>
+            </div>
+            <div class="col d-flex justify-content-end">
+                <button type="button" class="btn btn-large primary-button" data-bs-toggle="modal" data-bs-target="#invite-trader-modal">
+                    <i class="mdi mdi-plus"></i>
+                    {{ common_text.addTrader }}
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table
+                id="datatable"
+                class="table dt-responsive nowrap w-100"
+                data-page-length="10"
+                data-hide-controls="true"
+                data-sortable-columns="0,1"
+            >
+                <thead>
+                    <tr>
+                        <th>{{ common_text.name }}</th>
+                        <th>{{ auth_common_text.email }}</th>
+                        <th>{{ auth_common_text.mobileNumber }}</th>
+                        <th>{{ auth_common_text.isActive }}?</th>
+                        <th>{{ common_text.actions }}</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for trader in traders %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'traders:details' pk=trader.id %}">
+                                {% if trader.first_name or trader.last_name %}
+                                    {{ trader.first_name }} {{ trader.last_name }}
+                                {% else %}
+                                    {{ common_text.view }}
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td>{{ trader.email }}</td>
+                        <td>{{ trader.mobile | default:"-" }}</td>
+                        <td>{{ trader.is_active }}</td>
+                        <td>
+                            {% if not trader.is_active %}
+                                <button
+                                    id="btn-reset-invite"
+                                    class="btn btn-outline-secondary btn-sm mb-1 reset-invite-button"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#resend-invite-modal-{{ trader.id }}"
+                                    data-user-id="{{ trader.pk }}"
+                                    data-url="{% url 'accounts-api:user-detail' pk=trader.id %}"
+                                >
+                                    {{ common_text.resendInvite }}
+                                </button>
+
+                                <div id="resend-invite-modal-{{ trader.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header d-flex">
+                                                <div class="text-center w-100">
+                                                    <h3 class="modal-title secondary-color">{{ common_text.resendInvite }}</h3>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ common_text.close }}" style="margin-right: 0;"></button>
+                                            </div>
+
+                                            <div class="modal-body resend-invite-modal-body text-center">
+                                                <form
+                                                    class="reset-invite-form w-100"
+                                                    method="POST"
+                                                    action="{% url 'traders:resend-invite' %}"
+                                                    data-resend-invite-form
+                                                >
+                                                    {% csrf_token %}
+                                                    <div
+                                                        class="alert d-none"
+                                                        role="alert"
+                                                        data-resend-invite-message
+                                                    ></div>
+                                                        <div class="mb-3 fs-4 text-center">
+                                                           {{ common_text.resendInvite }} <span class="fw-bold">{{ trader.email }}</span>
+                                                            <input id="email" type="hidden" name="email" value="{{ trader.email }}">
+                                                        </div>
+                                                    <input type="hidden" name="form-origin" value="trader-list">
+                                                    <div class="mb-3 text-center">
+                                                        <button class="btn primary-button " type="submit">{{ common_text.resendInvite }}</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="invite-trader-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header invite-trader-modal-header">
+                    <h4 class="modal-title secondary-color invite-trader-modal-title">{{ common_text.addTrader }}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                </div>
+
+                <div class="modal-body invite-trader-modal-body">
+                    <form
+                        id="invite-trader-form"
+                        class="w-100"
+                        action="{% url 'traders:invite-trader' %}"
+                        method="POST"
+                        data-invite-trader-form
+                    >
+                        {% csrf_token %}
+                        <div
+                            id="invite-trader-errors"
+                            class="alert alert-danger d-none"
+                            role="alert"
+                        ></div>
+                        {% for field in invite_user_form %}
+                            {% if field.name != 'role' %}
+                                <div class="form-field w-100">
+                                    {% if field.name == 'email_or_phone' %}
+                                        <label for="trader_email">{{ common_text.email }}</label>
+                                        <span class="text-danger">*</span>
+                                        <input
+                                            type="email"
+                                            class="form-control mb-3 w-100"
+                                            id="trader_email"
+                                            name="email_or_phone"
+                                            value="{{ field.value|default:'' }}"
+                                            required
+                                        >
+                                        <ul class="errorlist d-none" data-field-errors="email_or_phone"></ul>
+                                    {% else %}
+                                        {{ field.label_tag }}
+                                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        <div class="w-100">
+                                            {{ field }}
+                                        </div>
+                                        <ul class="errorlist d-none" data-field-errors="{{ field.name }}"></ul>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                        <div class="text-danger">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        <input type="hidden" name="role" value="trader">
+                        <input type="hidden" name="form-origin" value="trader-list">
+
+                        <div class="form-actions">
+                            <button class="btn cancel-button" type="button" data-bs-dismiss="modal">{{ common_text.cancel }}</button>
+                            <button class="btn primary-button" type="submit">{{ common_text.addTrader }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="resend-invite-loader" loader_text=common_text.loadingText only %}
+</div>
+
+<style>
+    #invite-trader-form {
+        display: block;
+        width: 100%;
+    }
+
+    #invite-trader-form .form-field,
+    #invite-trader-form .form-control {
+        width: 100%;
+    }
+
+    #invite-trader-modal .invite-trader-modal-body {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    #invite-trader-modal .invite-trader-modal-title {
+        font-size: 1.5rem;
+    }
+
+    #invite-trader-modal .modal-content {
+        border-radius: 16px;
+    }
+
+    .resend-invite-modal-body .reset-invite-form {
+        display: block;
+        width: 100%;
+    }
+
+    .reset-invite-button {
+        border-radius: 4px;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .reset-invite-submit-button {
+        border-radius: 0;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
+{% if show_invite_modal %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inviteModal = document.getElementById("invite-trader-modal");
+            if (inviteModal && window.bootstrap) {
+                const modal = new bootstrap.Modal(inviteModal);
+                modal.show();
+            }
+        });
+    </script>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/themes/v1/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="/static/themes/v1/assets/libs/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <script src="/static/themes/v1/assets/js/pages/datatables.js"></script>
+    <script src="/static/js/traders.js"></script>
+{% endblock %}

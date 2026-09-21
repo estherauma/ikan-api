@@ -7,7 +7,7 @@ from decouple import config
 class Command(BaseCommand):
     help = 'Seeds roles and users'
     users = ['taien+technology', 'cici+technology', 'farah+technology',
-             'budi+technology', 'tony+technology', 'public+technology']
+             'budi+technology', 'public+technology', 'trader+technology', 'admin+technology']
 
     def handle(self, *args, **kwargs):
         try:
@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def seed_users_and_roles(self):
         role_names = ['vessel_owner', 'taiwanese_agent',
-                      'indonesian_agent', 'worker', 'buyer', 'public']
+                      'indonesian_agent', 'worker', 'public', 'trader', 'admin']
         roles = []
 
         for role_name in role_names:

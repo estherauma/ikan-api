@@ -5,7 +5,7 @@ from common.models import AuditableModel
 from django.utils.translation import gettext_lazy as _
 from common.models import BaseModel
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import F, Q
 import secrets
 from django.contrib.auth import get_user_model
 from accounts.utils import get_user_queryset
@@ -68,6 +68,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     is_verified = models.BooleanField(_('verified'), default=False)
     is_staff = models.BooleanField(default=False)
     reset_password_token = models.CharField(null=True, blank=True, max_length=125)
+    reset_password_token_created_at = models.DateTimeField(null=True, blank=True)
     profile_image = models.ImageField(null=True, blank=True)
     access_code = models.CharField(_('access code'), null=True, blank=True, max_length=30)
     position = models.CharField(_('position'), null=True, blank=True, max_length=30)
@@ -91,7 +92,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     @property
     def is_admin(self):
-        return self.is_superuser
+        return self.is_superuser or self.groups.filter(name='admin').exists()
 
     @property
     def name_on_contract(self):
@@ -232,5 +233,30 @@ class AgentVesselOwnerRelationship(AuditableModel):
 
     def __str__(self):
         return f'Agent: {self.agent.first_name} {self.agent.last_name} ({self.agent.email or self.agent.mobile}) - ' \
+               f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
+               f'({self.vessel_owner.email or self.vessel_owner.mobile})'
+
+
+class TraderVesselOwnerRelationship(AuditableModel):
+    trader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trader_vessel_owner_relationships')
+    vessel_owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vessel_owner_trader_relationships')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['trader', 'vessel_owner'], name='unique_trader_vessel_owner'),
+            models.CheckConstraint(check=~Q(trader=F('vessel_owner')), name='trader_vessel_owner_not_same_user'),
+        ]
+
+    def clean(self):
+        super().clean()
+
+        if self.trader_id and not self.trader.groups.filter(name='trader').exists():
+            raise ValidationError({'trader': 'Selected user must be in the trader group.'})
+
+        if self.vessel_owner_id and not self.vessel_owner.groups.filter(name='vessel_owner').exists():
+            raise ValidationError({'vessel_owner': 'Selected user must be in the vessel_owner group.'})
+
+    def __str__(self):
+        return f'Trader: {self.trader.first_name} {self.trader.last_name} ({self.trader.email or self.trader.mobile}) - ' \
                f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
                f'({self.vessel_owner.email or self.vessel_owner.mobile})'

@@ -1,0 +1,27 @@
+<div
+    id="{{ modal_id }}"
+    class="modal fade"
+    tabindex="-1"
+    role="dialog"
+    aria-hidden="true"
+    data-confirmation-modal
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title {{ title_class|default:'ikan-primary-color' }}" data-confirmation-modal-title>{{ title }}</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" data-confirmation-modal-errors></div>
+                <p class="mb-0" data-confirmation-modal-message>{{ message }}</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ cancel_text|default:"Cancel" }}</button>
+                <button type="button" class="btn {{ confirm_button_class|default:'btn-danger' }}" data-confirmation-modal-confirm>{{ confirm_text|default:"Confirm" }}</button>
+            </div>
+        </div>
+    </div>
+</div>

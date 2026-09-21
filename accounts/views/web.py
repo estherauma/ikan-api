@@ -1,9 +1,11 @@
 from accounts.forms import InviteUser, ResendTokenForm, CreateWorkerForVOForm, \
     LoginForm, RegistrationForm, PasswordResetForm, RequestPasswordResetForm, \
-    CreateAgentVesselownerRelationshipForm
+    CreateAgentVesselownerRelationshipForm, AccountSetupForm
 from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic.list import ListView
+from django.views.decorators.csrf import ensure_csrf_cookie
 from decouple import config
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -14,6 +16,7 @@ from common.utils import get_access_code
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
@@ -21,7 +24,7 @@ from prismic.utils import PrismicUtils
 from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import TwilioService, send_verification_code, get_locale_from_request
 from django.db.models import Q
-from accounts.utils import get_workers
+from accounts.utils import get_workers, is_user_invite_token_valid, send_user_invite_email
 
 
 @login_required(login_url='/account/login')
@@ -44,7 +47,6 @@ def loggedin_user(request):
         loggedin_user.is_public = False
         loggedin_user.is_taiwanese_agent = False
         loggedin_user.is_indonesian_agent = False
-
         roles = loggedin_user.groups.all().values_list('name', flat=True)
         if 'vessel_owner' in roles:
             show_users_menu_item = True
@@ -253,6 +255,31 @@ class WorkersListView(LoginRequiredMixin, ListView):
 
 @login_required(login_url='/account/login')
 def invite_user(request):
+    if not request.user.is_admin:
+        raise PermissionDenied
+
+    def get_origin_response_target():
+        if form_origin == 'worker-list':
+            return 'worker-list.html', 'accounts:workers'
+        return 'user-list.html', 'accounts:users'
+
+    def render_invite_form_with_errors(form):
+        template_name, _ = get_origin_response_target()
+        context['invite_user_form'] = form
+        context['show_invite_modal'] = True
+        messages.error(request, 'Error validating form!')
+        return render(request, template_name, context)
+
+    def invite_success_response(message):
+        _, redirect_url = get_origin_response_target()
+        messages.success(request, message)
+        return redirect(redirect_url)
+
+    def invite_error_response(message):
+        _, redirect_url = get_origin_response_target()
+        messages.error(request, message)
+        return redirect(redirect_url)
+
     context = {}
     context['invite_user_form'] = InviteUser()
     context['resend_token_form'] = ResendTokenForm()
@@ -271,25 +298,38 @@ def invite_user(request):
             if request.user.groups.filter(name='taiwanese_agent').exists() or \
                request.user.groups.filter(name='indonesian_agent').exists():
                 recruited_by = request.user
+            role_name = form.cleaned_data.get('role')
+            sends_invite_link = role_name in ['admin', 'trader'] and form.cleaned_data.get('has_email')
             user = User.objects.create_user(
                 email=form.cleaned_data.get('email'),
                 mobile=form.cleaned_data.get('mobile'),
                 first_name=form.cleaned_data.get('first_name'),
                 last_name=form.cleaned_data.get('last_name'),
                 is_active=False,
-                access_code=get_access_code(),
+                access_code=None if sends_invite_link else get_access_code(),
                 created_by=request.user.id,
                 updated_by=request.user.id,
                 recruited_by=recruited_by,
             )
             # Save user group/role
-            group = Group.objects.get(name=form.cleaned_data.get('role'))
+            group = Group.objects.get(name=role_name)
             user.groups.add(group)
 
             if form.cleaned_data.get('has_email'):
-                # Send verification email with access code
                 prismic_utils = PrismicUtils(request)
                 auth_common_text = prismic_utils.get_page_text('auth-common-text')
+                if sends_invite_link:
+                    success = send_user_invite_email(user, auth_common_text)
+                    if not success:
+                        return invite_error_response(auth_common_text.get(
+                            'userCreatedErrorSendingEmail',
+                            'User created but an error occurred while sending the email. Please contact support.'
+                        ))
+                    return invite_success_response(auth_common_text.get(
+                            'userCreatedEmailSuccess',
+                            'User created and email sent successfully.'
+                    ))
+
                 email = TunaEmailHelper()
                 success = email.tuna_send_email(
                     to_emails=[user.email],
@@ -302,10 +342,10 @@ def invite_user(request):
                     auth_common_text=auth_common_text,
                 )
                 if not success:
-                    messages.error(request,
-                                   auth_common_text.get('userCreatedErrorSendingEmail',
-                                                        'User created but an error occurred while sending the email. \
-                                                            Please contact support.'))
+                    return invite_error_response(auth_common_text.get(
+                        'userCreatedErrorSendingEmail',
+                        'User created but an error occurred while sending the email. Please contact support.'
+                    ))
             if form.cleaned_data.get('has_phone_number'):
                 try:
                     otp_service = TwilioService()
@@ -316,34 +356,24 @@ def invite_user(request):
                     message = auth_common_text.get('workerInviteSMSMessage',
                                                    'Your access code to use IKAN is:') + user.access_code
                     otp_service.send_sms(user.mobile, message)
-                    # TODO: Add translation
-                    messages.success(request,
-                                     auth_common_text.get('userCreatedSMSSuccess',
-                                                          'User created and SMS sent successfully.'))
                 except Exception:
-                    # TODO: Add translation
-                    messages.error(request,
-                                   auth_common_text.get('userCreatedErrorSendingSMS',
-                                                        'User created but an error occurred while sending the SMS. \
-                                                          Please contact support.'))
+                    return invite_error_response(auth_common_text.get(
+                        'userCreatedErrorSendingSMS',
+                        'User created but an error occurred while sending the SMS. Please contact support.'
+                    ))
 
-            if form_origin == 'worker-list':
-                return redirect('accounts:workers')
-            return redirect('accounts:users')
+            return invite_success_response(auth_common_text.get(
+                'userCreatedSuccess',
+                'User created successfully.'
+            ))
         else:
-            context['show_invite_modal'] = True
-            # prefill form with submitted data
-            for field in form.fields:
-                if field in form.data:
-                    form.fields[field].widget.attrs['value'] = form.data[field]
-            context['invite_user_form'] = form
+            return render_invite_form_with_errors(form)
 
     if form_origin == 'worker-list':
         messages.error(request, 'Error validating form!')
         return render(request, 'worker-list.html', context)
-    else:
-        messages.error(request, 'Error validating form!')
-        return render(request, 'user-list.html', context)
+    messages.error(request, 'Error validating form!')
+    return render(request, 'user-list.html', context)
 
 
 class ResendAcessCode(View):
@@ -783,6 +813,67 @@ class ResetPassword(View):
             messages.error(request, auth_common_text.get('passwordResetFailure',
                                                          'Error resetting password. Please try again.'))
             return render(request, template_name='password-reset/reset-password.html', context=context)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class AccountSetup(View):
+    template_name = 'account-setup.html'
+
+    def get_context_data(self, **kwargs):
+        context = kwargs
+        auth_common_text = PrismicUtils(self.request).get_page_text('auth-common-text')
+        user = self.get_invited_user()
+
+        context['auth_common_text'] = auth_common_text
+        context['email'] = self.request.GET.get('email') or self.request.POST.get('email')
+        context['token'] = self.request.GET.get('token') or self.request.POST.get('token')
+        context['invalid_link'] = user is None
+        context['form'] = AccountSetupForm(auth_common_text=auth_common_text, user=user)
+        return context
+
+    def get_invited_user(self):
+        email = self.request.GET.get('email') or self.request.POST.get('email')
+        token = self.request.GET.get('token') or self.request.POST.get('token')
+        if not email or not token:
+            return None
+        user = User.objects.filter(
+            email=email,
+            reset_password_token=token,
+            is_active=False,
+        ).first()
+        if not is_user_invite_token_valid(user):
+            return None
+        return user
+
+    def get(self, request):
+        context = self.get_context_data()
+        return render(request, template_name=self.template_name, context=context)
+
+    def post(self, request):
+        context = self.get_context_data()
+        auth_common_text = context.get('auth_common_text', {})
+        user = self.get_invited_user()
+        if not user:
+            context['invalid_link'] = True
+            messages.error(request, auth_common_text.get(
+                'invalidAccountSetupLink', 'This account setup link is invalid or has expired.'))
+            return render(request, template_name=self.template_name, context=context)
+
+        form = AccountSetupForm(data=request.POST, auth_common_text=auth_common_text, user=user)
+        context['form'] = form
+        if not form.is_valid():
+            return render(request, template_name=self.template_name, context=context)
+
+        user.set_password(form.cleaned_data.get('password1'))
+        user.reset_password_token = None
+        user.reset_password_token_created_at = None
+        user.is_verified = True
+        user.is_active = True
+        user.save()
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        messages.success(request, auth_common_text.get(
+            'accountSetupSuccessMessage', 'Account setup successfully.'))
+        return redirect('/')
 
 
 @login_required

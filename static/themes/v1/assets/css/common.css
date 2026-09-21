@@ -1,0 +1,198 @@
+.card {
+    box-shadow: none !important;
+}
+
+.card-body {
+    overflow: auto;
+}
+
+table th,
+table td {
+    font-size: 1rem;
+    min-width: 80px;
+}
+
+table th {
+    color: var(--color-secondary);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.85rem !important;
+}
+
+table .view-btn,
+table button {
+    white-space: nowrap;
+}
+
+.dataTables_info {
+    color: var(--color-secondary);
+}
+
+.dataTables_paginate {
+    margin-top: 1rem;
+}
+
+.dataTables_paginate .pagination {
+    justify-content: flex-end;
+}
+
+.dataTables_paginate .page-link {
+    color: var(--color-secondary);
+}
+
+.dataTables_paginate .page-item.active .page-link {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: #fff;
+}
+
+.dataTables_paginate .page-link:hover,
+.dataTables_paginate .page-link:focus {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: #fff;
+}
+
+.dataTables_filter input:focus,
+.dataTables_length select:focus {
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 0 0 0.15rem rgba(27, 87, 237, 0.15);
+}
+
+form label,
+.form-label {
+    color: var(--color-secondary) ;
+    font-weight: 400 !important;
+    font-size: 1rem;
+}
+
+
+.modal form {
+    margin: 0;
+}
+
+.modal form .form-field {
+    margin-bottom: 1rem;
+}
+
+.modal form  {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+}
+
+.modal form .form-control,
+.modal form .form-select {
+    min-height: 44px;
+    border-color: rgba(25, 25, 112, 0.18);
+    border-radius: 6px;
+}
+
+.modal form .form-control:focus,
+.modal form .form-select:focus {
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 0 0 0.15rem rgba(27, 87, 237, 0.15);
+}
+
+.modal form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.btn.cancel-button {
+    background-color: #fff;
+    border-color: rgba(25, 25, 112, 0.28);
+    color: var(--color-secondary);
+}
+
+.btn.cancel-button:hover {
+    background-color: rgba(53, 101, 255, 0.08);
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+}
+
+.searchable-multi-select {
+    position: relative;
+}
+
+.modal form.searchable-multi-select-form {
+    display: block;
+    width: 100%;
+}
+
+.searchable-multi-select-dropdown {
+    background: var(--ct-body-bg);
+    display: none;
+    left: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 1060;
+}
+
+.searchable-multi-select-dropdown.show {
+    display: block;
+}
+
+.searchable-multi-select-option {
+    align-items: baseline;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    line-height: 1.3;
+    margin: 0;
+    padding: 8px 10px;
+}
+
+.searchable-multi-select-option:hover {
+    background: var(--ct-light);
+}
+
+.searchable-multi-select-checkbox {
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+}
+
+.searchable-multi-select-option-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.searchable-multi-select-empty {
+    padding: 8px 10px;
+}
+
+.searchable-multi-select-selected {
+    min-height: 42px;
+}
+
+.errorlist {
+    color: #f1556c;
+    list-style-type: none;
+    padding-left: 0;
+    margin: 5px 0;
+}
+
+.fullscreen-loader {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.427);
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    justify-content: center;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 2000;
+}
+
+.fullscreen-loader-text {
+    color: var(--color-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+}
