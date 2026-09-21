@@ -1,3 +1,4 @@
+from collections import defaultdict
 from unittest.mock import patch
 
 from django.contrib.auth.models import Group
@@ -47,7 +48,15 @@ class TraderWebViewsTestCase(TestCase):
         self.assertTemplateUsed(response, 'traders/list.html')
         self.assertContains(response, self.trader.email)
 
-    def test_trader_detail_renders_from_traders_app(self):
+    @patch('traders.views.web.PrismicUtils')
+    def test_trader_detail_renders_from_traders_app(self, prismic_utils):
+        common_text = defaultdict(str)
+        common_text.update({
+            'view': 'View',
+        })
+        prismic_utils.return_value.get_common_text.return_value = common_text
+        prismic_utils.return_value.get_page_text.return_value = defaultdict(str)
+
         TraderVesselOwnerRelationship.objects.create(
             trader=self.trader,
             vessel_owner=self.vessel_owner,

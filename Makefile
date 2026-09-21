@@ -17,3 +17,6 @@ serve:
 
 sync-content:
 	$(PYTHON) manage.py sync_content --collection=$(COLLECTION) $(if $(CUSTOM_TYPE),--custom-type=$(CUSTOM_TYPE),) $(ARGS)
+
+tests:
+	$(PYTHON) manage.py test
