@@ -161,7 +161,7 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
 
     def post(self, request):
         form = ResendTokenForm(data=request.POST)
-        common_text = PrismicUtils(request).get_page_text('common-text')
+        common_text = PrismicUtils(request).get_common_text()
         auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
         
         if not form.is_valid():
