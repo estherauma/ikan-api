@@ -227,7 +227,7 @@ else:
 
         def get_common_text(self):
             if not self.content:
-                return None
+                return {}
             common_text = {}
             common_content = self.content.get('commonText', None)
             if common_content and 'data' in common_content:
