@@ -9,8 +9,105 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views import View
 from django.views.generic import DetailView
+from django.views.generic import TemplateView
 from django.views.generic.list import ListView
 from prismic.utils import PrismicUtils
+from traders.services.payments import WagePaymentsService
+
+
+class TraderDashboardOverviewView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
+    template_name = 'traders/dashboard/overview.html'
+    required_roles = ['trader']
+
+
+class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
+    template_name = 'traders/dashboard/wage_payments.html'
+    required_roles = ['trader']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        wage_payments_service = WagePaymentsService(self.request.user)
+        context['payment_summary'] = {
+            'completion': wage_payments_service.get_payment_completion_summary(),
+            'metric_groups': [
+                {
+                    'title': 'Deductions',
+                    'items': [
+                        {'label': 'Reported as none', 'percent': 77, 'color': '#65E878'},
+                        {'label': 'No feedback', 'percent': 20, 'color': '#FF9824'},
+                        {'label': 'Deduction reported', 'percent': 3, 'color': '#F44E5E'},
+                    ],
+                },
+                {
+                    'title': 'Payment timing',
+                    'items': [
+                        {'label': 'Received on-time', 'percent': 77, 'color': '#65E878'},
+                        {'label': '1-30 days late', 'percent': 20, 'color': '#FF9824'},
+                        {'label': '> 30 days late', 'percent': 3, 'color': '#F44E5E'},
+                    ],
+                },
+                {
+                    'title': 'Payslip status',
+                    'items': [
+                        {'label': 'Signed', 'percent': 77, 'color': '#65E878'},
+                        {'label': 'Signature pending', 'percent': 20, 'color': '#FF9824'},
+                        {'label': 'No payslip', 'percent': 3, 'color': '#F44E5E'},
+                    ],
+                },
+            ],
+        }
+        context['supplier_filters'] = ['Tags', 'Date']
+        context['supplier_rows'] = [
+            {
+                'name': 'Supplier / Vessel Owner 1',
+                'summary': 'VESSEL A, VESSEL B, VESSEL C | 45 CREW',
+                'status': 'No issues',
+                'status_class': 'good',
+                'is_expanded': False,
+                'payslip_count': 30,
+                'payslips': [
+                    {
+                        'worker_name': 'Budi Suharto',
+                        'role': 'Engineer',
+                        'amount': 'US$ 500.00',
+                        'status': 'Submitted confirmation',
+                        'status_class': 'submitted',
+                    },
+                    {
+                        'worker_name': 'Budi Suharto',
+                        'role': 'Deckhand',
+                        'amount': 'US$ 400.00',
+                        'status': 'Pending review/signature on payslip',
+                        'status_class': 'pending',
+                    },
+                ],
+            },
+            {
+                'name': 'Supplier / Vessel Owner 2',
+                'summary': 'VESSEL D | 30 CREW',
+                'status': 'Non-compliant',
+                'status_class': 'danger',
+                'is_expanded': True,
+                'payslip_count': 30,
+                'payslips': [
+                    {
+                        'worker_name': 'Budi Suharto',
+                        'role': 'Engineer',
+                        'amount': 'US$ 500.00',
+                        'status': 'Submitted confirmation',
+                        'status_class': 'submitted',
+                    },
+                    {
+                        'worker_name': 'Budi Suharto',
+                        'role': 'Deckhand',
+                        'amount': 'US$ 400.00',
+                        'status': 'Pending review/signature on payslip',
+                        'status_class': 'pending',
+                    },
+                ],
+            },
+        ]
+        return context
 
 
 class TradersListView(LoginRequiredMixin, RoleRequiredMixin, ListView):

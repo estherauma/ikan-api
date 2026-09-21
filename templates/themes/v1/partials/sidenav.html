@@ -7,14 +7,14 @@
     <div class="logo-box menu-logo-box">
         <!-- Brand Logo Light -->
         <a href="index.html" class="logo-light">
-            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="logo" class="logo-lg">
-            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
+            <img src="/static/themes/v1/assets/images/ikan_logo.png" alt="logo" class="logo-lg">
+            <img src="/static/themes/v1/assets/images/ikan_logo.png" alt="small logo" class="logo-sm">
         </a>
 
         <!-- Brand Logo Dark -->
         <a href="#" class="logo-dark">
-            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="dark logo" class="logo-lg">
-            <img src="/static/themes/v1/assets/images/ikan_blue.svg" alt="small logo" class="logo-sm">
+            <img src="/static/themes/v1/assets/images/ikan_logo.png" alt="dark logo" class="logo-lg">
+            <img src="/static/themes/v1/assets/images/ikan_logo.png" alt="small logo" class="logo-sm">
         </a>
         
         <!-- Display loggedin user's email -->
@@ -35,140 +35,202 @@
         <ul class="menu">
 
             <hr class="m-2 mt-1 mb-1">
-            <li class="menu-item">
-                <a href="#" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-home"></i></span>
-                    <span class="menu-text">{{ menu_labels.home }}</span>
-                </a>
-            </li>
-            <!-- <li class="menu-item">
-                <a href="{% url 'dashboards:vesselowner-dashboard' %}" class="menu-link">
-                    <span class="menu-icon"><i class="mdi mdi-forum-outline"></i></span>
-                    <span class="menu-text"> Dashboard </span>
-                </a>
-            </li> -->
-            <hr class="m-2 mt-1 mb-1">
-
-            <!-- Workers -->
-            {% if loggedin_user.is_vessel_owner or loggedin_user.is_taiwanese_agent or loggedin_user.is_indonesian_agent %}
+            {% if loggedin_user.is_trader %}
                 <li class="menu-item">
-                    <a href="{% url 'accounts:workers' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-account-hard-hat"></i></span>
-                        <span class="menu-text">{{ menu_labels.workers }}</span>
+                    <a href="{% url 'traders:dashboard-overview' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard-overview' %}active{% endif %}">
+                        <span class="menu-icon"><i class="mdi mdi-view-dashboard-outline"></i></span>
+                        <span class="menu-text">Overview</span>
                     </a>
                 </li>
-            {% endif %}
-
-            <!-- Manning Agencies/ Companies -->
-            {% if loggedin_user.is_vessel_owner %}
                 <li class="menu-item">
-                    <a href="{% url 'companies-web:companies' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-domain"></i></span>
-                        <span class="menu-text">{{ menu_labels.companies }}</span>
+                    <a href="{% url 'traders:dashboard-wage-payments' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard-wage-payments' %}active{% endif %}">
+                        <span class="menu-icon"><i class="mdi mdi-cash-multiple"></i></span>
+                        <span class="menu-text">Wage payments</span>
                     </a>
                 </li>
-            {% endif %}
-
-            <!-- Vessels -->
-            {% if loggedin_user.is_vessel_owner %}
+            {% else %}
                 <li class="menu-item">
-                    <a href="{% url 'vessels-web:vessels' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-sail-boat"></i></span>
-                        <span class="menu-text">{{ menu_labels.vessels }}</span>
+                    <a href="#" class="menu-link {% if request.resolver_match.url_name == 'base' %}active{% endif %}">
+                        <span class="menu-icon"><i class="mdi mdi-home"></i></span>
+                        <span class="menu-text">{{ menu_labels.home }}</span>
                     </a>
                 </li>
-            {% endif %}
-
-            {% if not loggedin_user.is_public %}
-                <!-- Contracts -->
-                <li class="menu-item">
-                    <a href="{% url 'contracts-web:contracts' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-file-document-edit"></i></span>
-                        <span class="menu-text">{{ menu_labels.contracts }}</span>
+                <!-- <li class="menu-item">
+                    <a href="{% url 'dashboards:vesselowner-dashboard' %}" class="menu-link">
+                        <span class="menu-icon"><i class="mdi mdi-forum-outline"></i></span>
+                        <span class="menu-text"> Dashboard </span>
                     </a>
-                </li>
+                </li> -->
+                <hr class="m-2 mt-1 mb-1">
 
-                <!-- Wage payments -->
-                <li class="menu-item">
-                    <a href="{% url 'wages:wages-list' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
-                        <!-- <span class="menu-text">{{ menu_labels.payments }}</span> -->
-                        <!-- TODO: translate; add to prismic -->
-                        <span class="menu-text">{{ menu_labels.wagePayments | default:'Wage payments' }}</span>
-                    </a>
-                </li>
-                {% if loggedin_user.is_admin %}
+                <!-- Workers -->
+                {% if loggedin_user.is_vessel_owner or loggedin_user.is_taiwanese_agent or loggedin_user.is_indonesian_agent %}
                     <li class="menu-item">
-                        <a href="{% url 'traders:traders' %}" class="menu-link">
-                            <span class="menu-icon"><i class="mdi mdi-account-tie"></i></span>
-                            <span class="menu-text">{{ common_text.traders }}</span>
+                        <a href="{% url 'accounts:workers' %}" class="menu-link {% if request.resolver_match.url_name == 'workers' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-account-hard-hat"></i></span>
+                            <span class="menu-text">{{ menu_labels.workers }}</span>
                         </a>
                     </li>
                 {% endif %}
-                <hr class="m-2 mt-1 mb-1">
-            {% endif %}
 
-            <!-- Profile -->
+                <!-- Manning Agencies/ Companies -->
+                {% if loggedin_user.is_vessel_owner %}
+                    <li class="menu-item">
+                        <a href="{% url 'companies-web:companies' %}" class="menu-link {% if request.resolver_match.url_name == 'companies' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-domain"></i></span>
+                            <span class="menu-text">{{ menu_labels.companies }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                <!-- Vessels -->
+                {% if loggedin_user.is_vessel_owner %}
+                    <li class="menu-item">
+                        <a href="{% url 'vessels-web:vessels' %}" class="menu-link {% if request.resolver_match.url_name == 'vessels' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-sail-boat"></i></span>
+                            <span class="menu-text">{{ menu_labels.vessels }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% if not loggedin_user.is_public %}
+                    <!-- Contracts -->
+                    <li class="menu-item">
+                        <a href="{% url 'contracts-web:contracts' %}" class="menu-link {% if request.resolver_match.url_name == 'contracts' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-file-document-edit"></i></span>
+                            <span class="menu-text">{{ menu_labels.contracts }}</span>
+                        </a>
+                    </li>
+
+                    <!-- Wage payments -->
+                    <li class="menu-item">
+                        <a href="{% url 'wages:wages-list' %}" class="menu-link {% if request.resolver_match.url_name == 'wages-list' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-currency-sign"></i></span>
+                            <!-- <span class="menu-text">{{ menu_labels.payments }}</span> -->
+                            <!-- TODO: translate; add to prismic -->
+                            <span class="menu-text">{{ menu_labels.wagePayments | default:'Wage payments' }}</span>
+                        </a>
+                    </li>
+                    {% if loggedin_user.is_admin %}
+                        <li class="menu-item">
+                            <a href="{% url 'traders:traders' %}" class="menu-link {% if request.resolver_match.url_name == 'traders' %}active{% endif %}">
+                                <span class="menu-icon"><i class="mdi mdi-account-tie"></i></span>
+                                <span class="menu-text">{{ common_text.traders }}</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <hr class="m-2 mt-1 mb-1">
+                {% endif %}
+
+                <!-- Profile -->
                 <li class="menu-item">
-                    <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="menu-link">
+                    <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="menu-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                         <span class="menu-icon"><i class="mdi mdi-account-outline"></i></span>
                         <span class="menu-text">{{ menu_labels.myProfile }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
-                    <a href="{% url 'accounts:change-language' %}" class="menu-link">
+                    <a href="{% url 'accounts:change-language' %}" class="menu-link {% if request.resolver_match.url_name == 'change-language' %}active{% endif %}">
                         <span class="menu-icon"><i class="mdi mdi-translate"></i></span>
                         <span class="menu-text">{{ menu_labels.changeLanguage }}</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a href="{% url 'accounts:logout' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-logout"></i></span>
-                        <span class="menu-text">{{ menu_labels.logout }}</span>
-                    </a>
-                </li>
 
             
-            <!-- Survey responses -->
-            <!-- TODO: add admin role -->
-            {% if loggedin_user.is_superuser %}
-                <hr class="m-2 mt-1 mb-1">
-                <!-- <p class="menu-title">For admin use only</p> -->
-                <li class="menu-title">{{ common_text.surveyData }}</li>
-                <li class="menu-item">
-                    <a href="{% url 'surveys-web:tfa-video' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                        <span class="menu-text">{{ common_text.TFAVideoResponses }}</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="{% url 'surveys-web:surveys' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                        <span class="menu-text">{{ common_text.surveyResponses }}</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="{% url 'surveys-web:inline-questions' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
-                        <span class="menu-text">{{ common_text.inlineQuestionResponses }}</span>
-                    </a>
-                </li>
+                <!-- Survey responses -->
+                <!-- TODO: add admin role -->
+                {% if loggedin_user.is_superuser %}
+                    <hr class="m-2 mt-1 mb-1">
+                    <!-- <p class="menu-title">For admin use only</p> -->
+                    <li class="menu-title">{{ common_text.surveyData }}</li>
+                    <li class="menu-item">
+                        <a href="{% url 'surveys-web:tfa-video' %}" class="menu-link {% if request.resolver_match.url_name == 'tfa-video' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                            <span class="menu-text">{{ common_text.TFAVideoResponses }}</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{% url 'surveys-web:surveys' %}" class="menu-link {% if request.resolver_match.url_name == 'surveys' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                            <span class="menu-text">{{ common_text.surveyResponses }}</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="{% url 'surveys-web:inline-questions' %}" class="menu-link {% if request.resolver_match.url_name == 'inline-questions' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-database-search-outline"></i></span>
+                            <span class="menu-text">{{ common_text.inlineQuestionResponses }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if loggedin_user.is_superuser %}
+                    <hr class="m-2 mt-1 mb-1">
+                    <li class="menu-title">{{ common_text.superAdmin }}</li>
+                    <li class="menu-item">
+                        <a href="{% url 'accounts:users' %}" class="menu-link {% if request.resolver_match.url_name == 'users' %}active{% endif %}">
+                            <span class="menu-icon"><i class="mdi mdi-account-group"></i></span>
+                            <span class="menu-text">{{ common_text.users }}</span>
+                        </a>
+                    </li>
+                {% endif %}
             {% endif %}
-            
-            {% if loggedin_user.is_superuser %}
-                <hr class="m-2 mt-1 mb-1">
-                <li class="menu-title">{{ common_text.superAdmin }}</li>
-                <li class="menu-item">
-                    <a href="{% url 'accounts:users' %}" class="menu-link">
-                        <span class="menu-icon"><i class="mdi mdi-account-group"></i></span>
-                        <span class="menu-text">{{ common_text.users }}</span>
-                    </a>
-                </li>
-            {% endif %}
+
+            <li class="menu-item menu-logout-item">
+                <a href="{% url 'accounts:logout' %}" class="menu-link">
+                    <span class="menu-icon"><i class="mdi mdi-logout"></i></span>
+                    <span class="menu-text">{{ menu_labels.logout }}</span>
+                </a>
+            </li>
 
         </ul>
         <!--- End Menu -->
         <div class="clearfix"></div>
     </div>
 </div>
+<style>
+    .app-menu,
+    .app-menu .logo-box,
+    .app-menu .scrollbar {
+        background-color: var(--color-primary, #3565FF);
+    }
+
+    .app-menu .menu-link,
+    .app-menu .menu-text,
+    .app-menu .menu-icon,
+    .app-menu .menu-icon i,
+    .app-menu .menu-title,
+    .app-menu .email-wrapper,
+    .app-menu .email-wrapper p {
+        color: #fff !important;
+    }
+
+    .app-menu .menu-link:hover,
+    .app-menu .menu-link:focus {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .app-menu .menu-link.active {
+        background-color: rgba(234, 237, 246, 0.28);
+        color: #fff !important;
+    }
+
+    .app-menu hr {
+        border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .app-menu .scrollbar {
+        height: calc(100vh - 100px);
+    }
+
+    .app-menu .menu {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+    }
+
+    .app-menu .menu-logout-item {
+        margin-top: auto;
+    }
+</style>
 <!-- ========== Left menu End ========== -->
