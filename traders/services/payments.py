@@ -1,4 +1,5 @@
 from accounts.models import TraderVesselOwnerRelationship
+from django.db.models import Q
 from vessels.models import Vessel
 from wages.models import Wage
 
@@ -17,18 +18,6 @@ WAGE_STATUS_SUMMARY = {
         'color': '#FF9824',
     },
 }
-
-
-PAYMENT_METRIC_GROUPS = [
-    {
-        'title': 'Payslip status',
-        'items': [
-            {'label': 'Signed', 'percent': 77, 'color': '#65E878'},
-            {'label': 'Signature pending', 'percent': 20, 'color': '#FF9824'},
-            {'label': 'No payslip', 'percent': 3, 'color': '#F44E5E'},
-        ],
-    },
-]
 
 
 class WagePaymentsService:
@@ -92,8 +81,47 @@ class WagePaymentsService:
     def get_payment_summary(self, wages=None):
         return {
             'completion': self.get_payment_completion_summary(wages),
-            'metric_groups': PAYMENT_METRIC_GROUPS,
+            'metric_groups': [
+                self.get_payslip_status_summary(wages),
+            ],
         }
+
+    def get_payslip_status_summary(self, wages=None):
+        if wages is None:
+            wages = self.get_wages_queryset()
+
+        total_wages = wages.count()
+        signed_filter = Q(payslip_status=Wage.PAYSLIP_STATUS_SIGNED)
+        no_payslip_filter = Q(payslip__isnull=True) | Q(payslip='')
+        signature_pending_filter = ~signed_filter & ~no_payslip_filter
+
+        signed_count = wages.filter(signed_filter).count()
+        no_payslip_count = wages.filter(no_payslip_filter).count()
+        signature_pending_count = wages.filter(signature_pending_filter).count()
+
+        return {
+            'title': 'Payslip status',
+            'items': [
+                {
+                    'label': 'Signed',
+                    'percent': self.get_percent(signed_count, total_wages),
+                    'color': '#65E878',
+                },
+                {
+                    'label': 'Signature pending',
+                    'percent': self.get_percent(signature_pending_count, total_wages),
+                    'color': '#FF9824',
+                },
+                {
+                    'label': 'No payslip',
+                    'percent': self.get_percent(no_payslip_count, total_wages),
+                    'color': '#F44E5E',
+                },
+            ],
+        }
+
+    def get_percent(self, count, total):
+        return round((count / total) * 100) if total else 0
 
     def get_supplier_rows(self):
         relationships = TraderVesselOwnerRelationship.objects.filter(
@@ -134,11 +162,20 @@ class WagePaymentsService:
         return full_name or user.email or user.mobile or user.telephone or str(user.pk)
 
     def format_payslip_row(self, wage):
-        is_received = wage.status == 'received'
+        status = 'No payslip'
+        status_class = 'no-payslip'
+
+        if wage.payslip_status == Wage.PAYSLIP_STATUS_SIGNED:
+            status = 'Signed'
+            status_class = 'signed'
+        elif wage.payslip:
+            status = 'Signature pending'
+            status_class = 'pending'
+
         return {
             'worker_name': self.get_user_display_name(wage.user),
             'role': wage.user.position or '',
             'amount': f'US$ {wage.usd_amount:,.2f}',
-            'status': 'Submitted confirmation' if is_received else 'Pending review/signature on payslip',
-            'status_class': 'submitted' if is_received else 'pending',
+            'status': status,
+            'status_class': status_class,
         }

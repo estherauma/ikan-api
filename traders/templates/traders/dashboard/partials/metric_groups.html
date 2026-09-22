@@ -6,11 +6,13 @@
                 <div class="metric-row">
                     <span class="metric-label">{{ item.label }}</span>
                     <div class="metric-track">
-                        <span
-                            class="metric-fill"
-                            data-target-percent="{{ item.percent }}"
-                            style="width: 0%; background-color: {{ item.color }};"
-                        ></span>
+                        {% if item.percent > 0 %}
+                            <span
+                                class="metric-fill"
+                                data-target-percent="{{ item.percent }}"
+                                style="width: {{ item.percent }}%; background-color: {{ item.color }};"
+                            ></span>
+                        {% endif %}
                     </div>
                     <strong>{{ item.percent }}%</strong>
                 </div>

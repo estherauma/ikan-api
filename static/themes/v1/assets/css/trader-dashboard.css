@@ -253,8 +253,16 @@
     color: #004CFF;
 }
 
+.payslip-status-signed {
+    color: #20B832;
+}
+
 .payslip-status-pending {
     color: #FF8500;
+}
+
+.payslip-status-no-payslip {
+    color: #F44E5E;
 }
 
 .attachment-button {
