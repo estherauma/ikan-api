@@ -18,7 +18,7 @@
         </a>
         
         <!-- Display loggedin user's email -->
-        {% if loggedin_user.email %}
+        <!-- {% if loggedin_user.email %}
             <div class="email-wrapper">
                 <p>{{ loggedin_user.email }}</p>
             </div>
@@ -26,7 +26,7 @@
             <div class="email-wrapper">
                 <p>{{ loggedin_user.mobile }}</p>
             </div>
-        {% endif %}
+        {% endif %} -->
     </div>
 
     <!-- menu-left -->
@@ -122,21 +122,6 @@
                     <hr class="m-2 mt-1 mb-1">
                 {% endif %}
 
-                <!-- Profile -->
-                <li class="menu-item">
-                    <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="menu-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                        <span class="menu-icon"><i class="mdi mdi-account-outline"></i></span>
-                        <span class="menu-text">{{ menu_labels.myProfile }}</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="{% url 'accounts:change-language' %}" class="menu-link {% if request.resolver_match.url_name == 'change-language' %}active{% endif %}">
-                        <span class="menu-icon"><i class="mdi mdi-translate"></i></span>
-                        <span class="menu-text">{{ menu_labels.changeLanguage }}</span>
-                    </a>
-                </li>
-
-            
                 <!-- Survey responses -->
                 <!-- TODO: add admin role -->
                 {% if loggedin_user.is_superuser %}
@@ -175,6 +160,22 @@
                 {% endif %}
             {% endif %}
 
+            <hr class="m-2 mt-1 mb-1">
+            <!-- Profile -->
+            <li class="menu-item">
+                <a href="{% url 'accounts:profile' pk=loggedin_user.id %}" class="menu-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    <span class="menu-icon"><i class="mdi mdi-account-outline"></i></span>
+                    <span class="menu-text">{{ menu_labels.myProfile }}</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'accounts:change-language' %}" class="menu-link {% if request.resolver_match.url_name == 'change-language' %}active{% endif %}">
+                    <span class="menu-icon"><i class="mdi mdi-translate"></i></span>
+                    <span class="menu-text">{{ menu_labels.changeLanguage }}</span>
+                </a>
+            </li>
+
+            <hr class="m-2 mt-1 mb-1 menu-logout-separator">
             <li class="menu-item menu-logout-item">
                 <a href="{% url 'accounts:logout' %}" class="menu-link">
                     <span class="menu-icon"><i class="mdi mdi-logout"></i></span>
@@ -192,6 +193,17 @@
     .app-menu .logo-box,
     .app-menu .scrollbar {
         background-color: var(--color-primary, #3565FF);
+    }
+
+    .app-menu {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .app-menu .menu-logo-box {
+        padding-top: 1rem;
+        margin-bottom: 1.25rem;
     }
 
     .app-menu .menu-link,
@@ -216,21 +228,31 @@
     }
 
     .app-menu hr {
-        border-color: rgba(255, 255, 255, 0.28);
+        border-color: rgba(255, 255, 255, 0.36);
+        opacity: 1;
     }
 
     .app-menu .scrollbar {
-        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
     }
 
     .app-menu .menu {
         display: flex;
         flex-direction: column;
+        flex: 1;
         min-height: 100%;
     }
 
+    .app-menu .menu-logout-separator {
+        margin-top: auto !important;
+    }
+
     .app-menu .menu-logout-item {
-        margin-top: auto;
+        background-color: var(--color-primary, #3565FF);
     }
 </style>
 <!-- ========== Left menu End ========== -->

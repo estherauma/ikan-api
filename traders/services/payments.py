@@ -6,7 +6,7 @@ from wages.models import Wage
 
 WAGE_STATUS_SUMMARY = {
     'received': {
-        'label_key': 'recievedFull',
+        'label_key': 'receivedFull',
         'color': '#65E878',
     },
     'issue_pending': {

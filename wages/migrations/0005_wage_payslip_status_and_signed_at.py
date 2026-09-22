@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 def backfill_signed_payslips(apps, schema_editor):
     Wage = apps.get_model('wages', 'Wage')
-    signed_wages = Wage.objects.filter(payslip__contains='_signed')
+    signed_wages = Wage.objects.filter(payslip__contains='__signed')
 
     for wage in signed_wages:
         wage.payslip_status = 'signed'
@@ -15,7 +15,7 @@ def backfill_signed_payslips(apps, schema_editor):
 
 def reset_backfilled_signed_payslips(apps, schema_editor):
     Wage = apps.get_model('wages', 'Wage')
-    Wage.objects.filter(payslip__contains='_signed').update(
+    Wage.objects.filter(payslip__contains='__signed').update(
         payslip_status='unsigned',
         payslip_signed_at=None,
     )

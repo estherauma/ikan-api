@@ -28,7 +28,7 @@ class WageSerializer(serializers.ModelSerializer):
             payslip_name = payslip.name if payslip else ''
             if (
                 payslip_name
-                and '_signed' in payslip_name
+                and '__signed' in payslip_name
                 and instance.payslip_status != Wage.PAYSLIP_STATUS_SIGNED
             ):
                 validated_data['payslip_status'] = Wage.PAYSLIP_STATUS_SIGNED
