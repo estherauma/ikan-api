@@ -6,23 +6,27 @@ from wages.models import Wage
 
 WAGE_STATUS_SUMMARY = {
     'received': {
-        'label': 'Received in full',
+        'label_key': 'recievedFull',
         'color': '#65E878',
     },
     'issue_pending': {
-        'label': 'Issues reported',
+        'label_key': 'issuesReported',
         'color': '#F44E5E',
     },
     'action_required': {
-        'label': 'Pending crew review',
+        'label_key': 'pendingCrewReview',
         'color': '#FF9824',
     },
 }
 
 
 class WagePaymentsService:
-    def __init__(self, trader):
+    def __init__(self, trader, dashboard_text=None):
         self.trader = trader
+        self.dashboard_text = dashboard_text or {}
+
+    def get_text(self, key):
+        return self.dashboard_text.get(key) or key
 
     def get_attached_vessel_owner_ids(self):
         return [
@@ -58,22 +62,23 @@ class WagePaymentsService:
         for status, config in WAGE_STATUS_SUMMARY.items():
             count = wages.filter(status=status).count()
             percent = round((count / total_wages) * 100) if total_wages else 0
+            label = self.get_text(config['label_key'])
             item = {
-                'label': config['label'],
+                'label': label,
                 'percent': percent,
                 'color': config['color'],
             }
             legend.append(item)
             chart_segments.append({
-                'label': config['label'],
+                'label': label,
                 'percent': percent,
                 'color': config['color'],
             })
 
         return {
-            'title': 'Total payment completion',
+            'title': self.get_text('totalPaymentCompletion'),
             'completed_percent': legend[0]['percent'],
-            'completed_label': 'Completed',
+            'completed_label': self.get_text('completed'),
             'chart_segments': chart_segments,
             'legend': legend,
         }
@@ -100,20 +105,20 @@ class WagePaymentsService:
         signature_pending_count = wages.filter(signature_pending_filter).count()
 
         return {
-            'title': 'Payslip status',
+            'title': self.get_text('payslipStatus'),
             'items': [
                 {
-                    'label': 'Signed',
+                    'label': self.get_text('signed'),
                     'percent': self.get_percent(signed_count, total_wages),
                     'color': '#65E878',
                 },
                 {
-                    'label': 'Signature pending',
+                    'label': self.get_text('signaturePending'),
                     'percent': self.get_percent(signature_pending_count, total_wages),
                     'color': '#FF9824',
                 },
                 {
-                    'label': 'No payslip',
+                    'label': self.get_text('noPayslip'),
                     'percent': self.get_percent(no_payslip_count, total_wages),
                     'color': '#F44E5E',
                 },
@@ -139,7 +144,10 @@ class WagePaymentsService:
             supplier_rows.append({
                 'name': self.get_user_display_name(vessel_owner),
                 'summary': self.get_supplier_summary(vessel_names, wages),
-                'status': 'Non-compliant' if has_issues else 'No issues',
+                'status': (
+                    self.get_text('nonCompliant')
+                    if has_issues else self.get_text('noIssues')
+                ),
                 'status_class': 'danger' if has_issues else 'good',
                 'is_expanded': False,
                 'payslip_count': wages.count(),
@@ -153,23 +161,23 @@ class WagePaymentsService:
         return supplier_rows
 
     def get_supplier_summary(self, vessel_names, wages):
-        vessel_summary = ', '.join(vessel_names) if vessel_names else 'No vessels'
+        vessel_summary = ', '.join(vessel_names) if vessel_names else self.get_text('noVessels')
         crew_count = wages.values('user_id').distinct().count()
-        return f'{vessel_summary} | {crew_count} CREW'
+        return f'{vessel_summary} | {crew_count} {self.get_text("crew")}'
 
     def get_user_display_name(self, user):
         full_name = f'{user.first_name} {user.last_name}'.strip()
         return full_name or user.email or user.mobile or user.telephone or str(user.pk)
 
     def format_payslip_row(self, wage):
-        status = 'No payslip'
+        status = self.get_text('noPayslip')
         status_class = 'no-payslip'
 
         if wage.payslip_status == Wage.PAYSLIP_STATUS_SIGNED:
-            status = 'Signed'
+            status = self.get_text('signed')
             status_class = 'signed'
         elif wage.payslip:
-            status = 'Signature pending'
+            status = self.get_text('signaturePending')
             status_class = 'pending'
 
         return {

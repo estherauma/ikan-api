@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container-fluid trader-dashboard">
-    <h1 class="page-heading">Wage payments</h1>
+    <h1 class="page-heading">{{ dashboard_text.wagePayments|default:'wagePayments' }}</h1>
 
     <div class="summary-grid">
         {% include "traders/dashboard/partials/completion_chart.html" with completion=payment_summary.completion only %}
@@ -14,9 +14,9 @@
     </div>
 
     <div class="supplier-header">
-        <h2>Suppliers / Vessel Owners</h2>
+        <h2>{{ dashboard_text.suppliersVesselOwners|default:'suppliersVesselOwners' }}</h2>
         <div class="supplier-filters">
-            <span>Filter based on:</span>
+            <span>{{ dashboard_text.filterBasedOn|default:'filterBasedOn' }}</span>
             {% for filter in supplier_filters %}
                 <button type="button">
                     {{ filter }}
@@ -48,7 +48,7 @@
                             {% endif %}
                             {{ supplier.status }}
                         </span>
-                        <span class="expand-button" aria-label="Expand supplier">
+                        <span class="expand-button" aria-label="{{ dashboard_text.expandSupplier|default:'expandSupplier' }}">
                             <i class="mdi mdi-chevron-down"></i>
                         </span>
                     </span>
@@ -63,7 +63,7 @@
                     <section class="payslip-panel">
                         <h2>
                             <i class="mdi mdi-file-document-outline"></i>
-                            Payslips ({{ supplier.payslip_count }})
+                            {{ dashboard_text.payslips|default:'payslips' }} ({{ supplier.payslip_count }})
                         </h2>
                         <div class="payslip-list">
                             {% for payslip in supplier.payslips %}
@@ -79,7 +79,11 @@
                                         <strong>{{ payslip.amount }}</strong>
                                         <span class="payslip-status-{{ payslip.status_class }}">{{ payslip.status }}</span>
                                     </div>
-                                    <button type="button" class="attachment-button" aria-label="View attachment">
+                                    <button
+                                        type="button"
+                                        class="attachment-button"
+                                        aria-label="{{ dashboard_text.viewAttachment|default:'viewAttachment' }}"
+                                    >
                                         <i class="mdi mdi-paperclip"></i>
                                     </button>
                                 </article>

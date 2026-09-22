@@ -26,9 +26,15 @@ class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, Tem
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        wage_payments_service = WagePaymentsService(self.request.user)
+        prismic_utils = PrismicUtils(self.request)
+        dashboard_text = prismic_utils.get_page_text('traders-dashboard') or {}
+        wage_payments_service = WagePaymentsService(self.request.user, dashboard_text)
+        context['dashboard_text'] = dashboard_text
         context['payment_summary'] = wage_payments_service.get_payment_summary()
-        context['supplier_filters'] = ['Tags', 'Date']
+        context['supplier_filters'] = [
+            dashboard_text.get('status', 'status'),
+            dashboard_text.get('date', 'date'),
+        ]
         context['supplier_rows'] = wage_payments_service.get_supplier_rows()
         return context
 
