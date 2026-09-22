@@ -148,6 +148,7 @@ class WagePaymentsService:
                     self.get_text('nonCompliant')
                     if has_issues else self.get_text('noIssues')
                 ),
+                'status_value': 'non_compliant' if has_issues else 'no_issues',
                 'status_class': 'danger' if has_issues else 'good',
                 'is_expanded': False,
                 'payslip_count': wages.count(),

@@ -33,7 +33,21 @@ class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, Tem
         context['payment_summary'] = wage_payments_service.get_payment_summary()
         context['supplier_filters'] = [
             dashboard_text.get('status', 'status'),
-            dashboard_text.get('date', 'date'),
+            # dashboard_text.get('date', 'date'),
+        ]
+        context['status_filter_options'] = [
+            {
+                'label': dashboard_text.get('all', 'all'),
+                'value': 'all',
+            },
+            {
+                'label': dashboard_text.get('noIssues', 'noIssues'),
+                'value': 'no_issues',
+            },
+            {
+                'label': dashboard_text.get('nonCompliant', 'nonCompliant'),
+                'value': 'non_compliant',
+            },
         ]
         context['supplier_rows'] = wage_payments_service.get_supplier_rows()
         return context

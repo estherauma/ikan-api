@@ -19,17 +19,27 @@
         <div class="supplier-filters">
             <span>{{ dashboard_text.filterBasedOn|default:'filterBasedOn' }}</span>
             {% for filter in supplier_filters %}
-                <button type="button">
+                <button type="button" data-status-filter-toggle>
                     {{ filter }}
                     <i class="mdi mdi-chevron-down"></i>
                 </button>
             {% endfor %}
+            <div class="supplier-status-filter" data-status-filter-menu hidden>
+                {% for option in status_filter_options %}
+                    <button type="button" data-status-filter-option="{{ option.value }}">
+                        {{ option.label }}
+                    </button>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
     <div class="supplier-list">
         {% for supplier in supplier_rows %}
-            <article class="supplier-card supplier-card-{{ supplier.status_class }} {% if supplier.is_expanded %}is-expanded{% endif %}">
+            <article
+                class="supplier-card supplier-card-{{ supplier.status_class }} {% if supplier.is_expanded %}is-expanded{% endif %}"
+                data-supplier-status="{{ supplier.status_value }}"
+            >
                 <button type="button" class="supplier-card-header" data-supplier-toggle>
                     <span class="supplier-main">
                         <span class="supplier-icon">

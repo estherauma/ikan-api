@@ -38,6 +38,7 @@
 
 .supplier-filters {
     gap: 1rem;
+    position: relative;
     text-transform: uppercase;
 }
 
@@ -52,6 +53,32 @@
     gap: 1.5rem;
     min-height: 46px;
     padding: 0 1.5rem;
+}
+
+.supplier-status-filter {
+    background: #fff;
+    border: 1px solid #BEC8E8;
+    border-radius: 4px;
+    box-shadow: 0 12px 24px rgba(7, 13, 102, 0.12);
+    display: grid;
+    min-width: 180px;
+    padding: 0.35rem;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 5;
+}
+
+.supplier-status-filter[hidden],
+.supplier-card[hidden] {
+    display: none;
+}
+
+.supplier-status-filter button {
+    border: 0;
+    justify-content: flex-start;
+    min-height: 40px;
+    padding: 0 0.85rem;
 }
 
 .summary-grid > .dashboard-section-heading {
