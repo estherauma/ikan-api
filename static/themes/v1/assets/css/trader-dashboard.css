@@ -6,9 +6,17 @@
     padding: 1.75rem 2rem 2rem;
 }
 
-.trader-dashboard .page-heading,
+.trader-dashboard .dashboard-section-heading,
 .trader-dashboard .supplier-header h2 {
     color: #245CF3;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 0;
+}
+
+.trader-dashboard .page-heading {
+    color: #070D66;
     font-size: 2.4rem;
     font-weight: 700;
     line-height: 1.1;
@@ -44,6 +52,11 @@
     gap: 1.5rem;
     min-height: 46px;
     padding: 0 1.5rem;
+}
+
+.summary-grid > .dashboard-section-heading {
+    grid-column: 1 / -1;
+    margin-bottom: 0.25rem;
 }
 
 .supplier-list {
@@ -266,11 +279,15 @@
 }
 
 .attachment-button {
+    align-items: center;
     background: transparent;
     border: 0;
     color: #004CFF;
+    display: inline-flex;
     font-size: 1.35rem;
+    justify-content: center;
     padding: 0;
+    text-decoration: none;
 }
 
 @media (max-width: 760px) {

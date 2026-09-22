@@ -172,6 +172,7 @@ class WagePaymentsService:
     def format_payslip_row(self, wage):
         status = self.get_text('noPayslip')
         status_class = 'no-payslip'
+        attachment_url = None
 
         if wage.payslip_status == Wage.PAYSLIP_STATUS_SIGNED:
             status = self.get_text('signed')
@@ -180,10 +181,14 @@ class WagePaymentsService:
             status = self.get_text('signaturePending')
             status_class = 'pending'
 
+        if wage.payslip:
+            attachment_url = wage.payslip.url
+
         return {
             'worker_name': self.get_user_display_name(wage.user),
             'role': wage.user.position or '',
             'amount': f'US$ {wage.usd_amount:,.2f}',
             'status': status,
             'status_class': status_class,
+            'attachment_url': attachment_url,
         }

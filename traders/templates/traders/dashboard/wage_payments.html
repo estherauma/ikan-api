@@ -9,6 +9,7 @@
     <h1 class="page-heading">{{ dashboard_text.wagePayments|default:'wagePayments' }}</h1>
 
     <div class="summary-grid">
+        <h2 class="dashboard-section-heading">{{ dashboard_text.overview|default:'overview' }}</h2>
         {% include "traders/dashboard/partials/completion_chart.html" with completion=payment_summary.completion only %}
         {% include "traders/dashboard/partials/metric_groups.html" with metric_groups=payment_summary.metric_groups only %}
     </div>
@@ -79,13 +80,17 @@
                                         <strong>{{ payslip.amount }}</strong>
                                         <span class="payslip-status-{{ payslip.status_class }}">{{ payslip.status }}</span>
                                     </div>
-                                    <button
-                                        type="button"
-                                        class="attachment-button"
-                                        aria-label="{{ dashboard_text.viewAttachment|default:'viewAttachment' }}"
-                                    >
-                                        <i class="mdi mdi-paperclip"></i>
-                                    </button>
+                                    {% if payslip.attachment_url %}
+                                        <a
+                                            href="{{ payslip.attachment_url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="attachment-button"
+                                            aria-label="{{ dashboard_text.viewAttachment|default:'viewAttachment' }}"
+                                        >
+                                            <i class="mdi mdi-paperclip"></i>
+                                        </a>
+                                    {% endif %}
                                 </article>
                             {% endfor %}
                         </div>
