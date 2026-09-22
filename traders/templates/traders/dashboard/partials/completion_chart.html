@@ -1,0 +1,29 @@
+<section class="dashboard-panel completion-panel">
+    <h2>{{ completion.title }}</h2>
+    <div
+        class="completion-chart"
+        data-completion-chart
+        data-completed-percent="{{ completion.completed_percent }}"
+        data-chart-segments="{% for segment in completion.chart_segments %}{{ segment.percent }}|{{ segment.color }}{% if not forloop.last %},{% endif %}{% endfor %}"
+    >
+        <div class="completion-chart-inner">
+            <strong data-completion-value>0%</strong>
+            <span>{{ completion.completed_label }}</span>
+        </div>
+    </div>
+    <div class="completion-list">
+        {% for segment in completion.legend %}
+            <div class="completion-row">
+                <span class="completion-label">
+                    <span
+                        class="completion-color"
+                        style="background-color: {{ segment.color }};"
+                        aria-hidden="true"
+                    ></span>
+                    {{ segment.label }}
+                </span>
+                <strong>{{ segment.percent }}%</strong>
+            </div>
+        {% endfor %}
+    </div>
+</section>

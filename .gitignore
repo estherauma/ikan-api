@@ -172,3 +172,4 @@ gcs-credentials.json
 aggregated_content_example.json
 logs/
 new_agg_data.json
+translate.local.txt

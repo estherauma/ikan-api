@@ -196,3 +196,154 @@ form label,
     font-size: 1rem;
     font-weight: 600;
 }
+
+.summary-grid {
+    display: grid;
+    gap: 1.75rem;
+    grid-template-columns: minmax(280px, 500px) minmax(420px, 1fr);
+    margin-top: 3rem;
+}
+
+.dashboard-panel {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+.dashboard-panel h2 {
+    color: #9AA9D3;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    margin: 0 0 1.35rem;
+    text-transform: uppercase;
+}
+
+.completion-panel {
+    min-height: 420px;
+}
+
+.completion-chart {
+    align-items: center;
+    background: conic-gradient(#E1E4EB 0 100%);
+    border-radius: 50%;
+    display: flex;
+    height: 220px;
+    justify-content: center;
+    margin: 2rem auto 2.4rem;
+    width: 220px;
+}
+
+.completion-chart-inner {
+    align-items: center;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    height: 180px;
+    justify-content: center;
+    width: 180px;
+}
+
+.completion-chart-inner strong {
+    color: #245CF3;
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.completion-chart-inner span {
+    font-size: 1.2rem;
+    margin-top: 0.75rem;
+}
+
+.completion-row,
+.metric-row {
+    align-items: center;
+    display: flex;
+}
+
+.completion-row {
+    font-size: 1.25rem;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.completion-label {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+}
+
+.completion-color {
+    border-radius: 50%;
+    display: inline-block;
+    flex: 0 0 0.7rem;
+    height: 0.7rem;
+    width: 0.7rem;
+}
+
+.metrics-panel {
+    display: grid;
+    gap: 1.45rem;
+}
+
+.metric-group h2 {
+    margin-bottom: 1rem;
+}
+
+.metric-row {
+    gap: 1.5rem;
+    margin-top: 0.8rem;
+}
+
+.metric-label {
+    flex: 0 0 190px;
+    font-size: 1.2rem;
+}
+
+.metric-track {
+    background: #E1E4EB;
+    border-radius: 999px;
+    flex: 1;
+    height: 10px;
+    overflow: hidden;
+}
+
+.metric-fill {
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+    min-width: 18px;
+    transition: width 900ms ease;
+}
+
+.metric-row strong {
+    flex: 0 0 48px;
+    font-size: 1.2rem;
+    text-align: right;
+}
+
+@media (max-width: 1100px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .metric-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .metric-label,
+    .metric-row strong {
+        flex: initial;
+        text-align: left;
+    }
+
+    .metric-track {
+        flex: initial;
+        width: 100%;
+    }
+}
