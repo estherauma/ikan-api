@@ -24,7 +24,7 @@ from django.conf.urls.static import static
 from decouple import config
 
 from accounts.views.web import get_base, select_language
-from tuna.views import UploadFileView, DownloadFileView, UploadTempFileView
+from tuna.views import UploadFileView, DownloadFileView, UploadTempFileView, DownloadFileSignedUrlView
 
 use_strapi_content = config(
     "USE_STRAPI_CONTENT",
@@ -63,6 +63,7 @@ urlpatterns = [
     path('api/v1/file-upload', UploadFileView.as_view(), name='api-file-upload'),
     path('api/v1/file-download', DownloadFileView.as_view(), name='api-file-download'),
     path('api/v1/temp-file-upload', UploadTempFileView.as_view(), name='api-temp-file-upload'),
+    path('api/v1/download-file-signed-url', DownloadFileSignedUrlView.as_view(), name='api-download-file-signed-url'),
     path('api/v1/', include('mydocuments.urls.api')),
     path('api/v1/', include('payments.urls.api')),
     path('api/v1/', include('notifications.urls.api')),
