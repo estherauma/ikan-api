@@ -19,6 +19,16 @@ class TraderDashboardOverviewView(LoginRequiredMixin, RoleRequiredMixin, Templat
     template_name = 'traders/dashboard/overview.html'
     required_roles = ['trader']
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
+        dashboard_text = prismic_utils.get_page_text('traders-dashboard') or {}
+        wage_payments_service = WagePaymentsService(self.request.user, dashboard_text)
+
+        context['dashboard_text'] = dashboard_text
+        context['overview_summary'] = wage_payments_service.get_overview_summary()
+        return context
+
 
 class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
     template_name = 'traders/dashboard/wage_payments.html'
