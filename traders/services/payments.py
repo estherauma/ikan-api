@@ -168,7 +168,7 @@ class WagePaymentsService:
 
     def get_user_display_name(self, user):
         full_name = f'{user.first_name} {user.last_name}'.strip()
-        return full_name or user.email or user.mobile or user.telephone or str(user.pk)
+        return full_name.title() or user.email or user.mobile or user.telephone or str(user.pk)
 
     def format_payslip_row(self, wage):
         status = self.get_text('noPayslip')

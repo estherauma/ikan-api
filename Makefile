@@ -3,7 +3,7 @@ ARGS ?=
 COLLECTION ?= ikans
 CUSTOM_TYPE ?=
 
-.PHONY: makemigrations migrate serve sync-content
+.PHONY: makemigrations migrate serve sync-content tests
 
 makemigrations:
 	$(PYTHON) manage.py makemigrations
