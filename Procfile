@@ -1,1 +1,1 @@
-web: gunicorn tuna.wsgi --log-file -
+web: gunicorn tuna.wsgi --workers 2 --threads 4 --worker-class gthread --timeout 29 --max-requests 1000 --max-requests-jitter 100 --log-file -
