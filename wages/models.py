@@ -9,6 +9,13 @@ def wage_upload_path(instance, filename):
 
 
 class Wage(AuditableModel):
+    PAYSLIP_STATUS_UNSIGNED = 'unsigned'
+    PAYSLIP_STATUS_SIGNED = 'signed'
+
+    PAYSLIP_STATUS_CHOICES = [
+        (PAYSLIP_STATUS_UNSIGNED, 'Unsigned'),
+        (PAYSLIP_STATUS_SIGNED, 'Signed'),
+    ]
     RIGHT_AMOUNT_CHOICES = [
         ('yes', 'Yes'),
         ('no', 'No'),
@@ -32,6 +39,13 @@ class Wage(AuditableModel):
     end_date = models.DateField()
     usd_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payslip = models.FileField(upload_to=wage_upload_path, null=True, blank=True)
+    payslip_status = models.CharField(
+        max_length=20,
+        default=PAYSLIP_STATUS_UNSIGNED,
+        choices=PAYSLIP_STATUS_CHOICES,
+        db_index=True,
+    )
+    payslip_signed_at = models.DateTimeField(null=True, blank=True)
     crew_bank_transfer_receipt = models.FileField(upload_to=wage_upload_path, null=True, blank=True)
     beneficiary_bank_transfer_receipt = models.FileField(upload_to=wage_upload_path, null=True, blank=True)
     beneficiary_relationship = models.CharField(max_length=255, null=True, blank=True)

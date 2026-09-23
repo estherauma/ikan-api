@@ -1,0 +1,118 @@
+{% extends "themes/v1/base.html" %}
+
+{% block styles %}
+    <link href="/static/themes/v1/assets/css/trader-dashboard.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid trader-dashboard">
+    <h1 class="page-heading">{{ dashboard_text.wagePayments|default:'wagePayments' }}</h1>
+
+    <div class="summary-grid">
+        <h2 class="dashboard-section-heading">{{ dashboard_text.overview|default:'overview' }}</h2>
+        {% include "traders/dashboard/partials/completion_chart.html" with completion=payment_summary.completion only %}
+        {% include "traders/dashboard/partials/metric_groups.html" with metric_groups=payment_summary.metric_groups only %}
+    </div>
+
+    <div class="supplier-header">
+        <h2>{{ dashboard_text.suppliersVesselOwners|default:'suppliersVesselOwners' }}</h2>
+        <div class="supplier-filters">
+            <span>{{ dashboard_text.filterBasedOn|default:'filterBasedOn' }}</span>
+            {% for filter in supplier_filters %}
+                <button type="button" data-status-filter-toggle>
+                    {{ filter }}
+                    <i class="mdi mdi-chevron-down"></i>
+                </button>
+            {% endfor %}
+            <div class="supplier-status-filter" data-status-filter-menu hidden>
+                {% for option in status_filter_options %}
+                    <button type="button" data-status-filter-option="{{ option.value }}">
+                        {{ option.label }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="supplier-list">
+        {% for supplier in supplier_rows %}
+            <article
+                class="supplier-card supplier-card-{{ supplier.status_class }} {% if supplier.is_expanded %}is-expanded{% endif %}"
+                data-supplier-status="{{ supplier.status_value }}"
+            >
+                <button type="button" class="supplier-card-header" data-supplier-toggle>
+                    <span class="supplier-main">
+                        <span class="supplier-icon">
+                            <i class="mdi mdi-file-document-outline"></i>
+                        </span>
+                        <span>
+                            <strong>{{ supplier.name }}</strong>
+                            <small>{{ supplier.summary }}</small>
+                        </span>
+                    </span>
+                    <span class="supplier-actions">
+                        <span class="status-pill status-pill-{{ supplier.status_class }}">
+                            {% if supplier.status_class == 'good' %}
+                                <i class="mdi mdi-check-circle-outline"></i>
+                            {% else %}
+                                <i class="mdi mdi-alert-circle-outline"></i>
+                            {% endif %}
+                            {{ supplier.status }}
+                        </span>
+                        <span class="expand-button" aria-label="{{ dashboard_text.expandSupplier|default:'expandSupplier' }}">
+                            <i class="mdi mdi-chevron-down"></i>
+                        </span>
+                    </span>
+                </button>
+
+                <div class="supplier-detail">
+                    <div class="summary-grid">
+                        {% include "traders/dashboard/partials/completion_chart.html" with completion=supplier.payment_summary.completion only %}
+                        {% include "traders/dashboard/partials/metric_groups.html" with metric_groups=supplier.payment_summary.metric_groups only %}
+                    </div>
+
+                    <section class="payslip-panel">
+                        <h2>
+                            <i class="mdi mdi-file-document-outline"></i>
+                            {{ dashboard_text.payslips|default:'payslips' }} ({{ supplier.payslip_count }})
+                        </h2>
+                        <div class="payslip-list">
+                            {% for payslip in supplier.payslips %}
+                                <article class="payslip-row">
+                                    <div class="payslip-person">
+                                        <span class="payslip-avatar">{{ payslip.worker_name|first }}</span>
+                                        <div>
+                                            <h3>{{ payslip.worker_name }}</h3>
+                                            <p>{{ payslip.role }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="payslip-payment">
+                                        <strong>{{ payslip.amount }}</strong>
+                                        <span class="payslip-status-{{ payslip.status_class }}">{{ payslip.status }}</span>
+                                    </div>
+                                    {% if payslip.attachment_url %}
+                                        <a
+                                            href="{{ payslip.attachment_url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="attachment-button"
+                                            aria-label="{{ dashboard_text.viewAttachment|default:'viewAttachment' }}"
+                                        >
+                                            <i class="mdi mdi-paperclip"></i>
+                                        </a>
+                                    {% endif %}
+                                </article>
+                            {% endfor %}
+                        </div>
+                    </section>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/js/trader-dashboard.js"></script>
+{% endblock %}

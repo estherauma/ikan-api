@@ -9,8 +9,48 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views import View
 from django.views.generic import DetailView
+from django.views.generic import TemplateView
 from django.views.generic.list import ListView
 from prismic.utils import PrismicUtils
+from traders.services.payments import WagePaymentsService
+
+
+class TraderDashboardOverviewView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
+    template_name = 'traders/dashboard/overview.html'
+    required_roles = ['trader']
+
+
+class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
+    template_name = 'traders/dashboard/wage_payments.html'
+    required_roles = ['trader']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prismic_utils = PrismicUtils(self.request)
+        dashboard_text = prismic_utils.get_page_text('traders-dashboard') or {}
+        wage_payments_service = WagePaymentsService(self.request.user, dashboard_text)
+        context['dashboard_text'] = dashboard_text
+        context['payment_summary'] = wage_payments_service.get_payment_summary()
+        context['supplier_filters'] = [
+            dashboard_text.get('status', 'status'),
+            # dashboard_text.get('date', 'date'),
+        ]
+        context['status_filter_options'] = [
+            {
+                'label': dashboard_text.get('all', 'all'),
+                'value': 'all',
+            },
+            {
+                'label': dashboard_text.get('noIssues', 'noIssues'),
+                'value': 'no_issues',
+            },
+            {
+                'label': dashboard_text.get('nonCompliant', 'nonCompliant'),
+                'value': 'non_compliant',
+            },
+        ]
+        context['supplier_rows'] = wage_payments_service.get_supplier_rows()
+        return context
 
 
 class TradersListView(LoginRequiredMixin, RoleRequiredMixin, ListView):
@@ -161,7 +201,7 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
 
     def post(self, request):
         form = ResendTokenForm(data=request.POST)
-        common_text = PrismicUtils(request).get_page_text('common-text')
+        common_text = PrismicUtils(request).get_common_text()
         auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
         
         if not form.is_valid():

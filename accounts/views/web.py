@@ -29,6 +29,9 @@ from accounts.utils import get_workers, is_user_invite_token_valid, send_user_in
 
 @login_required(login_url='/account/login')
 def get_base(request):
+    roles = request.user.groups.all().values_list('name', flat=True)
+    if 'trader' in roles:
+        return redirect('traders:dashboard-overview')
     return render(request, template_name="themes/v1/base.html")
 
 
@@ -47,6 +50,7 @@ def loggedin_user(request):
         loggedin_user.is_public = False
         loggedin_user.is_taiwanese_agent = False
         loggedin_user.is_indonesian_agent = False
+        loggedin_user.is_trader = False
         roles = loggedin_user.groups.all().values_list('name', flat=True)
         if 'vessel_owner' in roles:
             show_users_menu_item = True
@@ -59,6 +63,8 @@ def loggedin_user(request):
             loggedin_user.is_taiwanese_agent = True
         elif 'indonesian_agent' in roles:
             loggedin_user.is_indonesian_agent = True
+        elif 'trader' in roles:
+            loggedin_user.is_trader = True
 
     return {
             'loggedin_user': loggedin_user,

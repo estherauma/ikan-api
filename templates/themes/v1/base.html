@@ -34,6 +34,8 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
         <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
 
+        {% block styles %} {% endblock %}
+
     </head>
 
     <body class="{% block body_class %}{% endblock %}">
@@ -80,6 +82,7 @@
 
         <!-- App js -->
         <script src="/static/themes/v1/assets/js/app.min.js"></script>
+        <script src="/static/js/common.js"></script>
         <script src="/static/js/forms.js"></script>
         <script src="/static/js/searchable-multi-select.js"></script>
 

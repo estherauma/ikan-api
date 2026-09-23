@@ -1,0 +1,22 @@
+<section class="dashboard-panel metrics-panel">
+    {% for group in metric_groups %}
+        <div class="metric-group">
+            <h2>{{ group.title }}</h2>
+            {% for item in group.items %}
+                <div class="metric-row">
+                    <span class="metric-label">{{ item.label }}</span>
+                    <div class="metric-track">
+                        {% if item.percent > 0 %}
+                            <span
+                                class="metric-fill"
+                                data-target-percent="{{ item.percent }}"
+                                style="width: {{ item.percent }}%; background-color: {{ item.color }};"
+                            ></span>
+                        {% endif %}
+                    </div>
+                    <strong>{{ item.percent }}%</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</section>
