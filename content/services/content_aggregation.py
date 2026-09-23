@@ -6,6 +6,8 @@ from django.utils import timezone
 from content.models import AggregatedContent
 from content.services.aggregators import aggregate_documents
 from content.services.strapi_content import StrapiContentService
+from content.utils import ContentUtils
+from django.core.cache import cache
 
 
 logger = logging.getLogger(__name__)
@@ -169,11 +171,15 @@ class ContentAggregationService:
             content_record = AggregatedContent.objects.create(content=aggregated_data)
 
         self._delete_older_agg_content()
+
+        # Delete cached aggregated content since it has been updated
+        cache.delete(ContentUtils.CACHE_KEY)
+
         return content_record
 
     def _merge_with_latest_stored_content(self, partial_data, existing_content=None):
         latest_stored_content = existing_content if existing_content is not None else self._get_latest_stored_content()
-        
+
         if latest_stored_content is None:
             return partial_data
 
@@ -183,6 +189,10 @@ class ContentAggregationService:
                 **merged.get(locale, {}),
                 **locale_data,
             }
+
+        # Delete cached aggregated content since it has been updated
+        cache.delete(ContentUtils.CACHE_KEY)
+
         return merged
 
     def _remove_aggregated_entry(self, existing_content, locale, page_key):
