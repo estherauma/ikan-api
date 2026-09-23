@@ -3,6 +3,7 @@ from decouple import config
 
 from content.utils import ContentUtils
 from prismic.models import AggregatedContent
+from django.core.cache import cache
 
 
 use_strapi_content = config(
@@ -16,6 +17,9 @@ if use_strapi_content:
     PrismicUtils = ContentUtils
 else:
     class PrismicUtils:
+        CACHE_KEY = "prismic_aggregated_content_latest"
+        CACHE_TIMEOUT = 3600  # 1 hour (this is invalidated on webhook update)
+
         def __init__(self, request):
             self.user = request.user
             self.is_superuser = self.user.is_superuser
@@ -26,9 +30,15 @@ else:
             self.common_text = self.get_common_text()
 
         def get_all_aggregated_content(self):
+            cached_content = cache.get(self.CACHE_KEY)
+            if cached_content:
+                return cached_content
+
             all_data = AggregatedContent.objects.all()
             latest_data = all_data.order_by('-created_at').first()
             if latest_data and latest_data.content:
+                # Cache aggregated content for quick access
+                cache.set(self.CACHE_KEY, latest_data.content, self.CACHE_TIMEOUT)
                 return latest_data.content
             return None
 
