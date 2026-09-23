@@ -16,7 +16,7 @@ from django.forms.models import model_to_dict
 from mydocuments.models import Passport, Document
 import json
 from django.utils.dateparse import parse_datetime
-from common.utils import upload_file_to_gcs, bucket
+from common.utils import upload_file_to_gcs, bucket, get_gcs_signed_url
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -252,6 +252,15 @@ class UploadFileView(APIView):
 
 
 class DownloadFileView(APIView):
+    """
+    DEPRECATED / WARNING:
+    This view reads and buffers the entire file into server memory (RAM) before returning it.
+    Downloading large files or handling concurrent requests here can trigger high memory usage
+    and cause Out-Of-Memory (OOM) server crashes.
+
+    Use the signed-url endpoint (DownloadFileSignedUrlView) which offloads
+    file transfer directly to Google Cloud Storage.
+    """
     permission_classes = ([IsAuthenticated, ])
 
     def get(self, request):
@@ -269,6 +278,25 @@ class DownloadFileView(APIView):
         response = HttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+class DownloadFileSignedUrlView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        file_path = request.GET.get('url')
+        if not file_path:
+            return Response({'error': 'Missing URL parameter'}, status=status.HTTP_400_BAD_REQUEST)
+
+        blob = bucket.blob(file_path)
+        if not blob.exists():
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        signed_url = get_gcs_signed_url(file_path, hours=0.25)
+        if not signed_url:
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'gcs_signed_url': signed_url}, status=status.HTTP_200_OK)
 
 
 class UploadTempFileView(APIView):
