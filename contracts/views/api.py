@@ -68,10 +68,19 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = Contract.objects.all()
 
     def get_item(self, id):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            qs = Contract.objects.all()
+        else:
+            qs = Contract.objects.filter(
+                Q(created_by=req_user.id) |
+                Q(contract_user_access__user=req_user.id)
+            ).distinct()
+
         try:
-            return Contract.objects.get(id=id)
+            return qs.get(id=id)
         except Contract.DoesNotExist:
-            raise ValidationError({'error': 'Contract does not exist'})
+            raise ValidationError({'error': 'Contract not found OR access denied.'})
 
     def retrieve(self, request, id):
         contract = self.get_item(id)
@@ -101,7 +110,12 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
-        pass
+        contract = self.get_item(id)
+        contract.delete()
+        return Response({
+            'status': 'OK',
+            'message': 'Contract deleted successfully'
+        }, status=status.HTTP_200_OK)
 
 
 class ContractClauseListView(ListCreateAPIView):
@@ -147,10 +161,19 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = ContractClause.objects.all()
 
     def get_item(self, id):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            qs = ContractClause.objects.all()
+        else:
+            qs = ContractClause.objects.filter(
+                Q(contract__created_by=req_user.id) |
+                Q(contract__contract_user_access__user=req_user.id)
+            ).distinct()
+
         try:
-            return ContractClause.objects.get(id=id)
+            return qs.get(id=id)
         except ContractClause.DoesNotExist:
-            raise ValidationError({'error': 'Contract clause does not exist'})
+            raise ValidationError({'error': 'Contract clause does not exist or access denied.'})
 
     def retrieve(self, request, id):
         contract_clause = self.get_item(id)
@@ -180,7 +203,12 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
-        pass
+        contract_clause = self.get_item(id)
+        contract_clause.delete()
+        return Response({
+            'status': 'OK',
+            'message': 'Contract clause deleted successfully'
+        }, status=status.HTTP_200_OK)
 
 
 class ContractDocumentListView(ListCreateAPIView):
@@ -205,8 +233,17 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = ContractDocument.objects.all()
 
     def get_item(self, id):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            qs = ContractDocument.objects.all()
+        else:
+            qs = ContractDocument.objects.filter(
+                Q(contract__created_by=req_user.id) |
+                Q(contract__contract_user_access__user=req_user.id)
+            ).distinct()
+
         try:
-            return ContractDocument.objects.get(id=id)
+            return qs.get(id=id)
         except ContractDocument.DoesNotExist:
             raise ValidationError(
                 {'error': 'Contract document does not exist'}
@@ -240,4 +277,9 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
-        pass
+        contract_document = self.get_item(id)
+        contract_document.delete()
+        return Response({
+            'status': 'OK',
+            'message': 'Contract document deleted successfully'
+        }, status=status.HTTP_200_OK)
