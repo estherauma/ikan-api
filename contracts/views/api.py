@@ -110,6 +110,11 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
+        # TODO: Implement more granular permission checks for deleting contracts.
+        # Currently, only admin users are allowed to delete contracts.
+        if not request.user.is_admin:
+            raise ValidationError({'error': 'Access denied.'})
+
         contract = self.get_item(id)
         contract.delete()
         return Response({
@@ -203,6 +208,11 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
+        # TODO: Implement more granular permission checks for deleting contract clauses.
+        # Currently, only admin users are allowed to delete contract clauses.
+        if not request.user.is_admin:
+            raise ValidationError({'error': 'Access denied.'})
+
         contract_clause = self.get_item(id)
         contract_clause.delete()
         return Response({
@@ -277,6 +287,11 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
+        # TODO: Implement more granular permission checks for deleting contract documents.
+        # Currently, only admin users are allowed to delete contract documents.
+        if not request.user.is_admin:
+            raise ValidationError({'error': 'Access denied.'})
+
         contract_document = self.get_item(id)
         contract_document.delete()
         return Response({
