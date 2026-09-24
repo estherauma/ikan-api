@@ -1,5 +1,6 @@
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import NotFound
 from notifications.models import Notification
 from notifications.serializers import NotificationSerializer
 from rest_framework.response import Response
@@ -42,13 +43,7 @@ class NotificationDetailApiView(RetrieveUpdateDestroyAPIView):
         try:
             return Notification.objects.get(id=id)
         except Notification.DoesNotExist:
-            return Response(
-                {
-                    'status': 'FAIL',
-                    'message': 'Notification not found.'
-                },
-                status.HTTP_404_NOT_FOUND
-            )
+            raise NotFound(detail="Notification not found.")
 
     def retrieve(self, request, id):
         notification = self.get_notification(id)
