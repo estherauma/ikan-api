@@ -4,8 +4,6 @@ from prismic.models import AggregatedContent, MessagingContent, PushNotification
 import re
 from common.utils import split_string_by_comma
 import time
-from prismic.utils import PrismicUtils
-from django.core.cache import cache
 
 
 class PrismicAPI():
@@ -100,9 +98,6 @@ class PrismicAPI():
         aggregated_content = AggregatedContent()
         aggregated_content.content = documents
         aggregated_content.save()
-
-        # Delete cached aggregated content since it has been updated
-        cache.delete(PrismicUtils.CACHE_KEY)
 
     def aggr_data(self, data):
         aggregated_data = {}

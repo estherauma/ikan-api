@@ -1,12 +1,8 @@
 from django import forms
-from django.core.cache import cache
 from content.models import AggregatedContent
 
 
 class ContentUtils:
-    CACHE_KEY = "strapi_aggregated_content_latest"
-    CACHE_TIMEOUT = 3600  # 1 hour (this is invalidated on webhook update)
-
     def __init__(self, request):
         self.user = request.user
         self.is_superuser = self.user.is_superuser
@@ -17,14 +13,8 @@ class ContentUtils:
         self.common_text = self.get_common_text()
 
     def get_all_aggregated_content(self):
-        cached_content = cache.get(self.CACHE_KEY)
-        if cached_content:
-            return cached_content
-
         latest_data = AggregatedContent.objects.order_by("-created_at").first()
         if latest_data and latest_data.content:
-            # Cache aggregated content for quick access
-            cache.set(self.CACHE_KEY, latest_data.content, self.CACHE_TIMEOUT)
             return latest_data.content
         return None
 
