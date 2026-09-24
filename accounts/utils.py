@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 from decouple import config
 from django.utils import timezone
-from matplotlib.pylab import Enum
+from enum import Enum
 
 from common.email import TunaEmailHelper, EmailTemplate
 
