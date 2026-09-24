@@ -210,11 +210,9 @@ class LearningHubProgressApiView(APIView):
         serializer = LearningHubProgressSerializer(data=serializer_data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
-            lb_progress = None
-            try:
-                lb_progress = LearningHubProgress.objects.order_by('-created_at').first()
-            except LearningHubProgress.DoesNotExist:
-                lb_progress = None
+            lb_progress = LearningHubProgress.objects.filter(
+                user=user
+            ).order_by('-created_at').first()
             if lb_progress:
                 req_updated_at = parse_datetime(updated_at) if updated_at else None
                 if req_updated_at is None or req_updated_at > lb_progress.updated_at:
