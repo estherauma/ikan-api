@@ -51,8 +51,8 @@ class WageApiDetailView(RetrieveUpdateDestroyAPIView):
     def update(self, request, id):
         req_updated_at = request.data.get('updated_at', None)
         req_updated_at = parse_datetime(req_updated_at) if req_updated_at else None
-        if req_updated_at is None or req_updated_at > self.get_wage(id).updated_at:
-            wage = self.get_wage(id)
+        wage = self.get_wage(id)
+        if req_updated_at is None or req_updated_at > wage.updated_at:
             serializer = self.serializer_class(
                 wage, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)

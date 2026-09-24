@@ -413,9 +413,13 @@ class InviteUser(forms.Form):
                                                                   'Enter a valid email address or phone number.'))
 
         if is_email:
-            if User.objects.filter(email=email_or_phone).exists():
-                # check is user is inactive then resend token
+            user = None
+            try:
                 user = User.objects.get(email=email_or_phone)
+            except User.DoesNotExist:
+                user = None
+            if user:
+                # check is user is inactive then resend token
                 if not user.is_active:
                     raise forms.ValidationError(self.auth_common_text.get('resendInviteToken',
                                                                           'User already exists. \
