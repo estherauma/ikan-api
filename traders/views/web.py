@@ -96,8 +96,8 @@ class InviteTraderView(LoginRequiredMixin, RoleRequiredMixin, View):
             last_name=form.cleaned_data.get('last_name'),
             is_active=False,
             access_code=None,
-            created_by=request.user.id,
-            updated_by=request.user.id,
+            created_by=request.user,
+            updated_by=request.user,
         )
         trader_group = Group.objects.get(name='trader')
         user.groups.add(trader_group)
@@ -171,8 +171,8 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
             TraderVesselOwnerRelationship(
                 trader=self.object,
                 vessel_owner=vessel_owner,
-                created_by=request.user.id,
-                updated_by=request.user.id,
+                created_by=request.user,
+                updated_by=request.user,
             )
             for vessel_owner in form.cleaned_data['vessel_owners']
         ]

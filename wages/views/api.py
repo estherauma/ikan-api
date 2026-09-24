@@ -67,7 +67,7 @@ class WageApiDetailView(RetrieveUpdateDestroyAPIView):
             serializer = self.serializer_class(
                 wage, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data

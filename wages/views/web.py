@@ -209,8 +209,8 @@ class AddWagesView(LoginRequiredMixin, View):
                         setattr(instance, field_name, None)
 
                 instance.vessel = vessel
-                instance.created_by = request.user.id
-                instance.updated_by = request.user.id
+                instance.created_by = request.user
+                instance.updated_by = request.user
 
                 instance.save()
 

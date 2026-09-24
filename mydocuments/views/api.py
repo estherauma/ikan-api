@@ -30,7 +30,7 @@ class DocumentApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -67,7 +67,7 @@ class DocumentApiDetailView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > document.updated_at:
             serializer = self.serializer_class(document, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -83,7 +83,7 @@ class DocumentApiDetailView(RetrieveUpdateDestroyAPIView):
         document = self.get_document(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != document.created_by:
+        if user_id != document.created_by_id:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'
@@ -118,7 +118,7 @@ class PassportApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -155,7 +155,7 @@ class PassportApiDetailView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > passport.updated_at:
             serializer = self.serializer_class(passport, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -171,7 +171,7 @@ class PassportApiDetailView(RetrieveUpdateDestroyAPIView):
         passport = self.get_passport(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != passport.created_by:
+        if user_id != passport.created_by_id:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'

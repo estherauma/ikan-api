@@ -58,9 +58,10 @@ class ContractsView(LoginRequiredMixin, View):
         form = AddContractForm(data=request.POST, files=request.FILES, user=request.user)
         if form.is_valid():
             contract = form.save(commit=False)
-            vessel_owner = form.data.get('vessel_owner', None)
-            contract.created_by = vessel_owner if vessel_owner else request.user.id
-            contract.updated_by = vessel_owner if vessel_owner else request.user.id
+            vessel_owner_id = form.data.get('vessel_owner', None)
+            vessel_owner = User.objects.filter(id=vessel_owner_id).first() if vessel_owner_id else None
+            contract.created_by = vessel_owner or request.user
+            contract.updated_by = vessel_owner or request.user
             contract.app_ref = generate_uuid()
             contract.save()
 
@@ -74,8 +75,8 @@ class ContractsView(LoginRequiredMixin, View):
                 contract_document = ContractDocument.objects.create(
                     contract=contract,
                     name=file_name,
-                    created_by=vessel_owner if vessel_owner else request.user.id,
-                    updated_by=vessel_owner if vessel_owner else request.user.id,
+                    created_by=vessel_owner or request.user,
+                    updated_by=vessel_owner or request.user,
                 )
                 contract_document.url.storage.save(file_path, file)
                 contract_document.url.name = file_path
@@ -95,8 +96,8 @@ class ContractsView(LoginRequiredMixin, View):
                         access = UserContractAccess.objects.create(
                             user=worker,
                             contract=contract,
-                            created_by=vessel_owner if vessel_owner else request.user.id,
-                            updated_by=vessel_owner if vessel_owner else request.user.id,
+                            created_by=vessel_owner or request.user,
+                            updated_by=vessel_owner or request.user,
                         )
                         access.save()
 
@@ -110,8 +111,8 @@ class ContractsView(LoginRequiredMixin, View):
                                 agent_access = UserContractAccess.objects.create(
                                     user=agent,
                                     contract=contract,
-                                    created_by=vessel_owner if vessel_owner else request.user.id,
-                                    updated_by=vessel_owner if vessel_owner else request.user.id,
+                                    created_by=vessel_owner or request.user,
+                                    updated_by=vessel_owner or request.user,
                                 )
                                 agent_access.save()
             messages.success(request, 'Contract created successfully')
@@ -245,7 +246,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         users_set = set(access.user for access in access_users)
 
         # Add the contract's creator to the set of users
-        users_set.add(User.objects.get(pk=self.object.created_by))
+        users_set.add(User.objects.get(pk=self.object.created_by_id))
 
         return users_set
 
@@ -283,7 +284,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             form = AddContractForm(request.POST, request.FILES, instance=contract, initial={}, user=request.user)
             if form.is_valid():
                 contract = form.save(commit=False)
-                contract.updated_by = request.user.id
+                contract.updated_by = request.user
                 contract.save()
 
                 if 'upload_contract' in request.FILES:
@@ -299,15 +300,15 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         contract_document.url.storage.save(file_path, file)
                         contract_document.url.name = file_path
                         contract_document.name = file_name
-                        contract_document.updated_by = request.user.id
+                        contract_document.updated_by = request.user
                         contract_document.save()
                     else:
                         # Create new contract document
                         contract_document = ContractDocument.objects.create(
                             contract=contract,
                             name=file_name,
-                            created_by=request.user.id,
-                            updated_by=request.user.id,
+                            created_by=request.user,
+                            updated_by=request.user,
                         )
                         contract_document.url.storage.save(file_path, file)
                         contract_document.url.name = file_path
@@ -354,7 +355,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                         clause_data.update(uploaded_files)
 
                     clause.content = json.dumps(clause_data)
-                    clause.updated_by = request.user.id
+                    clause.updated_by = request.user
                     clause.save()
                     messages.success(request, 'Clause updated successfully')
                     return redirect('contracts-web:contract-details', pk=contract.id)
@@ -384,8 +385,8 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                     name=page_title,
                     kind=clause_kind,
                     content=json.dumps(clause_data),
-                    created_by=request.user.id,
-                    updated_by=request.user.id,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
                 clause.save()
 

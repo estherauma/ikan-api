@@ -55,7 +55,7 @@ class ContractListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -97,7 +97,7 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > contract.updated_at:
             serializer = self.serializer_class(contract, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -148,7 +148,7 @@ class ContractClauseListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -190,7 +190,7 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > contract_clause.updated_at:
             serializer = self.serializer_class(contract_clause, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -220,7 +220,7 @@ class ContractDocumentListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -264,7 +264,7 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > contract_document.updated_at:
             serializer = self.serializer_class(contract_document, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data

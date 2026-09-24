@@ -969,7 +969,7 @@ class UserBankDetailsApiView(APIView):
         if req_updated_at is None or req_updated_at > user_bank.updated_at:
             serializer = UserBankDetailsSerializer(user_bank, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -1063,7 +1063,7 @@ class UserBeneficiariesApiView(APIView):
         if req_updated_at is None or req_updated_at > beneficiary.updated_at:
             serializer = UserBeneficiarySerializer(beneficiary, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data

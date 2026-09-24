@@ -75,16 +75,16 @@ class VesselOwnerSyncDataTestCase(TestCase):
         self.vessel_owner = make_user('vo@example.com', group_name='vessel_owner')
         self.other_vessel_owner = make_user('other-vo@example.com', group_name='vessel_owner')
 
-        self.company = Company.objects.create(name='Acme', created_by=self.vessel_owner.id)
-        Company.objects.create(name='Other Co', created_by=self.other_vessel_owner.id)
+        self.company = Company.objects.create(name='Acme', created_by=self.vessel_owner)
+        Company.objects.create(name='Other Co', created_by=self.other_vessel_owner)
 
         self.vessel = Vessel.objects.create(
-            app_ref='vo-vessel', name='VO Vessel', reg_no='REG-VO', created_by=self.vessel_owner.id)
+            app_ref='vo-vessel', name='VO Vessel', reg_no='REG-VO', created_by=self.vessel_owner)
         Vessel.objects.create(
-            app_ref='other-vessel', name='Other Vessel', reg_no='REG-OTHER', created_by=self.other_vessel_owner.id)
+            app_ref='other-vessel', name='Other Vessel', reg_no='REG-OTHER', created_by=self.other_vessel_owner)
 
         self.added_worker = make_user('added-worker@example.com', group_name='worker')
-        self.added_worker.created_by = self.vessel_owner.id
+        self.added_worker.created_by = self.vessel_owner
         self.added_worker.save()
         Wage.objects.create(
             vessel=self.vessel, user=self.added_worker,
@@ -165,7 +165,7 @@ class DefaultAndAdminSyncDataTestCase(TestCase):
         self.other_user = make_user('other-public@example.com', group_name='public')
         self.superuser = User.objects.create_superuser(email='admin@example.com', password='password123')
 
-        Company.objects.create(name='Some Co', created_by=self.other_user.id)
+        Company.objects.create(name='Some Co', created_by=self.other_user)
         Vessel.objects.create(app_ref='some-vessel', name='Some Vessel', reg_no='REG-SOME')
 
     def test_default_role_only_gets_own_data_no_workspace_wide_access(self):
@@ -191,7 +191,7 @@ class SyncPushDataTestCase(TestCase):
         self.worker = make_user('push-worker@example.com', group_name='worker')
         self.vessel_owner = make_user('push-vo@example.com', group_name='vessel_owner')
         self.added_worker = make_user('push-added-worker@example.com', group_name='worker')
-        self.added_worker.created_by = self.vessel_owner.id
+        self.added_worker.created_by = self.vessel_owner
         self.added_worker.save()
         self.unmanaged_worker = make_user('push-unmanaged-worker@example.com', group_name='worker')
         self.vessel = Vessel.objects.create(app_ref='push-vessel', name='Push Vessel', reg_no='REG-PUSH')
@@ -285,7 +285,7 @@ class SyncPushDataExtendedTestCase(TestCase):
         self.vessel_owner = make_user('ext-vo@example.com', group_name='vessel_owner')
         self.worker = make_user('ext-worker@example.com', group_name='worker')
         self.added_worker = make_user('ext-added-worker@example.com', group_name='worker')
-        self.added_worker.created_by = self.vessel_owner.id
+        self.added_worker.created_by = self.vessel_owner
         self.added_worker.save()
         self.unmanaged_worker = make_user('ext-unmanaged-worker@example.com', group_name='worker')
 
@@ -317,8 +317,8 @@ class SyncPushDataExtendedTestCase(TestCase):
         self.assertEqual(len(result['pushed_data']['vessels']), 1)
         company = Company.objects.get(app_ref='company-1')
         vessel = Vessel.objects.get(app_ref='vessel-1')
-        self.assertEqual(company.created_by, self.vessel_owner.id)
-        self.assertEqual(vessel.created_by, self.vessel_owner.id)
+        self.assertEqual(company.created_by, self.vessel_owner)
+        self.assertEqual(vessel.created_by, self.vessel_owner)
 
         # Pushing again with online_ref should update the same row, not create a new one.
         result = sync_push_data(self.vessel_owner, {
@@ -337,7 +337,7 @@ class SyncPushDataExtendedTestCase(TestCase):
         })
 
         contract = Contract.objects.get(app_ref='contract-1')
-        self.assertEqual(contract.created_by, self.vessel_owner.id)
+        self.assertEqual(contract.created_by, self.vessel_owner)
         self.assertEqual(ContractClause.objects.filter(contract=contract).count(), 1)
         self.assertEqual(len(result['pushed_data']['contracts'][0]['clauses']), 1)
 

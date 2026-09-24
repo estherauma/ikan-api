@@ -32,7 +32,7 @@ class SurveyApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -104,7 +104,7 @@ class InlineQuestionApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id, updated_by=request.user.id)
+        serializer.save(created_by=request.user, updated_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
