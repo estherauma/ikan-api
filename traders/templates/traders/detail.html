@@ -30,26 +30,26 @@
         <div class="col-lg-5">
             <div class="card">
                 <div class="card-body">
-                    <h3 class="secondary-color mb-3">{{ common_text.traderDetails }}</h3>
+                    <h3 class="secondary-color mb-3">{{ "traderDetails"|translate }}</h3>
 
                     <div class="row py-2 border-bottom">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.email}}</div>
+                        <div class="col-sm-5 fw-semibold">{{ "email"|translate:"page:auth-common-text" }}</div>
                         <div class="col-sm-7 text-secondary">{{ trader.email|default:"-" }}</div>
                     </div>
                     <div class="row py-2 border-bottom">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.firstName }}</div>
+                        <div class="col-sm-5 fw-semibold">{{ "firstName"|translate:"page:auth-common-text" }}</div>
                         <div class="col-sm-7 text-secondary">{{ trader.first_name|default:"-" }}</div>
                     </div>
                     <div class="row py-2 border-bottom">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.lastName}}</div>
+                        <div class="col-sm-5 fw-semibold">{{ "lastName"|translate:"page:auth-common-text" }}</div>
                         <div class="col-sm-7 text-secondary">{{ trader.last_name|default:"-" }}</div>
                     </div>
                     <div class="row py-2 border-bottom">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.mobileNumber}}</div>
+                        <div class="col-sm-5 fw-semibold">{{ "mobileNumber"|translate:"page:auth-common-text" }}</div>
                         <div class="col-sm-7 text-secondary">{{ trader.mobile|default:"-" }}</div>
                     </div>
                     <div class="row py-2">
-                        <div class="col-sm-5 fw-semibold">{{ auth_common_text.isActive }}</div>
+                        <div class="col-sm-5 fw-semibold">{{ "isActive"|translate:"page:auth-common-text" }}</div>
                         <div class="col-sm-7 text-secondary">{{ trader.is_active }}</div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="secondary-color mb-0">{{ common_text.attachedVesselOwners }}</h3>
+                        <h3 class="secondary-color mb-0">{{ "attachedVesselOwners"|translate }}</h3>
                         <button
                             type="button"
                             class="btn btn-large primary-button"
@@ -68,17 +68,17 @@
                             data-bs-target="#attach-vessel-owners-modal"
                         >
                             <i class="mdi mdi-plus"></i>
-                            {{ common_text.attachVesselOwners }}
+                            {{ "attachVesselOwners"|translate }}
                         </button>
                     </div>
 
                     <table class="table dt-responsive nowrap w-100">
                         <thead>
                             <tr>
-                                <th>{{ common_text.name }}</th>
-                                <th>{{ auth_common_text.email }}</th>
-                                <th>{{ auth_common_text.mobileNumber }}</th>
-                                <th>{{ common_text.actions }}</th>
+                                <th>{{ "name"|translate }}</th>
+                                <th>{{ "email"|translate:"page:auth-common-text" }}</th>
+                                <th>{{ "mobileNumber"|translate:"page:auth-common-text" }}</th>
+                                <th>{{ "actions"|translate }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -86,7 +86,11 @@
                                 <tr>
                                     <td>
                                         <a href="{% url 'accounts:user-details' pk=relationship.vessel_owner.id %}">
-                                            {{ relationship.vessel_owner.first_name|default:common_text.view }}
+                                            {% if relationship.vessel_owner.first_name %}
+                                                {{ relationship.vessel_owner.first_name }}
+                                            {% else %}
+                                                {{ "view"|translate }}
+                                            {% endif %}
                                         </a>
                                     </td>
                                     <td>{{ relationship.vessel_owner.email|default:"-" }}</td>
@@ -99,14 +103,14 @@
                                             data-remove-url="{% url 'traders:remove-vessel-owner-relationship' pk=trader.id relationship_pk=relationship.id %}"
                                             data-vessel-owner-name="{{ relationship.vessel_owner.first_name|default:'' }} {{ relationship.vessel_owner.last_name|default:'' }}"
                                         >
-                                            {{ common_text.remove }}
+                                            {{ "remove"|translate }}
                                         </button>
                                     </td>
                                 </tr>
                             {% empty %}
                                 <tr>
                                     <td colspan="4" class="text-center text-secondary">
-                                        {{ common_text.noVesselOwnersAvailable }}
+                                        {{ "noVesselOwnersAvailable"|translate }}
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -127,8 +131,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title secondary-color">{{ common_text.attachVesselOwners }}</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ common_text.close }}" style="margin-right: 0;"></button>
+                    <h4 class="modal-title secondary-color">{{ "attachVesselOwners"|translate }}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label='{{ "close"|translate }}' style="margin-right: 0;"></button>
                 </div>
 
                 <div class="modal-body">
@@ -142,11 +146,11 @@
                     >
                         {% csrf_token %}
 
-                        {% include "themes/v1/partials/searchable-multi-select.html" with input_id="vessel-owner-search" field=attach_vessel_owners_form.vessel_owners field_name="vessel_owners" options=available_vessel_owner_options search_placeholder=common_text.searchVesselOwners empty_text=common_text.noVesselOwnersAvailable no_results_text=common_text.noVesselOwnersAvailable hide_selected_summary=True only %}
+                        {% include "themes/v1/partials/searchable-multi-select.html" with input_id="vessel-owner-search" field=attach_vessel_owners_form.vessel_owners field_name="vessel_owners" options=available_vessel_owner_options search_placeholder="searchVesselOwners"|translate empty_text="noVesselOwnersAvailable"|translate no_results_text="noVesselOwnersAvailable"|translate hide_selected_summary=True only %}
 
                         <div class="mb-3 d-flex justify-content-end gap-2">
-                            <button class="btn btn-light ms-1" type="button" data-bs-dismiss="modal">{{ common_text.cancel }}</button>
-                            <input class="btn primary-button" type="submit" value="{{ common_text.attach }}">
+                            <button class="btn btn-light ms-1" type="button" data-bs-dismiss="modal">{{ "cancel"|translate }}</button>
+                            <input class="btn primary-button" type="submit" value='{{ "attach"|translate }}'>
                         </div>
                     </form>
                 </div>
@@ -154,9 +158,9 @@
         </div>
     </div>
 
-    {% include "themes/v1/partials/confirmation-modal.html" with modal_id="remove-vessel-owner-modal" title=common_text.removeVesselOwner title_class="secondary-color" message=common_text.removeConfirmMsg confirm_text=common_text.remove cancel_text=common_text.cancel confirm_button_class="primary-button" only %}
+    {% include "themes/v1/partials/confirmation-modal.html" with modal_id="remove-vessel-owner-modal" title="removeVesselOwner"|translate title_class="secondary-color" message="removeConfirmMsg"|translate confirm_text="remove"|translate cancel_text="cancel"|translate confirm_button_class="primary-button" only %}
 
-    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="attach-vessel-owners-loader" loader_text=common_text.loadingText only %}
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="attach-vessel-owners-loader" loader_text="loadingText"|translate only %}
 </div>
 {% endblock %}
 

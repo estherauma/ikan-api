@@ -25,12 +25,12 @@ WAGE_STATUS_SUMMARY = {
 
 
 class WagePaymentsService:
-    def __init__(self, trader, dashboard_text=None):
+    def __init__(self, trader, translator):
         self.trader = trader
-        self.dashboard_text = dashboard_text or {}
+        self.translator = translator
 
     def get_text(self, key):
-        return self.dashboard_text.get(key) or key
+        return self.translator.t(key)
 
     def get_attached_vessel_owner_ids(self):
         return [
@@ -117,10 +117,7 @@ class WagePaymentsService:
         }
 
     def get_worker_summary(self, worker_count):
-        template = self.dashboard_text.get('workersPast12Months')
-        if template:
-            return template.format(worker_count=worker_count)
-        return 'workersPast12Months'
+        return self.translator.t('workersPast12Months', worker_count=worker_count)
 
     def get_payslip_status_summary(self, wages=None):
         if wages is None:

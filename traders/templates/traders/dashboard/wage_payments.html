@@ -6,18 +6,18 @@
 
 {% block content %}
 <div class="container-fluid trader-dashboard">
-    <h1 class="page-heading">{{ dashboard_text.wagePayments|default:'wagePayments' }}</h1>
+    <h1 class="page-heading">{{ "wagePayments"|translate }}</h1>
 
     <div class="summary-grid">
-        <h2 class="dashboard-section-heading">{{ dashboard_text.overview|default:'overview' }}</h2>
+        <h2 class="dashboard-section-heading">{{ "overview"|translate }}</h2>
         {% include "traders/dashboard/partials/completion_chart.html" with completion=payment_summary.completion only %}
         {% include "traders/dashboard/partials/metric_groups.html" with metric_groups=payment_summary.metric_groups only %}
     </div>
 
     <div class="supplier-header">
-        <h2>{{ dashboard_text.suppliersVesselOwners|default:'suppliersVesselOwners' }}</h2>
+        <h2>{{ "suppliersVesselOwners"|translate }}</h2>
         <div class="supplier-filters">
-            <span>{{ dashboard_text.filterBasedOn|default:'filterBasedOn' }}</span>
+            <span>{{ "filterBasedOn"|translate }}</span>
             {% for filter in supplier_filters %}
                 <button type="button" data-status-filter-toggle>
                     {{ filter }}
@@ -59,7 +59,7 @@
                             {% endif %}
                             {{ supplier.status }}
                         </span>
-                        <span class="expand-button" aria-label="{{ dashboard_text.expandSupplier|default:'expandSupplier' }}">
+                        <span class="expand-button" aria-label='{{ "expandSupplier"|translate }}'>
                             <i class="mdi mdi-chevron-down"></i>
                         </span>
                     </span>
@@ -74,7 +74,7 @@
                     <section class="payslip-panel">
                         <h2>
                             <i class="mdi mdi-file-document-outline"></i>
-                            {{ dashboard_text.payslips|default:'payslips' }} ({{ supplier.payslip_count }})
+                            {{ "payslips"|translate }} ({{ supplier.payslip_count }})
                         </h2>
                         <div class="payslip-list">
                             {% for payslip in supplier.payslips %}
@@ -96,7 +96,7 @@
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             class="attachment-button"
-                                            aria-label="{{ dashboard_text.viewAttachment|default:'viewAttachment' }}"
+                                            aria-label='{{ "viewAttachment"|translate }}'
                                         >
                                             <i class="mdi mdi-paperclip"></i>
                                         </a>

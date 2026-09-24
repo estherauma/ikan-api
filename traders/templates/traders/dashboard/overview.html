@@ -8,27 +8,27 @@
 <div class="container-fluid trader-dashboard overview-dashboard">
     <header class="overview-hero">
         <h1>
-            {{ dashboard_text.goodMorning|default:'goodMorning' }},
+            {{ "goodMorning"|translate }},
             {{ request.user.first_name|default:request.user.email }}
         </h1>
-        <p>{{ dashboard_text.supplyChainOverview|default:'supplyChainOverview' }}</p>
+        <p>{{ "supplyChainOverview"|translate }}</p>
     </header>
 
     <section class="overview-payments" aria-labelledby="overview-payments-title">
         <h2 id="overview-payments-title" class="overview-section-title">
-            {{ dashboard_text.payments|default:'payments' }}
+            {{ "payments"|translate }}
         </h2>
 
         <div class="overview-payment-grid">
             <div class="overview-stat-stack">
                 <article class="overview-stat-card">
-                    <h3>{{ dashboard_text.totalWagePayments|default:'totalWagePayments' }}</h3>
+                    <h3>{{ "totalWagePayments"|translate }}</h3>
                     <strong>{{ overview_summary.total_wage_payments }}</strong>
                     <p>{{ overview_summary.worker_summary }}</p>
                 </article>
 
                 <article class="overview-stat-card">
-                    <h3>{{ dashboard_text.payslipSignoff|default:'payslipSignoff' }}</h3>
+                    <h3>{{ "payslipSignoff"|translate }}</h3>
                     <strong>{{ overview_summary.payslip_signoff_count }}</strong>
                     <p>{{ overview_summary.payslip_signoff_summary }}</p>
                 </article>
@@ -40,7 +40,7 @@
 
     <section class="overview-suppliers" aria-labelledby="overview-suppliers-title">
         <h2 id="overview-suppliers-title" class="overview-section-title">
-            {{ dashboard_text.supplierVesselOwnerOverview|default:'supplierVesselOwnerOverview' }}
+            {{ "supplierVesselOwnerOverview"|translate }}
         </h2>
 
         <div class="overview-issue-panel">
@@ -51,14 +51,14 @@
                         <p>{{ supplier.issue_summary }}</p>
                     </div>
                     <a class="overview-review-button" href="{{ supplier.review_url }}">
-                        {{ dashboard_text.review|default:'review' }}
+                        {{ "review"|translate }}
                     </a>
                 </article>
             {% empty %}
                 <article class="overview-issue-row">
                     <div>
-                        <h3>{{ dashboard_text.noOutstandingIssues|default:'noOutstandingIssues' }}</h3>
-                        <p>{{ dashboard_text.allSuppliersOnTrack|default:'allSuppliersOnTrack' }}</p>
+                        <h3>{{ "noOutstandingIssues"|translate }}</h3>
+                        <p>{{ "allSuppliersOnTrack"|translate }}</p>
                     </div>
                 </article>
             {% endfor %}
