@@ -30,7 +30,7 @@ class VesselSelectForm(forms.Form):
         super().__init__(*args, **kwargs)
         if user:
             self.fields["vessel"].queryset = Vessel.objects.filter(created_by=user.id)
-            if user.groups.filter(name__in=["taiwanese_agent", "indonesian_agent"]).exists():
+            if any(group.name in {"taiwanese_agent", "indonesian_agent"} for group in user.groups.all()):
                 vesselowner_ids = user.vessel_owners.values_list("id", flat=True)
                 self.fields["vessel"].queryset = Vessel.objects.filter(created_by__in=vesselowner_ids)
 

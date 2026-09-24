@@ -192,8 +192,7 @@ class WorkersListView(LoginRequiredMixin, ListView):
             if form.cleaned_data.get('vessel_owner'):
                 vessel_owner = form.cleaned_data.get('vessel_owner')
             recruited_by = None
-            if request.user.groups.filter(name='taiwanese_agent').exists() or \
-               request.user.groups.filter(name='indonesian_agent').exists():
+            if any(group.name in {'taiwanese_agent', 'indonesian_agent'} for group in request.user.groups.all()):
                 recruited_by = request.user
             user = User.objects.create_user(
                 email=form.cleaned_data.get('email'),
@@ -301,8 +300,7 @@ def invite_user(request):
         form = InviteUser(request.POST)
         if form.is_valid():
             recruited_by = None
-            if request.user.groups.filter(name='taiwanese_agent').exists() or \
-               request.user.groups.filter(name='indonesian_agent').exists():
+            if any(group.name in {'taiwanese_agent', 'indonesian_agent'} for group in request.user.groups.all()):
                 recruited_by = request.user
             role_name = form.cleaned_data.get('role')
             sends_invite_link = role_name in ['admin', 'trader'] and form.cleaned_data.get('has_email')
