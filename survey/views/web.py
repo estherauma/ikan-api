@@ -3,14 +3,15 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 from survey.models import Survey, InlineQuestion
-import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
 from collections import Counter
 from matplotlib.ticker import MaxNLocator
-from textwrap import fill
+import matplotlib.cm as cm
 import numpy as np
+from textwrap import fill
 from django.db.models import Q
+from matplotlib.figure import Figure
 
 
 class SurveyView(LoginRequiredMixin, View):
@@ -155,50 +156,72 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
                 return Counter(item['follow_up_question_response'] for item in data)
             return Counter(item['question_response'] for item in data)
 
-    def get_graph(self):
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
-        img_png = buffer.getvalue()
-        graph = base64.b64encode(img_png)
-        graph = graph.decode('utf-8')
-        buffer.close()
-        return graph
+    def get_graph(self, fig):
+        with BytesIO() as buffer:
+            fig.savefig(buffer, format='png', bbox_inches='tight')
+            return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     def get_plot(self, values, labels, title, question_type):
-        plt.switch_backend('AGG')
-        fig = plt.figure(figsize=(10, 6))
+        # 1. Create an isolated Figure and Axes object directly
+        fig = Figure(figsize=(10, 6))
+        ax = fig.add_subplot(1, 1, 1)
 
-        try:
-            wrapped_labels = [fill(label, width=25) for label in labels]
+        wrapped_labels = [fill(label, width=25) for label in labels]
 
-            if question_type == 'radio':
-                wedges = plt.pie(values, labels=wrapped_labels, autopct='%1.1f%%',
-                                 startangle=140, wedgeprops={'edgecolor': 'white'})
-                plt.axis('equal')
-                legend_labels = [f"{label} ({value} responses)" for label, value
-                                 in zip(wrapped_labels, values)]
-                plt.legend(handles=wedges, labels=legend_labels, loc='lower left', frameon=False)
-            elif question_type in ['select', 'multiple-select', 'multi-select']:
-                colors = plt.cm.tab20(np.linspace(0, 1, len(labels)))
-                bars = plt.barh(wrapped_labels, values, color=colors)
-                plt.xlabel('Number of Responses')
-                plt.ylabel('Responses')
-                plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
-                plt.subplots_adjust(bottom=0.3)
+        if question_type == 'radio':
+            # ax.pie returns a tuple of (wedges, texts, autotexts)
+            wedges, texts, autotexts = ax.pie(
+                values,
+                labels=wrapped_labels,
+                autopct='%1.1f%%',
+                startangle=140,
+                wedgeprops={'edgecolor': 'white'}
+            )
+            ax.axis('equal')
 
-                legend_wrapped_labels = [fill(label, width=70) for label in labels]
-                legend_labels = [f"{label} ({value} responses)" for label, value
-                                 in zip(legend_wrapped_labels, values)]
-                plt.legend(handles=bars, labels=legend_labels,
-                           bbox_to_anchor=(-0.1, -0.3), loc='lower left', frameon=False)
+            legend_labels = [
+                f"{label} ({value} responses)"
+                for label, value in zip(wrapped_labels, values)
+            ]
+            ax.legend(
+                handles=wedges,
+                labels=legend_labels,
+                loc='lower left',
+                frameon=False
+            )
 
-            plt.title(title, loc='center', wrap=True)
-            plt.tight_layout(rect=[0, 0.05, 1, 1])
-            graph = self.get_graph()
-            return graph
-        finally:
-            plt.close(fig)
+        elif question_type in ['select', 'multiple-select', 'multi-select']:
+            colors = cm.tab20(np.linspace(0, 1, len(labels)))
+            bars = ax.barh(wrapped_labels, values, color=colors)
+
+            ax.set_xlabel('Number of Responses')
+            ax.set_ylabel('Responses')
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+            fig.subplots_adjust(bottom=0.3)
+
+            legend_wrapped_labels = [fill(label, width=70) for label in labels]
+            legend_labels = [
+                f"{label} ({value} responses)"
+                for label, value in zip(legend_wrapped_labels, values)
+            ]
+            ax.legend(
+                handles=bars,
+                labels=legend_labels,
+                bbox_to_anchor=(-0.1, -0.3),
+                loc='lower left',
+                frameon=False
+            )
+
+        ax.set_title(title, loc='center', wrap=True)
+        fig.tight_layout(rect=[0, 0.05, 1, 1])
+
+        # Pass the fig object explicitly to get_graph()
+        graph = self.get_graph(fig)
+
+        # Clean up figure memory without invoking pyplot global state
+        fig.clf()
+
+        return graph
 
     def get_follow_up_qtn_responses(self, query_set):
         follow_up_qtns = query_set.filter(follow_up_question_key__isnull=False).values()
