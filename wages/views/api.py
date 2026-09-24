@@ -9,6 +9,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_datetime
+from django.db.models import Q
 
 
 class WageApiListView(ListAPIView):
@@ -35,10 +36,20 @@ class WageApiDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Wage.objects.all()
 
     def get_wage(self, id):
+        req_user = self.request.user
+
+        if req_user.is_superuser:
+            qs = Wage.objects.all()
+        else:
+            qs = Wage.objects.filter(
+                Q(user=req_user) |
+                Q(created_by=req_user.id) |
+                Q(user__recruited_by=req_user)
+            ).distinct()
         try:
-            return Wage.objects.get(id=id)
+            return qs.get(id=id)
         except Wage.DoesNotExist:
-            raise ValidationError({'error': 'Wage payment does not exist'})
+            raise ValidationError({'error': 'Wage payment does not exist or access denied'})
 
     def retrieve(self, request, id):
         wage = self.get_wage(id)
@@ -64,5 +75,5 @@ class WageApiDetailView(RetrieveUpdateDestroyAPIView):
         else:
             return Response({
                 'status': 'OK',
-                'message': 'Record is already up to date, no changes made.'
+                'message': 'Record is already up to date, no changes were made.'
             }, status=status.HTTP_200_OK)

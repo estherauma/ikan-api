@@ -20,6 +20,7 @@ from prismic.utils import PrismicUtils
 import os
 import re
 from common.utils import upload_file_to_gcs
+from django.db.models import Q
 
 
 class WageListView(LoginRequiredMixin, ListView):
@@ -45,11 +46,14 @@ class WageListView(LoginRequiredMixin, ListView):
                 vessels_queryset = Vessel.objects.filter(created_by__in=agent_vo_ids)
                 has_vessel = vessels_queryset.exists()
 
-        wages = Wage.objects.filter(created_by=user.id)
         if is_super_user:
             wages = Wage.objects.all()
-        elif "worker" in roles:
-            wages = Wage.objects.filter(user=user)
+        else:
+            wages = Wage.objects.filter(
+                Q(user=user) |
+                Q(created_by=user.id) |
+                Q(user__recruited_by=user)
+            ).distinct()
 
         # Get payments common text
         prismic_utils = PrismicUtils(self.request)
