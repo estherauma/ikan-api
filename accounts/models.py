@@ -126,7 +126,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
         return None
 
     def __str__(self):
-        if self.name_on_contract:
+        if self.groups.filter(name='worker').exists() and self.name_on_contract:
             return f'{self.name_on_contract} ({self.email or self.mobile or self.telephone})'
 
         return f'{self.first_name} {self.last_name} ({self.email or self.mobile or self.telephone})'
@@ -257,6 +257,7 @@ class TraderVesselOwnerRelationship(AuditableModel):
             raise ValidationError({'vessel_owner': 'Selected user must be in the vessel_owner group.'})
 
     def __str__(self):
-        return f'Trader: {self.trader.first_name} {self.trader.last_name} ({self.trader.email or self.trader.mobile}) - ' \
-               f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
-               f'({self.vessel_owner.email or self.vessel_owner.mobile})'
+        m = f'Trader: {self.trader.first_name} {self.trader.last_name} ({self.trader.email or self.trader.mobile}) - ' \
+            f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
+            f'({self.vessel_owner.email or self.vessel_owner.mobile})'
+        return m
