@@ -853,7 +853,6 @@ class UpdateUserCompany(APIView):
         except UserCompany.DoesNotExist:
             user_company = None
         if user_company:
-            user_company = UserCompany.objects.get(user=user, is_active=True)
             user_company.is_active = False
             user_company.save()
 
@@ -927,7 +926,6 @@ class UserBankDetailsApiView(APIView):
                 except UserBank.DoesNotExist:
                     user_bank = None
                 if user_bank:
-                    user_bank = UserBank.objects.get(user=user, is_active=True)
                     user_bank.is_active = False
                     user_bank.save()
                 # check if user has account with the same account name and number
