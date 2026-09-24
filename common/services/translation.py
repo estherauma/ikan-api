@@ -12,10 +12,8 @@ PAGE_TRANSLATION_MAP = {
 
 
 class Translator:
-    def __init__(self, request, page=None, form=None):
+    def __init__(self, request):
         self.request = request
-        self.page = page
-        self.form = form
         self._content_utils = None
         self._common_text = None
         self._page_text = {}
@@ -68,13 +66,6 @@ class Translator:
         return scope, self._page_name()
 
     def _page_name(self):
-        if self.page:
-            return self.page
-
-        request_page = getattr(self.request, 'translation_page', None)
-        if request_page:
-            return request_page
-
         resolver_match = getattr(self.request, 'resolver_match', None)
         url_name = getattr(resolver_match, 'url_name', None)
         return PAGE_TRANSLATION_MAP.get(url_name)
@@ -94,7 +85,6 @@ class Translator:
         return self._page_text[page]
 
     def _form_text_lookup(self, form=None):
-        form = form or self.form or getattr(self.request, 'translation_form', None)
         if not form:
             return {}
 
