@@ -617,7 +617,7 @@ class CreateWorkerForVOForm(forms.Form):
                 groups__name='vessel_owner'
             ).exclude(id=user.id)
             # if user is an agent, return only vessel owners that are attached to the agent
-            if any(group.name in {"taiwanese_agent", "indonesian_agent"} for group in user.groups.all()):
+            if user.groups.filter(name__in={"taiwanese_agent", "indonesian_agent"}).exists():
                 self.fields['vessel_owner'].queryset = user.vessel_owners
 
 

@@ -39,7 +39,7 @@ class VesselApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         user = self.request.user
         super_user = user.is_superuser
-        is_worker = any(group.name == 'worker' for group in user.groups.all())
+        is_worker = user.groups.filter(name='worker').exists()
 
         if super_user:
             vessels = get_vessel_queryset()
