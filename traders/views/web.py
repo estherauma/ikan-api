@@ -2,6 +2,7 @@ from accounts.forms import AttachTraderVesselOwnersForm, InviteUser, ResendToken
 from accounts.mixins import RoleRequiredMixin
 from accounts.models import TraderVesselOwnerRelationship, User
 from accounts.utils import send_user_invite_email
+from common.services.translation import Translator
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
@@ -11,13 +12,23 @@ from django.views import View
 from django.views.generic import DetailView
 from django.views.generic import TemplateView
 from django.views.generic.list import ListView
-from prismic.utils import PrismicUtils
 from traders.services.payments import WagePaymentsService
 
 
 class TraderDashboardOverviewView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
     template_name = 'traders/dashboard/overview.html'
     required_roles = ['trader']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        translator = Translator(self.request)
+        wage_payments_service = WagePaymentsService(
+            self.request.user,
+            translator,
+        )
+
+        context['overview_summary'] = wage_payments_service.get_overview_summary()
+        return context
 
 
 class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
@@ -26,26 +37,24 @@ class TraderDashboardWagePaymentsView(LoginRequiredMixin, RoleRequiredMixin, Tem
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        prismic_utils = PrismicUtils(self.request)
-        dashboard_text = prismic_utils.get_page_text('traders-dashboard') or {}
-        wage_payments_service = WagePaymentsService(self.request.user, dashboard_text)
-        context['dashboard_text'] = dashboard_text
+        translator = Translator(self.request)
+        wage_payments_service = WagePaymentsService(self.request.user, translator)
         context['payment_summary'] = wage_payments_service.get_payment_summary()
         context['supplier_filters'] = [
-            dashboard_text.get('status', 'status'),
-            # dashboard_text.get('date', 'date'),
+            translator.t('status'),
+            # translator.t('date'),
         ]
         context['status_filter_options'] = [
             {
-                'label': dashboard_text.get('all', 'all'),
+                'label': translator.t('all'),
                 'value': 'all',
             },
             {
-                'label': dashboard_text.get('noIssues', 'noIssues'),
+                'label': translator.t('noIssues'),
                 'value': 'no_issues',
             },
             {
-                'label': dashboard_text.get('nonCompliant', 'nonCompliant'),
+                'label': translator.t('nonCompliant'),
                 'value': 'non_compliant',
             },
         ]
@@ -67,9 +76,6 @@ class TradersListView(LoginRequiredMixin, RoleRequiredMixin, ListView):
         context['invite_user_form'] = InviteUser()
         context['resend_token_form'] = ResendTokenForm()
         context['traders'] = self.get_queryset()
-        prismic_utils = PrismicUtils(self.request)
-        context['auth_common_text'] = prismic_utils.get_page_text('auth-common-text')
-        context['common_text'] = prismic_utils.get_common_text()
         context['show_invite_modal'] = False
         return context
 
@@ -79,14 +85,17 @@ class InviteTraderView(LoginRequiredMixin, RoleRequiredMixin, View):
 
     def post(self, request):
         form = InviteUser(request.POST)
-        auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
-        common_text = PrismicUtils(request).get_common_text()
+        translator = Translator(request)
+        invite_email_text = {
+            **translator.content_utils.get_page_text('auth-common-text'),
+            **translator.common_text,
+        }
 
         if not form.is_valid():
             return JsonResponse({
                 'success': False,
                 'errors': form.errors.get_json_data(),
-                'message': 'Error validating form!',
+                'message': translator.t('errorOccurred'),
             }, status=400)
 
         user = User.objects.create_user(
@@ -103,22 +112,16 @@ class InviteTraderView(LoginRequiredMixin, RoleRequiredMixin, View):
         user.groups.add(trader_group)
 
         if form.cleaned_data.get('has_email'):
-            success = send_user_invite_email(user, {**auth_common_text, **common_text})
+            success = send_user_invite_email(user, invite_email_text)
             if not success:
                 return JsonResponse({
                     'success': False,
-                    'message': common_text.get(
-                        'errorOccurred',
-                        'User created but an error occurred while sending the email. Please contact support.'
-                    ),
+                    'message': translator.t('errorOccurred'),
                 }, status=500)
 
         return JsonResponse({
             'success': True,
-            'message': common_text.get(
-                'userCreatedSuccessMsg',
-                'User created and email sent successfully.'
-            ),
+            'message': translator.t('userCreatedSuccessMsg'),
         })
 
 
@@ -133,9 +136,6 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        prismic_utils = PrismicUtils(self.request)
-        context['auth_common_text'] = prismic_utils.get_page_text('auth-common-text')
-        context['common_text'] = prismic_utils.get_common_text()
         context['vessel_owner_relationships'] = TraderVesselOwnerRelationship.objects.filter(
             trader=self.object,
         ).select_related('vessel_owner')
@@ -177,8 +177,8 @@ class TraderDetailView(LoginRequiredMixin, RoleRequiredMixin, DetailView):
             for vessel_owner in form.cleaned_data['vessel_owners']
         ]
         TraderVesselOwnerRelationship.objects.bulk_create(relationships)
-        common_text = PrismicUtils(request).get_common_text()
-        messages.success(request, common_text.get('VOattachSuccessMsg', 'Vessel owners attached successfully.'))
+        translator = Translator(request)
+        messages.success(request, translator.t('VOattachSuccessMsg'))
         return JsonResponse({'success': True})
 
 
@@ -201,14 +201,17 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
 
     def post(self, request):
         form = ResendTokenForm(data=request.POST)
-        common_text = PrismicUtils(request).get_common_text()
-        auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
+        translator = Translator(request)
+        invite_email_text = {
+            **translator.content_utils.get_page_text('auth-common-text'),
+            **translator.common_text,
+        }
         
         if not form.is_valid():
             return JsonResponse({
                 'success': False,
                 'errors': form.errors.get_json_data(),
-                'message': common_text.get('errorOccurred', 'No valid email provided.'),
+                'message': translator.t('errorOccurred'),
             }, status=400)
 
         email = form.cleaned_data.get('email')
@@ -216,16 +219,16 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
         if not user:
             return JsonResponse({
                 'success': False,
-                'message': common_text.get('userDoesnotExist', 'User does not exist.'),
+                'message': translator.t('userDoesnotExist'),
             }, status=404)
 
-        success = send_user_invite_email(user, {**auth_common_text, **common_text})
+        success = send_user_invite_email(user, invite_email_text)
         if success:
             return JsonResponse({
                 'success': True,
-                'message': common_text.get('sentInviteSuccessMsg', 'The invite was sent successfully.'),
+                'message': translator.t('sentInviteSuccessMsg'),
             })
         return JsonResponse({
             'success': False,
-            'message': common_text.get('errorOccurred', 'An error occurred while resetting the invite.'),
+            'message': translator.t('errorOccurred'),
         }, status=500)

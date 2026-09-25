@@ -1,4 +1,5 @@
 from django import template
+from common.services.translation import Translator, get_current_request
 from common.utils import format_local_date
 
 register = template.Library()
@@ -55,6 +56,18 @@ def format_date(date, lang='en-us'):
         Formats a datetime object to a localized string based on the current language settings.
     """
     return format_local_date(date, lang)
+
+
+@register.filter(name='translate')
+def translate_filter(key, scope=None):
+    request = get_current_request()
+    if request is None:
+        return key
+
+    if not hasattr(request, 'translator'):
+        request.translator = Translator(request)
+
+    return request.translator.t(key, scope=scope)
 
 
 @register.filter(name="endsWithPdf")

@@ -86,6 +86,265 @@
     margin-bottom: 0.25rem;
 }
 
+.overview-dashboard .summary-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
+    margin-top: 1.5rem;
+}
+
+.overview-dashboard .dashboard-panel {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+.overview-dashboard .completion-panel h2,
+.overview-dashboard .metric-group h2 {
+    color: #9AA9D3;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 1.75rem;
+    text-transform: uppercase;
+}
+
+.overview-dashboard .completion-chart {
+    align-items: center;
+    aspect-ratio: 1;
+    background: conic-gradient(#65E878 0deg 0deg, #F44E5E 0deg 0deg, #FF9824 0deg 0deg, #E9EDF8 0deg 360deg);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    max-width: 220px;
+    position: relative;
+    width: 35%;
+}
+
+.overview-dashboard .completion-chart::before {
+    background: #fff;
+    border-radius: 50%;
+    content: "";
+    height: 82%;
+    position: absolute;
+    width: 82%;
+}
+
+.overview-dashboard .completion-chart-inner {
+    color: #070D66;
+    position: relative;
+    text-align: center;
+    z-index: 1;
+}
+
+.overview-dashboard .completion-chart-inner strong,
+.overview-dashboard .completion-chart-inner span {
+    display: block;
+}
+
+.overview-dashboard .completion-chart-inner strong {
+    color: #245CF3;
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.overview-dashboard .completion-chart-inner span {
+    font-size: 1.25rem;
+    margin-top: 0.55rem;
+}
+
+.overview-dashboard .completion-list,
+.overview-dashboard .metric-group {
+    display: grid;
+    gap: 1rem;
+}
+
+.overview-dashboard .completion-row,
+.overview-dashboard .metric-row {
+    align-items: center;
+    color: #070D66;
+    display: grid;
+    font-size: 1.15rem;
+    gap: 1rem;
+}
+
+.overview-dashboard .completion-row {
+    grid-template-columns: 1fr auto;
+}
+
+.overview-dashboard .completion-label {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+}
+
+.overview-dashboard .completion-color {
+    border-radius: 50%;
+    display: inline-flex;
+    height: 12px;
+    width: 12px;
+}
+
+.overview-dashboard .metric-row {
+    grid-template-columns: minmax(110px, 0.8fr) minmax(140px, 1fr) auto;
+}
+
+.overview-dashboard .metric-track {
+    background: #E9EDF8;
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.overview-dashboard .metric-fill {
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+}
+
+.overview-dashboard {
+    padding-bottom: 3.5rem;
+}
+
+.overview-hero {
+    margin-bottom: 3rem;
+}
+
+.overview-hero h1 {
+    color: #245CF3;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 1.2rem;
+}
+
+.overview-hero p {
+    color: #000;
+    font-size: 1.35rem;
+    margin: 0;
+}
+
+.overview-section-title {
+    color: #070D66;
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+}
+
+.overview-payments {
+    margin-bottom: 3rem;
+}
+
+.overview-payment-grid {
+    display: grid;
+    gap: 1.875rem;
+    grid-template-columns: 375px minmax(0, 1fr);
+}
+
+.overview-stat-stack {
+    display: grid;
+    gap: 1.875rem;
+}
+
+.overview-stat-card {
+    background: #fff;
+    border-radius: 10px;
+    min-height: 179px;
+    padding: 2.2rem 1.875rem;
+}
+
+.overview-stat-card h3 {
+    color: #9AA9D3;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+}
+
+.overview-stat-card strong {
+    color: #245CF3;
+    display: block;
+    font-size: 2rem;
+    line-height: 1.1;
+    margin-bottom: 0.95rem;
+}
+
+.overview-stat-card p {
+    color: #070D66;
+    font-size: 1.35rem;
+    line-height: 1.35;
+    margin: 0;
+    max-width: 250px;
+}
+
+.overview-payments .completion-panel {
+    min-height: 486px;
+}
+
+.overview-payments .completion-list {
+    margin-top: 1.5rem;
+}
+
+.overview-payments .completion-row {
+    font-size: 1.3rem;
+}
+
+.overview-suppliers {
+    margin-top: 4rem;
+}
+
+.overview-issue-panel {
+    background: #fff;
+    border-radius: 10px;
+    display: grid;
+    gap: 1.5rem;
+    padding: 1.875rem;
+}
+
+.overview-issue-row {
+    align-items: center;
+    border: 1px solid #DEE3EF;
+    border-radius: 10px;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: space-between;
+    min-height: 112px;
+    padding: 1.5rem 1.25rem;
+}
+
+.overview-issue-row h3 {
+    color: #070D66;
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin: 0 0 0.55rem;
+}
+
+.overview-issue-row p {
+    color: #FF3D4E;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.overview-review-button {
+    align-items: center;
+    background: #F1F4FA;
+    border: 1px solid #C8D2E8;
+    border-radius: 4px;
+    color: #070D66;
+    display: inline-flex;
+    font-size: 1.25rem;
+    justify-content: center;
+    min-height: 52px;
+    min-width: 126px;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+}
+
+.overview-review-button:hover {
+    color: #070D66;
+    text-decoration: none;
+}
+
 .supplier-list {
     display: grid;
     gap: 1.25rem;
@@ -321,6 +580,31 @@
     .trader-dashboard {
         margin: -1rem;
         padding: 1.25rem;
+    }
+
+    .overview-dashboard .summary-grid,
+    .overview-payment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-dashboard .completion-chart {
+        width: 68%;
+    }
+
+    .overview-hero h1 {
+        font-size: 2rem;
+    }
+
+    .overview-hero p,
+    .overview-stat-card p,
+    .overview-payments .completion-row,
+    .overview-issue-row p {
+        font-size: 1.05rem;
+    }
+
+    .overview-issue-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
     .supplier-header,
