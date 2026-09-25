@@ -92,12 +92,12 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     @property
     def is_admin(self):
-        return self.is_superuser or any(group.name == 'admin' for group in self.groups.all())
+        return self.is_superuser or self.groups.filter(name='admin').exists()
 
     @property
     def name_on_contract(self):
         name_on_contract = None
-        if any(group.name == 'worker' for group in self.groups.all()):
+        if self.groups.filter(name='worker').exists():
             name_on_contract = self.user_contract_access.select_related('contract') \
                 .values_list('contract__name', flat=True).first()
         return name_on_contract
@@ -107,7 +107,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     # retrieves the vessel owners linked to that agent through the AgentVesselOwnerRelationship model.
     @property
     def vessel_owners(self):
-        if any(group.name in {"taiwanese_agent", "indonesian_agent"} for group in self.groups.all()):
+        if self.groups.filter(name__in={"taiwanese_agent", "indonesian_agent"}).exists():
             vo_queryset = get_user_queryset().filter(agent_relationships__agent=self,
                                                      agent_relationships__status='active')
             return vo_queryset if vo_queryset.exists() else None
@@ -118,14 +118,14 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     # linked to that vessel owner through the AgentVesselOwnerRelationship model.
     @property
     def agents(self):
-        if any(group.name == 'vessel_owner' for group in self.groups.all()):
+        if self.groups.filter(name='vessel_owner').exists():
             agent_queryset = get_user_queryset().filter(vessel_owner_relationships__vessel_owner=self,
                                                         vessel_owner_relationships__status='active')
             return agent_queryset if agent_queryset.exists() else None
         return None
 
     def __str__(self):
-        if self.name_on_contract and any(group.name == 'worker' for group in self.groups.all()):
+        if self.name_on_contract and self.groups.filter(name='worker').exists():
             return f'{self.name_on_contract} ({self.email or self.mobile or self.telephone})'
 
         return f'{self.first_name} {self.last_name} ({self.email or self.mobile or self.telephone})'
@@ -249,10 +249,10 @@ class TraderVesselOwnerRelationship(AuditableModel):
     def clean(self):
         super().clean()
 
-        if self.trader_id and not any(group.name == 'trader' for group in self.trader.groups.all()):
+        if self.trader_id and not self.trader.groups.filter(name='trader').exists():
             raise ValidationError({'trader': 'Selected user must be in the trader group.'})
 
-        if self.vessel_owner_id and not any(group.name == 'vessel_owner' for group in self.vessel_owner.groups.all()):
+        if self.vessel_owner_id and not self.vessel_owner.groups.filter(name='vessel_owner').exists():
             raise ValidationError({'vessel_owner': 'Selected user must be in the vessel_owner group.'})
 
     def __str__(self):
