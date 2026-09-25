@@ -197,10 +197,15 @@ class LearningHubProgressApiView(APIView):
                 status.HTTP_404_NOT_FOUND
             )
 
+        created_by_instance = User.objects.get(pk=request.data.get('created_by')) \
+            if request.data.get('created_by') else None
+        updated_by_instance = User.objects.get(pk=request.data.get('updated_by')) \
+            if request.data.get('updated_by') else None
+
         progress_data = request.data.get('progress_data')
         app_ref = request.data.get('app_ref', generate_uuid())
-        created_by = request.data.get('created_by', request.user.id)
-        updated_by = request.data.get('updated_by', request.user.id)
+        created_by = created_by_instance if created_by_instance else request.user
+        updated_by = updated_by_instance if updated_by_instance else request.user
         created_at = request.data.get('created_at', None)
         updated_at = request.data.get('updated_at', None)
         if not isinstance(progress_data, list):

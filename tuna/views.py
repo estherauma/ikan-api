@@ -13,6 +13,7 @@ from accounts.models import User
 from vessels.models import Vessel, VesselImage
 from contracts.models import Contract, ContractDocument, ContractClause
 from django.forms.models import model_to_dict
+from django.db.models import Q
 from mydocuments.models import Passport, Document
 import json
 from django.utils.dateparse import parse_datetime
@@ -88,6 +89,10 @@ class UploadFileView(APIView):
 
             updated_at = request.data.get('updated_at')
             updated_at = parse_datetime(updated_at) if updated_at else None
+            updated_by_instance = User.objects.get(pk=request.data.get('updated_by')) \
+                if request.data.get('updated_by') else None
+            created_by_instance = User.objects.get(pk=request.data.get('created_by')) \
+                if request.data.get('created_by') else None
 
             # write the file to the right path
             # the _ikan_ prefix is used in the mobile app to get the file name
@@ -132,8 +137,8 @@ class UploadFileView(APIView):
                         app_ref=request.data.get('app_ref'),
                         vessel=vessel,
                         description=request.data.get('description'),
-                        created_by=request.data.get('created_by', user_id),
-                        updated_by=request.data.get('updated_by', user_id),
+                        created_by=created_by_instance if created_by_instance else user,
+                        updated_by=updated_by_instance if updated_by_instance else user,
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
@@ -159,7 +164,7 @@ class UploadFileView(APIView):
                         contract_document.url.storage.save(file_path, file)
                         contract_document.url.name = file_path
                         contract_document.name = request.data.get('name')
-                        contract_document.updated_by = request.data.get('updated_by', user_id)
+                        contract_document.updated_by = updated_by_instance if updated_by_instance else user
                         contract_document.updated_at = request.data.get('updated_at')
                         contract_document.save()
                 else:
@@ -167,8 +172,8 @@ class UploadFileView(APIView):
                         contract=contract,
                         name=request.data.get('name'),
                         status=request.data.get('status'),
-                        created_by=request.data.get('created_by', user_id),
-                        updated_by=request.data.get('updated_by', user_id),
+                        created_by=created_by_instance if created_by_instance else user,
+                        updated_by=updated_by_instance if updated_by_instance else user,
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
@@ -210,7 +215,7 @@ class UploadFileView(APIView):
                         doc.file_name = request.data.get('file_name')
                         doc.file_size = request.data.get('file_size')
                         doc.doc_type = request.data.get('doc_type')
-                        doc.updated_by = request.data.get('updated_by', user_id)
+                        doc.updated_by = updated_by_instance if updated_by_instance else user
                         doc.updated_at = request.data.get('updated_at')
                         doc.save()
                 else:
@@ -220,8 +225,8 @@ class UploadFileView(APIView):
                         file_name=request.data.get('file_name'),
                         file_size=request.data.get('file_size'),
                         doc_type=request.data.get('doc_type'),
-                        created_by=request.data.get('created_by', user_id),
-                        updated_by=request.data.get('updated_by', user_id),
+                        created_by=created_by_instance if created_by_instance else user,
+                        updated_by=updated_by_instance if updated_by_instance else user,
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
