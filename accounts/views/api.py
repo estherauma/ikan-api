@@ -102,7 +102,7 @@ class LoginView(APIView):
                     user = User.objects.get(email=email)
                 except User.DoesNotExist:
                     user = None
-            if phone_number:
+            elif phone_number:
                 try:
                     user = User.objects.get(Q(telephone=phone_number) | Q(mobile=phone_number))
                     # check if the phone number is verified
