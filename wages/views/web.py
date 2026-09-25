@@ -36,15 +36,16 @@ class WageListView(LoginRequiredMixin, ListView):
         roles = user.groups.all().values_list("name", flat=True)
         is_vessel_owner = "vessel_owner" in roles
         is_agent = "taiwanese_agent" in roles or "indonesian_agent" in roles
-        has_vessel = Vessel.objects.filter(created_by=user.id).exists()
+        vessels_queryset = Vessel.objects.filter(created_by=user.id)
+        has_vessel = bool(vessels_queryset)
         agent_vos = user.vessel_owners
         agent_has_vo = None
         if any(group.name in {"taiwanese_agent", "indonesian_agent"} for group in user.groups.all()):
-            agent_has_vo = user.vessel_owners.exists() if user.vessel_owners else False
+            agent_has_vo = agent_vos is not None
             if agent_has_vo:
                 agent_vo_ids = agent_vos.values_list("id", flat=True)
-                vessels_queryset = Vessel.objects.filter(created_by__in=agent_vo_ids)
-                has_vessel = vessels_queryset.exists()
+                vessels_queryset = Vessel.objects.filter(created_by_id__in=agent_vo_ids)
+                has_vessel = bool(vessels_queryset)
 
         if is_super_user:
             wages = Wage.objects.all()
