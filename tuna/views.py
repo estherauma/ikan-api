@@ -129,7 +129,7 @@ class UploadFileView(APIView):
                         vessel_image.image_url.storage.save(file_path, file)
                         vessel_image.image_url.name = file_path
                         vessel_image.description = request.data.get('description')
-                        vessel_image.updated_by = request.data.get('updated_by', user_id)
+                        vessel_image.updated_by = updated_by_instance if updated_by_instance else user
                         vessel_image.updated_at = request.data.get('updated_at')
                         vessel_image.save()
                 else:
