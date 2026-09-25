@@ -12,6 +12,7 @@ import numpy as np
 from textwrap import fill
 from django.db.models import Q
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
 class SurveyView(LoginRequiredMixin, View):
@@ -162,8 +163,10 @@ class QuestionResponseDetailView(LoginRequiredMixin, View):
             return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     def get_plot(self, values, labels, title, question_type):
-        # 1. Create an isolated Figure and Axes object directly
+        # Create an isolated Figure and Axes object directly
         fig = Figure(figsize=(10, 6))
+        # Attach fig to a FigureCanvasAgg to render it without using pyplot
+        FigureCanvasAgg(fig)
         ax = fig.add_subplot(1, 1, 1)
 
         wrapped_labels = [fill(label, width=25) for label in labels]
