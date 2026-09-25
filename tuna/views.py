@@ -285,6 +285,71 @@ class DownloadFileView(APIView):
         return response
 
 
+def _clause_content_matches_path(content, file_path):
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except (TypeError, ValueError):
+            return file_path in content
+    if isinstance(content, dict):
+        return file_path in content.values()
+    if isinstance(content, list):
+        return file_path in content
+    return False
+
+
+def _worker_vessel_app_refs(user):
+    # Vessels a worker is assigned to via the fisher-requirement clause of a contract they can access
+    clauses = ContractClause.objects.filter(
+        contract__contract_user_access__user=user,
+        contract__contract_user_access__is_active=True,
+        kind='contract-clauses-parties-requirement-fishers',
+    ).values_list('content', flat=True)
+    refs = []
+    for content in clauses:
+        if isinstance(content, str):
+            try:
+                content = json.loads(content)
+            except (TypeError, ValueError):
+                continue
+        if isinstance(content, dict) and content.get('vessel'):
+            refs.append(content['vessel'])
+    return refs
+
+
+def user_can_access_file(user, file_path):
+    """Verify file_path belongs to a record the user owns or otherwise has access to."""
+    if user.is_superuser:
+        return True
+
+    if user.profile_image and user.profile_image.name == file_path:
+        return True
+
+    if Document.objects.filter(user=user, file_url=file_path).exists():
+        return True
+
+    if Passport.objects.filter(user=user, image_url=file_path).exists():
+        return True
+
+    accessible_contracts = Contract.objects.filter(
+        Q(created_by=user) | Q(contract_user_access__user=user, contract_user_access__is_active=True)
+    )
+    if ContractDocument.objects.filter(url=file_path, contract__in=accessible_contracts).exists():
+        return True
+
+    clause_contents = ContractClause.objects.filter(contract__in=accessible_contracts).values_list('content', flat=True)
+    if any(_clause_content_matches_path(content, file_path) for content in clause_contents):
+        return True
+
+    vessel_app_refs = _worker_vessel_app_refs(user)
+    if VesselImage.objects.filter(image_url=file_path).filter(
+        Q(vessel__created_by=user) | Q(vessel__app_ref__in=vessel_app_refs)
+    ).exists():
+        return True
+
+    return False
+
+
 class DownloadFileSignedUrlView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -292,6 +357,10 @@ class DownloadFileSignedUrlView(APIView):
         file_path = request.GET.get('url')
         if not file_path:
             return Response({'error': 'Missing URL parameter'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # TODO: Verify file access permissions
+        # if not user_can_access_file(request.user, file_path):
+        #     return Response({'error': 'File not found or access denied'}, status=status.HTTP_404_NOT_FOUND)
 
         blob = bucket.blob(file_path)
         if not blob.exists():
