@@ -39,8 +39,7 @@ class ContractsView(LoginRequiredMixin, View):
         else:
             contracts = Contract.objects.filter(
                 Q(created_by=user.id) |
-                Q(contract_user_access__user=user.id),
-                Q(contract_user_access__is_active=True)
+                Q(contract_user_access__user=user.id, contract_user_access__is_active=True)
             ).distinct()
         context['contracts'] = contracts
 
@@ -405,8 +404,7 @@ class ContractsDataView(LoginRequiredMixin, View):
         super_user = self.request.user.is_superuser
         contracts = Contract.objects.all() if super_user else Contract.objects.filter(
             Q(created_by=request.user.id) |
-            Q(contract_user_access__user=request.user.id),
-            Q(contract_user_access__is_active=True)
+            Q(contract_user_access__user=request.user.id, contract_user_access__is_active=True)
         )
         contracts_list = []
         for contract in contracts:
