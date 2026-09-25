@@ -1,9 +1,9 @@
 from django.contrib import admin
-from accounts.admin_utils import set_created_by_choices
-from accounts.models import AgentVesselOwnerRelationship, TraderVesselOwnerRelationship, User, UserBank, UserBeneficiaries
+from accounts.models import AgentVesselOwnerRelationship, \
+    TraderVesselOwnerRelationship, User, UserBank, \
+    UserBeneficiaries
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from django import forms
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -13,15 +13,9 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
-    created_by = forms.ChoiceField(required=False)
-
     class Meta:
         model = User
         fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        set_created_by_choices(self)
 
 
 class CustomUserAdmin(BaseUserAdmin):

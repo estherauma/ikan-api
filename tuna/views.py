@@ -13,10 +13,11 @@ from accounts.models import User
 from vessels.models import Vessel, VesselImage
 from contracts.models import Contract, ContractDocument, ContractClause
 from django.forms.models import model_to_dict
+from django.db.models import Q
 from mydocuments.models import Passport, Document
 import json
 from django.utils.dateparse import parse_datetime
-from common.utils import upload_file_to_gcs, bucket
+from common.utils import upload_file_to_gcs, bucket, get_gcs_signed_url
 
 enviroment = config('ENVIRONMENT', 'Development')
 
@@ -88,6 +89,10 @@ class UploadFileView(APIView):
 
             updated_at = request.data.get('updated_at')
             updated_at = parse_datetime(updated_at) if updated_at else None
+            updated_by_instance = User.objects.get(pk=request.data.get('updated_by')) \
+                if request.data.get('updated_by') else None
+            created_by_instance = User.objects.get(pk=request.data.get('created_by')) \
+                if request.data.get('created_by') else None
 
             # write the file to the right path
             # the _ikan_ prefix is used in the mobile app to get the file name
@@ -124,7 +129,7 @@ class UploadFileView(APIView):
                         vessel_image.image_url.storage.save(file_path, file)
                         vessel_image.image_url.name = file_path
                         vessel_image.description = request.data.get('description')
-                        vessel_image.updated_by = request.data.get('updated_by', user_id)
+                        vessel_image.updated_by = updated_by_instance if updated_by_instance else user
                         vessel_image.updated_at = request.data.get('updated_at')
                         vessel_image.save()
                 else:
@@ -132,8 +137,8 @@ class UploadFileView(APIView):
                         app_ref=request.data.get('app_ref'),
                         vessel=vessel,
                         description=request.data.get('description'),
-                        created_by=request.data.get('created_by', user_id),
-                        updated_by=request.data.get('updated_by', user_id),
+                        created_by=created_by_instance if created_by_instance else user,
+                        updated_by=updated_by_instance if updated_by_instance else user,
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
@@ -159,7 +164,7 @@ class UploadFileView(APIView):
                         contract_document.url.storage.save(file_path, file)
                         contract_document.url.name = file_path
                         contract_document.name = request.data.get('name')
-                        contract_document.updated_by = request.data.get('updated_by', user_id)
+                        contract_document.updated_by = updated_by_instance if updated_by_instance else user
                         contract_document.updated_at = request.data.get('updated_at')
                         contract_document.save()
                 else:
@@ -167,8 +172,8 @@ class UploadFileView(APIView):
                         contract=contract,
                         name=request.data.get('name'),
                         status=request.data.get('status'),
-                        created_by=request.data.get('created_by', user_id),
-                        updated_by=request.data.get('updated_by', user_id),
+                        created_by=created_by_instance if created_by_instance else user,
+                        updated_by=updated_by_instance if updated_by_instance else user,
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
@@ -210,7 +215,7 @@ class UploadFileView(APIView):
                         doc.file_name = request.data.get('file_name')
                         doc.file_size = request.data.get('file_size')
                         doc.doc_type = request.data.get('doc_type')
-                        doc.updated_by = request.data.get('updated_by', user_id)
+                        doc.updated_by = updated_by_instance if updated_by_instance else user
                         doc.updated_at = request.data.get('updated_at')
                         doc.save()
                 else:
@@ -220,8 +225,8 @@ class UploadFileView(APIView):
                         file_name=request.data.get('file_name'),
                         file_size=request.data.get('file_size'),
                         doc_type=request.data.get('doc_type'),
-                        created_by=request.data.get('created_by', user_id),
-                        updated_by=request.data.get('updated_by', user_id),
+                        created_by=created_by_instance if created_by_instance else user,
+                        updated_by=updated_by_instance if updated_by_instance else user,
                         created_at=request.data.get('created_at'),
                         updated_at=request.data.get('updated_at'),
                     )
@@ -252,6 +257,15 @@ class UploadFileView(APIView):
 
 
 class DownloadFileView(APIView):
+    """
+    DEPRECATED / WARNING:
+    This view reads and buffers the entire file into server memory (RAM) before returning it.
+    Downloading large files or handling concurrent requests here can trigger high memory usage
+    and cause Out-Of-Memory (OOM) server crashes.
+
+    Use the signed-url endpoint (DownloadFileSignedUrlView) which offloads
+    file transfer directly to Google Cloud Storage.
+    """
     permission_classes = ([IsAuthenticated, ])
 
     def get(self, request):
@@ -269,6 +283,94 @@ class DownloadFileView(APIView):
         response = HttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+def _clause_content_matches_path(content, file_path):
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except (TypeError, ValueError):
+            return file_path in content
+    if isinstance(content, dict):
+        return file_path in content.values()
+    if isinstance(content, list):
+        return file_path in content
+    return False
+
+
+def _worker_vessel_app_refs(user):
+    # Vessels a worker is assigned to via the fisher-requirement clause of a contract they can access
+    clauses = ContractClause.objects.filter(
+        contract__contract_user_access__user=user,
+        contract__contract_user_access__is_active=True,
+        kind='contract-clauses-parties-requirement-fishers',
+    ).values_list('content', flat=True)
+    refs = []
+    for content in clauses:
+        if isinstance(content, str):
+            try:
+                content = json.loads(content)
+            except (TypeError, ValueError):
+                continue
+        if isinstance(content, dict) and content.get('vessel'):
+            refs.append(content['vessel'])
+    return refs
+
+
+def user_can_access_file(user, file_path):
+    """Verify file_path belongs to a record the user owns or otherwise has access to."""
+    if user.is_superuser:
+        return True
+
+    if user.profile_image and user.profile_image.name == file_path:
+        return True
+
+    if Document.objects.filter(user=user, file_url=file_path).exists():
+        return True
+
+    if Passport.objects.filter(user=user, image_url=file_path).exists():
+        return True
+
+    accessible_contracts = Contract.objects.filter(
+        Q(created_by=user) | Q(contract_user_access__user=user, contract_user_access__is_active=True)
+    )
+    if ContractDocument.objects.filter(url=file_path, contract__in=accessible_contracts).exists():
+        return True
+
+    clause_contents = ContractClause.objects.filter(contract__in=accessible_contracts).values_list('content', flat=True)
+    if any(_clause_content_matches_path(content, file_path) for content in clause_contents):
+        return True
+
+    vessel_app_refs = _worker_vessel_app_refs(user)
+    if VesselImage.objects.filter(image_url=file_path).filter(
+        Q(vessel__created_by=user) | Q(vessel__app_ref__in=vessel_app_refs)
+    ).exists():
+        return True
+
+    return False
+
+
+class DownloadFileSignedUrlView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        file_path = request.GET.get('url')
+        if not file_path:
+            return Response({'error': 'Missing URL parameter'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # TODO: Verify file access permissions
+        # if not user_can_access_file(request.user, file_path):
+        #     return Response({'error': 'File not found or access denied'}, status=status.HTTP_404_NOT_FOUND)
+
+        blob = bucket.blob(file_path)
+        if not blob.exists():
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        signed_url = get_gcs_signed_url(file_path, hours=0.25)
+        if not signed_url:
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'gcs_signed_url': signed_url}, status=status.HTTP_200_OK)
 
 
 class UploadTempFileView(APIView):

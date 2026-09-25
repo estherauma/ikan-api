@@ -32,7 +32,7 @@ class SurveyApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -104,7 +104,7 @@ class InlineQuestionApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id, updated_by=request.user.id)
+        serializer.save(created_by=request.user, updated_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -197,10 +197,15 @@ class LearningHubProgressApiView(APIView):
                 status.HTTP_404_NOT_FOUND
             )
 
+        created_by_instance = User.objects.get(pk=request.data.get('created_by')) \
+            if request.data.get('created_by') else None
+        updated_by_instance = User.objects.get(pk=request.data.get('updated_by')) \
+            if request.data.get('updated_by') else None
+
         progress_data = request.data.get('progress_data')
         app_ref = request.data.get('app_ref', generate_uuid())
-        created_by = request.data.get('created_by', request.user.id)
-        updated_by = request.data.get('updated_by', request.user.id)
+        created_by = created_by_instance if created_by_instance else request.user
+        updated_by = updated_by_instance if updated_by_instance else request.user
         created_at = request.data.get('created_at', None)
         updated_at = request.data.get('updated_at', None)
         if not isinstance(progress_data, list):
@@ -210,9 +215,10 @@ class LearningHubProgressApiView(APIView):
         serializer = LearningHubProgressSerializer(data=serializer_data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
-            lb_progress_exists = LearningHubProgress.objects.filter(user=user).exists()
-            if lb_progress_exists:
-                lb_progress = LearningHubProgress.objects.get(user=user)
+            lb_progress = LearningHubProgress.objects.filter(
+                user=user
+            ).order_by('-created_at').first()
+            if lb_progress:
                 req_updated_at = parse_datetime(updated_at) if updated_at else None
                 if req_updated_at is None or req_updated_at > lb_progress.updated_at:
                     lb_progress.progress_data = progress_data

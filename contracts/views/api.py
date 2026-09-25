@@ -32,7 +32,7 @@ class ContractListView(ListCreateAPIView):
         # Filter contracts created by the user or where the user has access
         return Contract.objects.filter(
             Q(created_by=user.id) |
-            Q(contract_user_access__user=user.id)
+            Q(contract_user_access__user=user.id, contract_user_access__is_active=True)
         ).distinct()
 
     def list(self, request, *args, **kwargs):
@@ -55,7 +55,7 @@ class ContractListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -68,10 +68,19 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = Contract.objects.all()
 
     def get_item(self, id):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            qs = Contract.objects.all()
+        else:
+            qs = Contract.objects.filter(
+                Q(created_by=req_user.id) |
+                Q(contract_user_access__user=req_user.id, contract_user_access__is_active=True)
+            ).distinct()
+
         try:
-            return Contract.objects.get(id=id)
+            return qs.get(id=id)
         except Contract.DoesNotExist:
-            raise ValidationError({'error': 'Contract does not exist'})
+            raise ValidationError({'error': 'Contract not found OR access denied.'})
 
     def retrieve(self, request, id):
         contract = self.get_item(id)
@@ -88,7 +97,7 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > contract.updated_at:
             serializer = self.serializer_class(contract, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -101,7 +110,17 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
-        pass
+        # TODO: Implement more granular permission checks for deleting contracts.
+        # Currently, only admin users are allowed to delete contracts.
+        if not request.user.is_admin:
+            raise ValidationError({'error': 'Access denied.'})
+
+        contract = self.get_item(id)
+        contract.delete()
+        return Response({
+            'status': 'OK',
+            'message': 'Contract deleted successfully'
+        }, status=status.HTTP_200_OK)
 
 
 class ContractClauseListView(ListCreateAPIView):
@@ -119,7 +138,7 @@ class ContractClauseListView(ListCreateAPIView):
 
         return ContractClause.objects.filter(
             Q(contract__created_by=user.id) |
-            Q(contract__contract_user_access__user=user.id)
+            Q(contract__contract_user_access__user=user.id, contract__contract_user_access__is_active=True)
         ).distinct()
 
     def list(self, request, *args, **kwargs):
@@ -134,7 +153,7 @@ class ContractClauseListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -147,10 +166,19 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = ContractClause.objects.all()
 
     def get_item(self, id):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            qs = ContractClause.objects.all()
+        else:
+            qs = ContractClause.objects.filter(
+                Q(contract__created_by=req_user.id) |
+                Q(contract__contract_user_access__user=req_user.id, contract__contract_user_access__is_active=True)
+            ).distinct()
+
         try:
-            return ContractClause.objects.get(id=id)
+            return qs.get(id=id)
         except ContractClause.DoesNotExist:
-            raise ValidationError({'error': 'Contract clause does not exist'})
+            raise ValidationError({'error': 'Contract clause does not exist or access denied.'})
 
     def retrieve(self, request, id):
         contract_clause = self.get_item(id)
@@ -167,7 +195,7 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > contract_clause.updated_at:
             serializer = self.serializer_class(contract_clause, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -180,19 +208,37 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
-        pass
+        # TODO: Implement more granular permission checks for deleting contract clauses.
+        # Currently, only admin users are allowed to delete contract clauses.
+        if not request.user.is_admin:
+            raise ValidationError({'error': 'Access denied.'})
+
+        contract_clause = self.get_item(id)
+        contract_clause.delete()
+        return Response({
+            'status': 'OK',
+            'message': 'Contract clause deleted successfully'
+        }, status=status.HTTP_200_OK)
 
 
 class ContractDocumentListView(ListCreateAPIView):
     permission_classes = ([IsAuthenticated, ])
     serializer_class = ContractDocumentSerializer
-    queryset = ContractDocument.objects.all()
+
+    def get_queryset(self):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            return ContractDocument.objects.all()
+        return ContractDocument.objects.filter(
+            Q(contract__created_by=req_user.id) |
+            Q(contract__contract_user_access__user=req_user.id, contract__contract_user_access__is_active=True)
+        ).distinct()
 
     def create(self, request):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -205,8 +251,17 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
     queryset = ContractDocument.objects.all()
 
     def get_item(self, id):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            qs = ContractDocument.objects.all()
+        else:
+            qs = ContractDocument.objects.filter(
+                Q(contract__created_by=req_user.id) |
+                Q(contract__contract_user_access__user=req_user.id, contract__contract_user_access__is_active=True)
+            ).distinct()
+
         try:
-            return ContractDocument.objects.get(id=id)
+            return qs.get(id=id)
         except ContractDocument.DoesNotExist:
             raise ValidationError(
                 {'error': 'Contract document does not exist'}
@@ -227,7 +282,7 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > contract_document.updated_at:
             serializer = self.serializer_class(contract_document, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -240,4 +295,14 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
             }, status.HTTP_200_OK)
 
     def destroy(self, request, id):
-        pass
+        # TODO: Implement more granular permission checks for deleting contract documents.
+        # Currently, only admin users are allowed to delete contract documents.
+        if not request.user.is_admin:
+            raise ValidationError({'error': 'Access denied.'})
+
+        contract_document = self.get_item(id)
+        contract_document.delete()
+        return Response({
+            'status': 'OK',
+            'message': 'Contract document deleted successfully'
+        }, status=status.HTTP_200_OK)

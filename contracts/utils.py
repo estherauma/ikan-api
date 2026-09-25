@@ -71,8 +71,8 @@ def generate_static_contract_clauses(request, contract, vessel_owner=None):
             name=page_title,
             kind=value,
             content=json.dumps({}),
-            created_by=vessel_owner if vessel_owner else request.user.id,
-            updated_by=vessel_owner if vessel_owner else request.user.id,
+            created_by=vessel_owner or request.user,
+            updated_by=vessel_owner or request.user,
         )
         clause.save()
 

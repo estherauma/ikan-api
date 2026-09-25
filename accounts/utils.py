@@ -4,8 +4,22 @@ from urllib.parse import urlencode
 
 from decouple import config
 from django.utils import timezone
+from enum import Enum
 
 from common.email import TunaEmailHelper, EmailTemplate
+
+
+class UserRole(str, Enum):
+    WORKER = "worker"
+    VESSEL_OWNER = "vessel_owner"
+    TAIWANESE_AGENT = "taiwanese_agent"
+    INDONESIAN_AGENT = "indonesian_agent"
+    PUBLIC = "public"
+    TRADER = "trader"
+    ADMIN = "admin"
+
+
+AGENT_ROLES = {UserRole.TAIWANESE_AGENT.value, UserRole.INDONESIAN_AGENT.value}
 
 
 def get_user_queryset():

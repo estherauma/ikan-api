@@ -291,6 +291,8 @@ def _upsert_learning_hub_progress(user, record):
 
 def _upsert_created_by_record(model, serializer_class, user, record):
     """Create or update a single record `user` (VO/agent) owns via created_by, e.g. companies/vessels."""
+    # NOTE: extra_fields feeds a DRF serializer's `data=` input, which PrimaryKeyRelatedField
+    # resolves via queryset.get(pk=...) - it needs the raw id, not a User instance.
     _, data = _upsert_record(
         serializer_class, model.objects.filter(created_by=user.id), record, extra_fields={"created_by": user.id}
     )
@@ -375,6 +377,7 @@ def _upsert_profile(user, record, errors):
 def _upsert_contract_with_clauses(user, record, errors):
     """Upsert a contract owned by `user`, then its nested clauses scoped to that contract only."""
     clauses = record.pop("clauses", None) or []
+    # NOTE: extra_fields feeds a DRF serializer's `data=` input - needs the raw id, see _upsert_created_by_record.
     instance, data = _upsert_record(
         ContractSerializer, Contract.objects.filter(created_by=user.id), record, extra_fields={"created_by": user.id}
     )

@@ -173,7 +173,7 @@ class ContentAggregationService:
 
     def _merge_with_latest_stored_content(self, partial_data, existing_content=None):
         latest_stored_content = existing_content if existing_content is not None else self._get_latest_stored_content()
-        
+
         if latest_stored_content is None:
             return partial_data
 

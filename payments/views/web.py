@@ -170,8 +170,8 @@ class AddPayment(LoginRequiredMixin, View):
             instances = formset.save(commit=False)
             for instance in instances:
                 instance.vessel = vessel
-                instance.created_by = request.user.id
-                instance.updated_by = request.user.id
+                instance.created_by = request.user
+                instance.updated_by = request.user
 
                 instance.save()
 

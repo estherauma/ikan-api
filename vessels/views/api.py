@@ -61,7 +61,7 @@ class VesselApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -99,7 +99,7 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > vessel.updated_at:
             serializer = self.serializer_class(vessel, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -115,7 +115,7 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
         vessel = self.get_vessel(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != vessel.created_by:
+        if user_id != vessel.created_by_id:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'
@@ -137,7 +137,7 @@ class VesselImageApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -175,7 +175,7 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > vessel_image.updated_at:
             serializer = self.serializer_class(vessel_image, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -191,7 +191,7 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
         vessel_image = self.get_vessel_image(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != vessel_image.created_by:
+        if user_id != vessel_image.created_by_id:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'

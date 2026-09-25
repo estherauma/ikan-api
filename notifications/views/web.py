@@ -34,11 +34,11 @@ class NotificationsDataView(LoginRequiredMixin, View):
                 "is_displayed": notification.is_displayed,
                 "is_deleted": notification.is_deleted,
                 "created_at": notification.created_at,
-                "created_by": notification.created_by,
+                "created_by": notification.created_by_id,
                 "updated_at": notification.updated_at,
-                "updated_by": notification.updated_by,
+                "updated_by": notification.updated_by_id,
                 "deleted_at": notification.deleted_at,
-                "deleted_by": notification.deleted_by,
+                "deleted_by": notification.deleted_by_id,
                 "actions": "<a href='/notifications/" + str(notification.id) +
                            "' class='btn btn-primary btn-sm'><i class='mdi mdi-eye'></i> View</a>"
             }

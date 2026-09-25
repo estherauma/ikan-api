@@ -63,8 +63,8 @@ class TraderWebViewsTestCase(TestCase):
         TraderVesselOwnerRelationship.objects.create(
             trader=self.trader,
             vessel_owner=self.vessel_owner,
-            created_by=self.admin.id,
-            updated_by=self.admin.id,
+            created_by=self.admin,
+            updated_by=self.admin,
         )
 
         response = self.client.get(reverse('traders:details', kwargs={'pk': self.trader.id}))
@@ -127,8 +127,8 @@ class TraderWebViewsTestCase(TestCase):
         relationship = TraderVesselOwnerRelationship.objects.create(
             trader=self.trader,
             vessel_owner=self.vessel_owner,
-            created_by=self.admin.id,
-            updated_by=self.admin.id,
+            created_by=self.admin,
+            updated_by=self.admin,
         )
 
         response = self.client.post(reverse('traders:remove-vessel-owner-relationship', kwargs={
@@ -171,16 +171,16 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         # Create a vessel
         self.vessel = Vessel.objects.create(
             name='Test Vessel',
-            created_by=self.vessel_owner.id,
-            updated_by=self.vessel_owner.id,
+            created_by=self.vessel_owner,
+            updated_by=self.vessel_owner,
         )
 
         # Create trader-vessel owner relationship
         self.relationship = TraderVesselOwnerRelationship.objects.create(
             trader=self.trader,
             vessel_owner=self.vessel_owner,
-            created_by=self.admin.id,
-            updated_by=self.admin.id,
+            created_by=self.admin,
+            updated_by=self.admin,
         )
 
         session = self.client.session
@@ -365,14 +365,14 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         )
         vessel_2 = Vessel.objects.create(
             name='Test Vessel 2',
-            created_by=vessel_owner_2.id,
-            updated_by=vessel_owner_2.id,
+            created_by=vessel_owner_2,
+            updated_by=vessel_owner_2,
         )
         TraderVesselOwnerRelationship.objects.create(
             trader=self.trader,
             vessel_owner=vessel_owner_2,
-            created_by=self.admin.id,
-            updated_by=self.admin.id,
+            created_by=self.admin,
+            updated_by=self.admin,
         )
 
         # Create wages for both suppliers

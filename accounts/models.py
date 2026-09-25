@@ -107,8 +107,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
     # retrieves the vessel owners linked to that agent through the AgentVesselOwnerRelationship model.
     @property
     def vessel_owners(self):
-        role_queryset = self.groups.filter(Q(name='taiwanese_agent') | Q(name='indonesian_agent'))
-        if role_queryset.exists():
+        if self.groups.filter(name__in={"taiwanese_agent", "indonesian_agent"}).exists():
             vo_queryset = get_user_queryset().filter(agent_relationships__agent=self,
                                                      agent_relationships__status='active')
             return vo_queryset if vo_queryset.exists() else None
@@ -126,7 +125,7 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
         return None
 
     def __str__(self):
-        if self.name_on_contract:
+        if self.name_on_contract and self.groups.filter(name='worker').exists():
             return f'{self.name_on_contract} ({self.email or self.mobile or self.telephone})'
 
         return f'{self.first_name} {self.last_name} ({self.email or self.mobile or self.telephone})'
@@ -257,6 +256,7 @@ class TraderVesselOwnerRelationship(AuditableModel):
             raise ValidationError({'vessel_owner': 'Selected user must be in the vessel_owner group.'})
 
     def __str__(self):
-        return f'Trader: {self.trader.first_name} {self.trader.last_name} ({self.trader.email or self.trader.mobile}) - ' \
-               f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
-               f'({self.vessel_owner.email or self.vessel_owner.mobile})'
+        m = f'Trader: {self.trader.first_name} {self.trader.last_name} ({self.trader.email or self.trader.mobile}) - ' \
+            f'Vessel Owner: {self.vessel_owner.first_name} {self.vessel_owner.last_name} ' \
+            f'({self.vessel_owner.email or self.vessel_owner.mobile})'
+        return m

@@ -29,7 +29,7 @@ class CompanyApiListView(ListCreateAPIView):
         request.data.pop('id', None)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user.id)
+        serializer.save(created_by=request.user)
         return Response({
             'status': 'OK',
             'data': serializer.data
@@ -66,7 +66,7 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
         if req_updated_at is None or req_updated_at > company.updated_at:
             serializer = self.serializer_class(company, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -82,7 +82,7 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
         company = self.get_company(req=request, id=id)
         user_id = request.user.id
 
-        if user_id != company.created_by:
+        if user_id != company.created_by_id:
             return Response({
                 'status': 'FAILED',
                 'error': 'Not Authorized'

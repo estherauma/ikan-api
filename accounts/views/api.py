@@ -91,27 +91,28 @@ class LoginView(APIView):
         auth_common_text = prismic_utils.get_page_text('auth-common-text')
 
         user = None
-        if email is not None:
-            if User.objects.filter(email=email).exists():
-                user = User.objects.get(email=email)
-        elif phone_number is not None:
-            # check if user exists with either telephone or mobile
-            # number and get the first one
-            if User.objects.filter(Q(telephone=phone_number) | Q(mobile=phone_number)).exists():
-                user = User.objects.get(
-                            Q(telephone=phone_number) | Q(mobile=phone_number)
-                        )
-                # check if the phone number is verified
-                if (user.telephone == phone_number and not user.is_telephone_verified) or\
-                        (user.mobile == phone_number and not user.is_mobile_verified):
-                    # TODO: DO NOT TRANSLATE, exact message is needed for client side to trigger resend otp flow
-                    raise AuthenticationFailed(
-                        "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
-        else:
+        if email is None and phone_number is None:
             return Response({
                 'status': 'FAIL',
                 'message': auth_common_text.get('emailOrPhoneNumberRequired', 'Email or phone number is required')
             }, status.HTTP_400_BAD_REQUEST)
+        else:
+            if email:
+                try:
+                    user = User.objects.get(email=email)
+                except User.DoesNotExist:
+                    user = None
+            elif phone_number:
+                try:
+                    user = User.objects.get(Q(telephone=phone_number) | Q(mobile=phone_number))
+                    # check if the phone number is verified
+                    if (user.telephone == phone_number and not user.is_telephone_verified) or\
+                            (user.mobile == phone_number and not user.is_mobile_verified):
+                        # TODO: DO NOT TRANSLATE, exact message is needed for client side to trigger resend otp flow
+                        raise AuthenticationFailed(
+                            "Your phone number is not verified. Please verify it before logging in. OR log in with email.")
+                except User.DoesNotExist:
+                    user = None
 
         if user:
             if user.is_active and user.is_verified:
@@ -632,6 +633,7 @@ class UserListView(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST
             )
+
         try:
             Group.objects.get(name=role)
         except Group.DoesNotExist:
@@ -642,13 +644,9 @@ class UserListView(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST
             )
+
         users = User.objects.filter(groups__name=role, created_by=request.user.id)
         serializer = UserProfileSerializer(users, many=True)
-
-        # get all roles for each user and add to response data
-        for user_data in serializer.data:
-            user = User.objects.get(id=user_data['id'])
-            user_data['roles'] = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else []
 
         return Response({
             'status': 'OK',
@@ -676,14 +674,9 @@ class UserProfileView(APIView):
                     status.HTTP_404_NOT_FOUND
                 )
         serializer = UserProfileSerializer(user)
-
-        # Add role to response data
-        roles = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else []
-        resp_data = {**serializer.data, 'roles': roles}
-
         return Response({
             'status': 'OK',
-            'data': resp_data,
+            'data': serializer.data,
             'errors': []
         }, status=status.HTTP_200_OK)
 
@@ -692,9 +685,16 @@ class UserProfileView(APIView):
         try:
             # register new user profile
             if request.query_params.get('register') == 'register':
-                user_exists = User.objects.filter(email=request.data['email']).exists()
-                if user_exists:
-                    user = User.objects.get(email=request.data['email'])
+                user = None
+                try:
+                    if request.data['email']:
+                        user = User.objects.get(email=request.data['email'])
+                    if request.data['mobile']:
+                        user = User.objects.get(mobile=request.data['mobile'])
+                except User.DoesNotExist:
+                    user = None
+
+                if user:
                     user_id = user.id
                 else:
                     if request.data['user_role'] is None:
@@ -708,6 +708,7 @@ class UserProfileView(APIView):
                     else:
                         new_user = User.objects.create_user(
                             email=request.data['email'],
+                            mobile=request.data['mobile'],
                             first_name=request.data['first_name'],
                             last_name=request.data['last_name'],
                             access_code=get_access_code(),
@@ -750,12 +751,9 @@ class UserProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # Add role to response data
-        roles = list(user.groups.values_list('name', flat=True)) if user.groups.exists() else None
-        resp_data = {**serializer.data, 'roles': roles}
         return Response({
             'status': 'OK',
-            'data': resp_data,
+            'data': serializer.data,
             'errors': []
         }, status=status.HTTP_200_OK)
 
@@ -849,9 +847,12 @@ class UpdateUserCompany(APIView):
             )
 
         # if not linked, check other company linkages and mark them as inactive
-        user_company_exists = UserCompany.objects.filter(user=user, is_active=True).exists()
-        if user_company_exists:
+        user_company = None
+        try:
             user_company = UserCompany.objects.get(user=user, is_active=True)
+        except UserCompany.DoesNotExist:
+            user_company = None
+        if user_company:
             user_company.is_active = False
             user_company.save()
 
@@ -919,9 +920,12 @@ class UserBankDetailsApiView(APIView):
 
             if serializer.is_valid():
                 # check if user already has account details and mark them as inactive
-                user_bank_exists = UserBank.objects.filter(user=user, is_active=True).exists()
-                if user_bank_exists:
+                user_bank = None
+                try:
                     user_bank = UserBank.objects.get(user=user, is_active=True)
+                except UserBank.DoesNotExist:
+                    user_bank = None
+                if user_bank:
                     user_bank.is_active = False
                     user_bank.save()
                 # check if user has account with the same account name and number
@@ -963,7 +967,7 @@ class UserBankDetailsApiView(APIView):
         if req_updated_at is None or req_updated_at > user_bank.updated_at:
             serializer = UserBankDetailsSerializer(user_bank, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data
@@ -1057,7 +1061,7 @@ class UserBeneficiariesApiView(APIView):
         if req_updated_at is None or req_updated_at > beneficiary.updated_at:
             serializer = UserBeneficiarySerializer(beneficiary, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save(updated_by=request.user.id)
+            serializer.save(updated_by=request.user)
             return Response({
                 'status': 'OK',
                 'data': serializer.data

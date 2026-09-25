@@ -413,9 +413,13 @@ class InviteUser(forms.Form):
                                                                   'Enter a valid email address or phone number.'))
 
         if is_email:
-            if User.objects.filter(email=email_or_phone).exists():
-                # check is user is inactive then resend token
+            user = None
+            try:
                 user = User.objects.get(email=email_or_phone)
+            except User.DoesNotExist:
+                user = None
+            if user:
+                # check is user is inactive then resend token
                 if not user.is_active:
                     raise forms.ValidationError(self.auth_common_text.get('resendInviteToken',
                                                                           'User already exists. \
@@ -613,7 +617,7 @@ class CreateWorkerForVOForm(forms.Form):
                 groups__name='vessel_owner'
             ).exclude(id=user.id)
             # if user is an agent, return only vessel owners that are attached to the agent
-            if user.groups.filter(name__in=['taiwanese_agent', 'indonesian_agent']).exists():
+            if user.groups.filter(name__in={"taiwanese_agent", "indonesian_agent"}).exists():
                 self.fields['vessel_owner'].queryset = user.vessel_owners
 
 

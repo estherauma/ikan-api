@@ -1,4 +1,6 @@
 from common.push_id import push_id
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 
 
@@ -12,14 +14,42 @@ class BaseModel(models.Model):
         abstract = True
 
 
+def get_sentinel_user():
+    """Lazily evaluates at deletion time to avoid circular imports."""
+    User = get_user_model()
+    return User.objects.get_default_user()
+
+
 class AuditableModel(BaseModel):
     ''' Auditable base model '''
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.CharField(max_length=256, null=True, blank=True)
-    updated_by = models.CharField(max_length=256, null=True, blank=True)
-    deleted_by = models.CharField(max_length=256, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        # related_name="%(app_label)s_%(class)s_created",  # eg wages_wage_created for the Wage model in the wages app
+        related_name="+"
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        # related_name="%(app_label)s_%(class)s_updated", # eg survey_inlinequestion_updated for the InlineQuestion \
+        # model in the survey app
+        related_name="+"
+    )
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        # related_name="%(app_label)s_%(class)s_deleted",
+        related_name="+"
+    )
 
     class Meta:
         abstract = True

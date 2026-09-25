@@ -162,7 +162,7 @@ class UpdatedContentView(APIView):
         model_config = self.supported_models.get(model)
         if not model_config:
             # ignore
-            
+
             return Response(
                 {
                     "status": "OK",

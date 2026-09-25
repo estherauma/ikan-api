@@ -188,12 +188,11 @@ class WorkersListView(LoginRequiredMixin, ListView):
         auth_common_text = context.get('auth_common_text', {})
         context['create_worker_for_vo_form'] = form
         if form.is_valid():
-            vessel_owner_id = None
+            vessel_owner = None
             if form.cleaned_data.get('vessel_owner'):
-                vessel_owner_id = form.cleaned_data.get('vessel_owner').id
+                vessel_owner = form.cleaned_data.get('vessel_owner')
             recruited_by = None
-            if request.user.groups.filter(name='taiwanese_agent').exists() or \
-               request.user.groups.filter(name='indonesian_agent').exists():
+            if request.user.groups.filter(name__in={'taiwanese_agent', 'indonesian_agent'}).exists():
                 recruited_by = request.user
             user = User.objects.create_user(
                 email=form.cleaned_data.get('email'),
@@ -203,8 +202,8 @@ class WorkersListView(LoginRequiredMixin, ListView):
                 last_name=form.cleaned_data.get('last_name'),
                 is_active=True,
                 is_verified=True,
-                created_by=vessel_owner_id or request.user.id,
-                updated_by=vessel_owner_id or request.user.id,
+                created_by=vessel_owner or request.user,
+                updated_by=vessel_owner or request.user,
                 recruited_by=recruited_by,
             )
             # Save user group/role
@@ -301,8 +300,7 @@ def invite_user(request):
         form = InviteUser(request.POST)
         if form.is_valid():
             recruited_by = None
-            if request.user.groups.filter(name='taiwanese_agent').exists() or \
-               request.user.groups.filter(name='indonesian_agent').exists():
+            if request.user.groups.filter(name__in={'taiwanese_agent', 'indonesian_agent'}).exists():
                 recruited_by = request.user
             role_name = form.cleaned_data.get('role')
             sends_invite_link = role_name in ['admin', 'trader'] and form.cleaned_data.get('has_email')
@@ -313,8 +311,8 @@ def invite_user(request):
                 last_name=form.cleaned_data.get('last_name'),
                 is_active=False,
                 access_code=None if sends_invite_link else get_access_code(),
-                created_by=request.user.id,
-                updated_by=request.user.id,
+                created_by=request.user,
+                updated_by=request.user,
                 recruited_by=recruited_by,
             )
             # Save user group/role
@@ -923,8 +921,8 @@ class CreateAgentVesselownerRelationshipView(LoginRequiredMixin, View):
                 agent=form.cleaned_data['agent'],
                 vessel_owner=form.cleaned_data['vessel_owner'],
                 status=form.cleaned_data['status'],
-                created_by=request.user.id,
-                updated_by=request.user.id,
+                created_by=request.user,
+                updated_by=request.user,
             )
             agent_vo_rlshp.save()
 
