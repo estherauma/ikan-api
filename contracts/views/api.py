@@ -32,7 +32,8 @@ class ContractListView(ListCreateAPIView):
         # Filter contracts created by the user or where the user has access
         return Contract.objects.filter(
             Q(created_by=user.id) |
-            Q(contract_user_access__user=user.id)
+            Q(contract_user_access__user=user.id),
+            Q(contract_user_access__is_active=True)
         ).distinct()
 
     def list(self, request, *args, **kwargs):
@@ -74,7 +75,8 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
         else:
             qs = Contract.objects.filter(
                 Q(created_by=req_user.id) |
-                Q(contract_user_access__user=req_user.id)
+                Q(contract_user_access__user=req_user.id),
+                Q(contract_user_access__is_active=True)
             ).distinct()
 
         try:
@@ -138,7 +140,8 @@ class ContractClauseListView(ListCreateAPIView):
 
         return ContractClause.objects.filter(
             Q(contract__created_by=user.id) |
-            Q(contract__contract_user_access__user=user.id)
+            Q(contract__contract_user_access__user=user.id),
+            Q(contract__contract_user_access__is_active=True)
         ).distinct()
 
     def list(self, request, *args, **kwargs):
@@ -172,7 +175,8 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
         else:
             qs = ContractClause.objects.filter(
                 Q(contract__created_by=req_user.id) |
-                Q(contract__contract_user_access__user=req_user.id)
+                Q(contract__contract_user_access__user=req_user.id),
+                Q(contract__contract_user_access__is_active=True)
             ).distinct()
 
         try:
@@ -224,7 +228,16 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
 class ContractDocumentListView(ListCreateAPIView):
     permission_classes = ([IsAuthenticated, ])
     serializer_class = ContractDocumentSerializer
-    queryset = ContractDocument.objects.all()
+
+    def get_queryset(self):
+        req_user = self.request.user
+        if req_user.is_superuser:
+            return ContractDocument.objects.all()
+        return ContractDocument.objects.filter(
+            Q(contract__created_by=req_user.id) |
+            Q(contract__contract_user_access__user=req_user.id),
+            Q(contract__contract_user_access__is_active=True)
+        ).distinct()
 
     def create(self, request):
         request.data.pop('id', None)
@@ -249,7 +262,8 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
         else:
             qs = ContractDocument.objects.filter(
                 Q(contract__created_by=req_user.id) |
-                Q(contract__contract_user_access__user=req_user.id)
+                Q(contract__contract_user_access__user=req_user.id),
+                Q(contract__contract_user_access__is_active=True)
             ).distinct()
 
         try:
