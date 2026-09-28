@@ -23,7 +23,7 @@ from contracts.utils import (
     dynamic_clauses,
     get_add_contract_form_labels,
 )
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 import datetime
 from companies.models import Company
 import re
@@ -130,7 +130,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         self.object = self.get_object()
         user = self.request.user
         context = super().get_context_data(**kwargs)
-        prismic_utils = PrismicUtils(self.request)
+        content_utils = ContentUtils(self.request)
         context['clauses'] = self.object.contract_clause.all()
         if self.object.taiwanese_company:
             taiwan_company = Company.objects.filter(
@@ -146,7 +146,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                 self.object.indonesian_company_name = indonesian_company.name
         if self.object.kind:
             value = 'Worker' if self.object.kind == 'worker' else 'Company'
-            kind_translation = prismic_utils.get_question_option_translation(
+            kind_translation = content_utils.get_question_option_translation(
                 'companies-createcontract', 'type', value)
             self.object.kind_value = kind_translation if kind_translation else self.object.kind
 
@@ -155,11 +155,11 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             item.order = item.order if item.order else get_clause_order(item.kind)
 
             item.content = json.loads(item.content)
-            clause_data = prismic_utils.get_content_by_property_name(f'{item.kind}-content')
+            clause_data = content_utils.get_content_by_property_name(f'{item.kind}-content')
             item.page_title = clause_data['pageTitle'] if clause_data else item.kind.replace('-', ' ')
             if item.kind == 'contract-clauses-parties-requirement-vessel':
                 # Get parties page title
-                parties_data = prismic_utils.get_content_by_property_name(
+                parties_data = content_utils.get_content_by_property_name(
                     'contract-clauses-parties-to-this-contract-content')
                 item.page_title = parties_data['pageTitle'] if parties_data else item.kind.replace('-', ' ')
 
@@ -233,7 +233,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         context['new_contract_form'] = AddContractForm(
             user=user, instance=self.object, initial=initial_data, form_labels=form_labels)
 
-        clause_page_text = prismic_utils.get_page_text('contracts-view-clause')
+        clause_page_text = content_utils.get_page_text('contracts-view-clause')
         context['clause_page_text'] = clause_page_text
         return context
 
@@ -278,7 +278,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
         Handles update of contract details, update of clause details and addition of clauses.
         """
         contract = self.get_object()
-        prismic_utils = PrismicUtils(request)
+        content_utils = ContentUtils(request)
 
         if request.POST.get('contract_id'):  # CONTRACT UPDATE
             form = AddContractForm(request.POST, request.FILES, instance=contract, initial={}, user=request.user)
@@ -339,7 +339,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
                                 qtn['is_required'] = False
                             elif qtn['key'] == 'partyBSignature' and 'partyBSignature' in data:
                                 qtn['is_required'] = False
-                Form = prismic_utils.create_form(form_questions)
+                Form = content_utils.create_form(form_questions)
                 form = Form(request.POST, request.FILES)
                 if form.is_valid():
                     form.cleaned_data = {k: v for k, v in form.cleaned_data.items() if v is not None}
@@ -367,7 +367,7 @@ class ContractsDetailView(LoginRequiredMixin, generic.DetailView):
             page_title = request.POST.get('page_title')
             form_questions = get_clause_form_questions(request=request, clause_kind=clause_kind,
                                                        created_by=contract.created_by)
-            Form = prismic_utils.create_form(form_questions)
+            Form = content_utils.create_form(form_questions)
             form = Form(request.POST, request.FILES)
             if form.is_valid():
                 clause_data = {

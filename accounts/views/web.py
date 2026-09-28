@@ -20,7 +20,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import Group
 from django.views.generic import DetailView
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 from accounts.models import User, AgentVesselOwnerRelationship
 from common.twilio import TwilioService, send_verification_code, get_locale_from_request
 from django.db.models import Q
@@ -39,7 +39,7 @@ def loggedin_user(request):
     """
     Resultant object is passed to the context processor
     """
-    prismic_utils = PrismicUtils(request)
+    content_utils = ContentUtils(request)
     loggedin_user = None
     show_users_menu_item = False
 
@@ -70,8 +70,8 @@ def loggedin_user(request):
             'loggedin_user': loggedin_user,
             'show_users_menu_item': show_users_menu_item,
             'selected_language': request.session.get('language', 'en-us'),
-            'common_text': prismic_utils.common_text,
-            'menu_labels': prismic_utils.get_menu_labels(),
+            'common_text': content_utils.common_text,
+            'menu_labels': content_utils.get_menu_labels(),
         }
 
 
@@ -79,8 +79,8 @@ class LoginView(View):
     def get_context_data(self, **kwargs):
         context = kwargs
 
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['form'] = LoginForm(auth_common_text=auth_common_text)
         context['auth_common_text'] = auth_common_text
         return context
@@ -137,8 +137,8 @@ class UserListView(LoginRequiredMixin, ListView):
         users = self.get_queryset() if super_user else User.objects.filter(created_by=self.request.user.id)
         context['users'] = users
 
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         return context
 
@@ -150,11 +150,11 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
-        prof_form_labels = prismic_utils.get_field_labels_from_form_questions(None, 'vo-agent-buyer-profile-form')
-        reg_form_labels = prismic_utils.get_field_labels_from_form_questions(None, 'registration-details-form')
+        prof_form_labels = content_utils.get_field_labels_from_form_questions(None, 'vo-agent-buyer-profile-form')
+        reg_form_labels = content_utils.get_field_labels_from_form_questions(None, 'registration-details-form')
         form_labels = {
             **prof_form_labels,
             **reg_form_labels,
@@ -174,8 +174,8 @@ class WorkersListView(LoginRequiredMixin, ListView):
         context['resend_token_form'] = ResendTokenForm()
         context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=self.request.user)
         context['workers'] = get_workers(self.request)
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         context['show_create_worker_for_VO_modal'] = False
         return context
@@ -290,8 +290,8 @@ def invite_user(request):
     context['resend_token_form'] = ResendTokenForm()
     context['create_worker_for_vo_form'] = CreateWorkerForVOForm(user=request.user)
     context['workers'] = get_workers(request)
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     context['auth_common_text'] = auth_common_text
     context['show_invite_modal'] = False
 
@@ -320,8 +320,8 @@ def invite_user(request):
             user.groups.add(group)
 
             if form.cleaned_data.get('has_email'):
-                prismic_utils = PrismicUtils(request)
-                auth_common_text = prismic_utils.get_page_text('auth-common-text')
+                content_utils = ContentUtils(request)
+                auth_common_text = content_utils.get_page_text('auth-common-text')
                 if sends_invite_link:
                     success = send_user_invite_email(user, auth_common_text)
                     if not success:
@@ -417,8 +417,8 @@ class ResendAcessCode(View):
             user.save()
 
             # Send verification email with access code
-            prismic_utils = PrismicUtils(request)
-            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            content_utils = ContentUtils(request)
+            auth_common_text = content_utils.get_page_text('auth-common-text')
             if email:
                 email_helper = TunaEmailHelper()
                 success = email_helper.tuna_send_email(
@@ -451,9 +451,9 @@ class ResendAcessCode(View):
 
 class RegisterSuccess(View):
     def get(self, request):
-        prismic_utils = PrismicUtils(request)
+        content_utils = ContentUtils(request)
         context = {
-            'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
+            'reg_success_page_text': content_utils.get_page_text('signup-sucess'),  # Ignore typo
             }
         return render(request, template_name="register-success.html", context=context)
 
@@ -462,8 +462,8 @@ class RegisterWebView(View):
     def get_context_data(self, **kwargs):
         context = kwargs
 
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         context['form'] = RegistrationForm(auth_common_text=auth_common_text)
         return context
@@ -522,9 +522,9 @@ class RegisterWebView(View):
                              auth_common_text.get('accountCreatedCheckEmail',
                                                   'Account created successfully. \
                                                     Please check your email to verify your account.'))
-            prismic_utils = PrismicUtils(request)
+            content_utils = ContentUtils(request)
             success_context = {
-                'reg_success_page_text': prismic_utils.get_page_text('signup-sucess'),  # Ignore typo
+                'reg_success_page_text': content_utils.get_page_text('signup-sucess'),  # Ignore typo
                 }
             return render(request, template_name="register-success.html", context=success_context)
 
@@ -555,8 +555,8 @@ class RegisterWebView(View):
 
 class VerifyPhoneNumber(View):
     def get(self, request):
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         user_id_from_login = request.session.get('user_id_from_login', None)
         if user_id_from_login:
             try:
@@ -581,8 +581,8 @@ class VerifyPhoneNumber(View):
         return render(request, template_name='verify-phone/code.html', context=context)
 
     def post(self, request):
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         otp_code = request.POST.get('otp_code')
         user_id = request.session.get('user_id')
         if user_id and otp_code:
@@ -636,19 +636,19 @@ class VerifyPhoneNumber(View):
 
 
 def verify_phone_number_success(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     return render(request, template_name='verify-phone/success.html', context={'auth_common_text': auth_common_text})
 
 
 def verify_phone_number_failure(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     return render(request, template_name='verify-phone/failure.html', context={'auth_common_text': auth_common_text})
 
 
 def resend_otp(request):
-    auth_common_text = PrismicUtils(request).get_page_text('auth-common-text')
+    auth_common_text = ContentUtils(request).get_page_text('auth-common-text')
     user_id = request.session.get('user_id')
     if user_id:
         user = User.objects.get(id=user_id)
@@ -672,8 +672,8 @@ class RequestPasswordReset(View):
     def get_context_data(self, **kwargs):
         context = kwargs
 
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         context['form'] = RequestPasswordResetForm(auth_common_text=auth_common_text)
         return context
@@ -726,8 +726,8 @@ class RequestPasswordReset(View):
 
 
 def resend_password_reset_token(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     email = request.session.get('reset_email', None)
     mobile = request.session.get('reset_mobile', None)
     user = None
@@ -773,8 +773,8 @@ class ResetPassword(View):
     def get_context_data(self, **kwargs):
         context = kwargs
 
-        prismic_utils = PrismicUtils(self.request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(self.request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         context['auth_common_text'] = auth_common_text
         context['form'] = PasswordResetForm(auth_common_text=auth_common_text, request=self.request)
         context['show_resend_token_button'] = False
@@ -825,7 +825,7 @@ class AccountSetup(View):
 
     def get_context_data(self, **kwargs):
         context = kwargs
-        auth_common_text = PrismicUtils(self.request).get_page_text('auth-common-text')
+        auth_common_text = ContentUtils(self.request).get_page_text('auth-common-text')
         user = self.get_invited_user()
 
         context['auth_common_text'] = auth_common_text
@@ -905,8 +905,8 @@ def change_language(request):
             request.session['language'] = lang
             return redirect('/')
 
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     context = {
         'auth_common_text': auth_common_text,
     }
@@ -932,7 +932,7 @@ class CreateAgentVesselownerRelationshipView(LoginRequiredMixin, View):
             if form.errors.get('__all__'):
                 messages.error(request, form.errors['__all__'][0])
             else:
-                prismic_utils = PrismicUtils(request)
-                common_text = prismic_utils.common_text
+                content_utils = ContentUtils(request)
+                common_text = content_utils.common_text
                 messages.error(request, common_text.get("formIsInvalid", "Form is invalid."))
             return redirect('accounts:users')

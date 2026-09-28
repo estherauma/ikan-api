@@ -1,7 +1,7 @@
 from common.utils import generate_uuid
 import json
 from contracts.models import ContractClause
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 from vessels.models import Vessel
 from common.utils import format_local_date
 from common.utils import get_gcs_signed_url
@@ -50,7 +50,7 @@ def get_clause_order(clause_kind):
 
 
 def generate_static_contract_clauses(request, contract, vessel_owner=None):
-    prismic_utils = PrismicUtils(request)
+    content_utils = ContentUtils(request)
     clause_mapping = {
         'article_3': 'contract-clauses-accident-medical-and-life-insurance',
         'article_4': 'contract-clauses-transportation-severance-food-accomodation',
@@ -62,7 +62,7 @@ def generate_static_contract_clauses(request, contract, vessel_owner=None):
 
     for key, value in clause_mapping.items():
         property_name = f'{value}-content'
-        clause_data = prismic_utils.get_content_by_property_name(property_name)
+        clause_data = content_utils.get_content_by_property_name(property_name)
         page_title = clause_data['pageTitle'] if clause_data else None
 
         clause = ContractClause.objects.create(
@@ -78,8 +78,8 @@ def generate_static_contract_clauses(request, contract, vessel_owner=None):
 
 
 def get_clause_form_questions(request, clause_kind, created_by=None):
-    prismic_utils = PrismicUtils(request)
-    form_questions = prismic_utils.get_form_questions(clause_kind)
+    content_utils = ContentUtils(request)
+    form_questions = content_utils.get_form_questions(clause_kind)
     if not form_questions:
         return None
 
@@ -88,7 +88,7 @@ def get_clause_form_questions(request, clause_kind, created_by=None):
             generated_by = created_by if created_by else None
             vessels = Vessel.objects.filter(created_by=generated_by).values('app_ref', 'name')
             if not vessels.exists():
-                question['help_text'] = prismic_utils.common_text.get(
+                question['help_text'] = content_utils.common_text.get(
                     'noVesselsAvailableForSelection',
                     'No vessels available for selection. Please add a vessel first.'
                 )
@@ -104,20 +104,20 @@ def get_clause_form_questions(request, clause_kind, created_by=None):
 
 
 def get_clause_form(request, clause_kind, initial_data=None, created_by=None):
-    prismic_utils = PrismicUtils(request)
+    content_utils = ContentUtils(request)
     form_questions = get_clause_form_questions(request, clause_kind, created_by=created_by)
     if not form_questions:
         return None
 
     # get clause form
-    Form = prismic_utils.create_form(form_questions)
+    Form = content_utils.create_form(form_questions)
     form = Form(initial=initial_data or {})
     return form
 
 
 def get_clauses_to_be_added(request, contract):
-    prismic_utils = PrismicUtils(request)
-    common_text = prismic_utils.common_text
+    content_utils = ContentUtils(request)
+    common_text = content_utils.common_text
     clauses = contract.contract_clause.all()
     clauses_to_be_added = []
 
@@ -136,7 +136,7 @@ def get_clauses_to_be_added(request, contract):
         elif kind == 'contract-clauses-parties-requirement-fishers':
             name = common_text.get('partiesToThisContractPartyB', 'Parties to this contract - Party B')
         else:
-            clause_data = prismic_utils.get_content_by_property_name(f'{kind}-content')
+            clause_data = content_utils.get_content_by_property_name(f'{kind}-content')
             name = clause_data['pageTitle'] if clause_data else kind.replace('-', ' ')
 
         clause_details = {
@@ -151,11 +151,11 @@ def get_clauses_to_be_added(request, contract):
 
 
 def get_clause_html_content(request, clause):
-    prismic_utils = PrismicUtils(request)
+    content_utils = ContentUtils(request)
     property_name = f'{clause.kind}-content'
     if clause.kind == 'contract-clauses-parties-requirement-vessel':
         property_name = 'contract-clauses-parties-to-this-contract-content'
-    page_data = prismic_utils.get_content_by_property_name(property_name)
+    page_data = content_utils.get_content_by_property_name(property_name)
     page_content = page_data['pageContent'] if page_data and page_data['pageContent'] else None
     page_text_array = page_content[0]['description'] if page_content and page_content[0]['description'] else []
     text_html = ''
@@ -244,7 +244,7 @@ def order_other_clauses(request, clause_type, data):
 
 
 def format_clause_values(request, clause_type, key, value):
-    prismic_utils = PrismicUtils(request)
+    content_utils = ContentUtils(request)
     if not value or not key:
         return value
 
@@ -261,11 +261,11 @@ def format_clause_values(request, clause_type, key, value):
         vessel = Vessel.objects.filter(app_ref=value).values('name').first()
         return vessel['name'] if vessel else None
     elif clause_type == 'contract-clauses-parties-to-this-contract-content' and key == 'crewMemberRole':
-        return prismic_utils.get_question_option_translation('contract-clauses-parties-requirement-fishers', key, value)
+        return content_utils.get_question_option_translation('contract-clauses-parties-requirement-fishers', key, value)
     elif clause_type == 'contract-clauses-wage-benefits-content' and key in ['paymentFrequency', 'paymentMethod']:
-        return prismic_utils.get_question_option_translation('contract-clauses-wage-benefits', key, value)
+        return content_utils.get_question_option_translation('contract-clauses-wage-benefits', key, value)
     elif clause_type == 'contract-clauses-attachments-content' and key == 'isCrewMemberAccount':
-        return prismic_utils.get_question_option_translation('contract-clauses-attachments', key, value)
+        return content_utils.get_question_option_translation('contract-clauses-attachments', key, value)
 
     return value
 
@@ -281,15 +281,15 @@ def fill_placeholders(input_string, placeholder_values):
 
 
 def get_add_contract_form_labels(request):
-    prismic_utils = PrismicUtils(request)
-    labels = prismic_utils.get_field_labels_from_form_questions(None, 'companies-createcontract')
+    content_utils = ContentUtils(request)
+    labels = content_utils.get_field_labels_from_form_questions(None, 'companies-createcontract')
 
     labels['kind'] = labels.get('type', 'Kind')
     labels['taiwanese_company'] = labels.get('taiwanese_company_id', 'Taiwanese Company Name')
     labels['indonesian_company'] = labels.get('indonesian_company_id', 'Indonesian Company Name')
     labels['upload_contract'] = labels.get('file', 'Upload contract')
-    labels['select_option'] = prismic_utils.common_text.get('selectOption', 'Select option')
-    labels['company'] = prismic_utils.common_text.get('company', 'Company')
-    labels['worker'] = prismic_utils.common_text.get('worker', 'Worker')
+    labels['select_option'] = content_utils.common_text.get('selectOption', 'Select option')
+    labels['company'] = content_utils.common_text.get('company', 'Company')
+    labels['worker'] = content_utils.common_text.get('worker', 'Worker')
 
     return labels

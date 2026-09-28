@@ -1,5 +1,5 @@
 from asgiref.local import Local
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 
 
 _request_state = Local()
@@ -22,7 +22,7 @@ class Translator:
     @property
     def content_utils(self):
         if self._content_utils is None:
-            self._content_utils = PrismicUtils(self.request)
+            self._content_utils = ContentUtils(self.request)
         return self._content_utils
 
     @property

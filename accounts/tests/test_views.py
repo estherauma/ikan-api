@@ -14,9 +14,9 @@ def make_user(email, **kwargs):
 
 
 class AccountSetupViewTestCase(TestCase):
-    @patch('accounts.views.web.PrismicUtils')
-    def test_expired_invite_link_shows_error_on_submit(self, prismic_utils):
-        prismic_utils.return_value.get_page_text.return_value = {}
+    @patch('accounts.views.web.ContentUtils')
+    def test_expired_invite_link_shows_error_on_submit(self, content_utils):
+        content_utils.return_value.get_page_text.return_value = {}
         user = make_user('expired@example.com', is_active=False)
         user.reset_password_token = 'expired-token'
         user.reset_password_token_created_at = timezone.now() - timedelta(days=3, seconds=1)
