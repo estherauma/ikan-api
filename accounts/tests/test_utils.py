@@ -296,6 +296,28 @@ class DeltaSyncTestCase(TestCase):
 
         self.assertEqual([d['file_name'] for d in data['documents']], ['new.pdf'])
 
+    def test_deleted_record_excluded_on_full_sync(self):
+        """Hard deletes leave no row to diff against, so a full sync must not surface old tombstones."""
+        company = Company.objects.create(name='Gone Co', created_by=self.vessel_owner)
+        company.deleted = True
+        company.save()
+
+        data = get_sync_data(self.vessel_owner)
+
+        self.assertEqual(data['companies'], [])
+
+    def test_deleted_record_included_as_tombstone_on_delta_sync(self):
+        company = Company.objects.create(name='Soon Gone Co', created_by=self.vessel_owner)
+        age_record(company, self.cutoff - timedelta(days=1))
+        company.deleted = True
+        company.save()
+        age_record(company, self.cutoff + timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertEqual(len(data['companies']), 1)
+        self.assertTrue(data['companies'][0]['deleted'])
+
 
 class SyncPushDataTestCase(TestCase):
     def setUp(self):
