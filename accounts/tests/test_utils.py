@@ -1,17 +1,24 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth.models import Group
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from accounts.models import AgentVesselOwnerRelationship, User, UserBank, UserBeneficiaries
 from accounts.sync_utils import get_sync_data, sync_push_data
 from companies.models import Company
 from contracts.models import Contract, ContractClause, UserContractAccess
+from mydocuments.models import Document
 from notifications.models import Notification
 from survey.models import LearningHubProgress, Survey
-from vessels.models import Vessel
+from vessels.models import Vessel, VesselImage
 from wages.models import Wage
+
+
+def age_record(instance, when):
+    """Backdate/forward-date a record's updated_at, bypassing auto_now (which .save() would overwrite)."""
+    type(instance).objects.filter(pk=instance.pk).update(updated_at=when)
 
 
 def make_user(email, group_name=None, **kwargs):
@@ -184,6 +191,110 @@ class DefaultAndAdminSyncDataTestCase(TestCase):
         self.assertIn(self.other_user.id, user_ids)
         self.assertEqual(len(data['companies']), 1)
         self.assertEqual(len(data['vessels']), 1)
+
+
+class DeltaSyncTestCase(TestCase):
+    """Covers the `last_synced_at` delta-sync filtering added to get_sync_data() and its helpers."""
+
+    def setUp(self):
+        self.vessel_owner = make_user('delta-vo@example.com', group_name='vessel_owner')
+        self.cutoff = timezone.now()
+
+    def test_no_cutoff_returns_everything(self):
+        company = Company.objects.create(name='Full Co', created_by=self.vessel_owner)
+        age_record(company, self.cutoff - timedelta(days=30))
+
+        data = get_sync_data(self.vessel_owner)
+
+        self.assertEqual([c['name'] for c in data['companies']], ['Full Co'])
+
+    def test_unchanged_company_excluded_after_cutoff(self):
+        company = Company.objects.create(name='Old Co', created_by=self.vessel_owner)
+        age_record(company, self.cutoff - timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertEqual(data['companies'], [])
+
+    def test_changed_company_included_after_cutoff(self):
+        company = Company.objects.create(name='New Co', created_by=self.vessel_owner)
+        age_record(company, self.cutoff + timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertEqual([c['name'] for c in data['companies']], ['New Co'])
+
+    def test_vessel_included_when_only_its_image_changed(self):
+        vessel = Vessel.objects.create(
+            app_ref='delta-vessel', name='Delta Vessel', reg_no='REG-DELTA', created_by=self.vessel_owner)
+        age_record(vessel, self.cutoff - timedelta(days=1))
+        image = VesselImage.objects.create(app_ref='delta-image', vessel=vessel, image_url='vessels/delta.png')
+        age_record(image, self.cutoff + timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertEqual([v['app_ref'] for v in data['vessels']], ['delta-vessel'])
+
+    def test_vessel_excluded_when_neither_it_nor_its_image_changed(self):
+        vessel = Vessel.objects.create(
+            app_ref='stale-vessel', name='Stale Vessel', reg_no='REG-STALE', created_by=self.vessel_owner)
+        age_record(vessel, self.cutoff - timedelta(days=1))
+        image = VesselImage.objects.create(app_ref='stale-image', vessel=vessel, image_url='vessels/stale.png')
+        age_record(image, self.cutoff - timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertEqual(data['vessels'], [])
+
+    def test_contract_included_when_only_a_clause_changed(self):
+        contract = Contract.objects.create(
+            name='Delta Contract', app_ref='delta-contract', start_date=date(2024, 1, 1),
+            end_date=date(2024, 12, 31), kind='employment', created_by=self.vessel_owner)
+        age_record(contract, self.cutoff - timedelta(days=1))
+        clause = ContractClause.objects.create(contract=contract, name='clause', kind='other', content='{}')
+        age_record(clause, self.cutoff + timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertEqual([c['app_ref'] for c in data['contracts']], ['delta-contract'])
+        self.assertEqual(len(data['contract_clauses']), 1)
+
+    def test_user_included_when_only_bank_account_changed(self):
+        worker = make_user('delta-worker@example.com', group_name='worker')
+        worker.created_by = self.vessel_owner
+        worker.save()
+        age_record(worker, self.cutoff - timedelta(days=1))
+        bank = UserBank.objects.create(user=worker, account_name='x', account_number='1')
+        age_record(bank, self.cutoff + timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertIn(worker.id, {u['id'] for u in data['users']})
+
+    def test_user_excluded_when_neither_profile_nor_bank_details_changed(self):
+        worker = make_user('stale-worker@example.com', group_name='worker')
+        worker.created_by = self.vessel_owner
+        worker.save()
+        age_record(worker, self.cutoff - timedelta(days=1))
+        bank = UserBank.objects.create(user=worker, account_name='x', account_number='1')
+        age_record(bank, self.cutoff - timedelta(days=1))
+
+        data = get_sync_data(self.vessel_owner, self.cutoff)
+
+        self.assertNotIn(worker.id, {u['id'] for u in data['users']})
+
+    def test_own_data_filtered_by_cutoff(self):
+        worker = make_user('delta-doc-worker@example.com', group_name='worker')
+        old_doc = Document.objects.create(
+            app_ref='old-doc', user=worker, file_name='old.pdf', file_url='docs/old.pdf', doc_type='id')
+        age_record(old_doc, self.cutoff - timedelta(days=1))
+        new_doc = Document.objects.create(
+            app_ref='new-doc', user=worker, file_name='new.pdf', file_url='docs/new.pdf', doc_type='id')
+        age_record(new_doc, self.cutoff + timedelta(days=1))
+
+        data = get_sync_data(worker, self.cutoff)
+
+        self.assertEqual([d['file_name'] for d in data['documents']], ['new.pdf'])
 
 
 class SyncPushDataTestCase(TestCase):

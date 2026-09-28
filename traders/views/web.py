@@ -206,7 +206,7 @@ class ResendTraderInviteView(LoginRequiredMixin, RoleRequiredMixin, View):
             **translator.content_utils.get_page_text('auth-common-text'),
             **translator.common_text,
         }
-        
+
         if not form.is_valid():
             return JsonResponse({
                 'success': False,
