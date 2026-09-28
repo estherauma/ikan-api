@@ -53,6 +53,8 @@ class AuditableModel(BaseModel):
 
     class Meta:
         abstract = True
+        # speeds up the mobile app's delta sync queries (filtering by updated_at since the last sync)
+        indexes = [models.Index(fields=['updated_at'])]
 
 
 auditable_fields = [
