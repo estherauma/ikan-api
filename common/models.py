@@ -2,6 +2,7 @@ from common.push_id import push_id
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 
 
 class BaseModel(models.Model):
@@ -55,6 +56,14 @@ class AuditableModel(BaseModel):
         abstract = True
         # speeds up the mobile app's delta sync queries (filtering by updated_at since the last sync)
         indexes = [models.Index(fields=['updated_at'])]
+
+    def soft_delete(self, user=None):
+        """Marks a record deleted instead of removing the row, so delta syncs can see it as a tombstone."""
+        self.deleted = True
+        self.deleted_at = timezone.now()
+        if user is not None and getattr(user, 'is_authenticated', False):
+            self.deleted_by = user
+        self.save()
 
 
 auditable_fields = [

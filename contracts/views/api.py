@@ -116,7 +116,7 @@ class ContractDetailsView(RetrieveUpdateDestroyAPIView):
             raise ValidationError({'error': 'Access denied.'})
 
         contract = self.get_item(id)
-        contract.delete()
+        contract.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Contract deleted successfully'
@@ -214,7 +214,7 @@ class ContractClauseDetailsView(RetrieveUpdateDestroyAPIView):
             raise ValidationError({'error': 'Access denied.'})
 
         contract_clause = self.get_item(id)
-        contract_clause.delete()
+        contract_clause.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Contract clause deleted successfully'
@@ -301,7 +301,7 @@ class ContractDocumentDetailsView(RetrieveUpdateDestroyAPIView):
             raise ValidationError({'error': 'Access denied.'})
 
         contract_document = self.get_item(id)
-        contract_document.delete()
+        contract_document.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Contract document deleted successfully'

@@ -60,16 +60,20 @@ def _get_managed_workers(user):
 
 
 def _since(queryset, last_synced_at):
-    """Restrict a queryset to records changed after the last successful sync (delta pull)."""
+    """Restrict a queryset to records changed after the last successful sync (delta pull).
+
+    A full sync (no `last_synced_at`) excludes already-deleted rows since there's nothing to
+    reconcile; a delta sync includes them so the client sees the deletion as a tombstone.
+    """
     if last_synced_at:
         return queryset.filter(updated_at__gt=last_synced_at)
-    return queryset
+    return queryset.filter(deleted=False)
 
 
 def _vessels_since(queryset, last_synced_at):
     """Delta filter for vessels: include one if it or its image changed since the last sync."""
     if not last_synced_at:
-        return queryset
+        return queryset.filter(deleted=False)
     return queryset.filter(
         Q(updated_at__gt=last_synced_at) | Q(vessel_image__updated_at__gt=last_synced_at)
     ).distinct()
@@ -78,7 +82,7 @@ def _vessels_since(queryset, last_synced_at):
 def _users_since(queryset, last_synced_at):
     """Delta filter for profiles: include one if it or its bank/beneficiary details changed."""
     if not last_synced_at:
-        return queryset
+        return queryset.filter(deleted=False)
     return queryset.filter(
         Q(updated_at__gt=last_synced_at)
         | Q(userbank__updated_at__gt=last_synced_at)
@@ -112,7 +116,8 @@ def _get_contract_data(contracts, last_synced_at=None):
     """Serialize a contract queryset along with its related clauses and documents.
 
     When `last_synced_at` is given, a contract is included if it, one of its clauses,
-    or one of its documents changed since then; only the changed clauses/documents are returned.
+    or one of its documents changed since then (including deletions, as tombstones); only
+    the changed clauses/documents are returned. A full sync excludes already-deleted rows.
     """
     clauses = ContractClause.objects.filter(contract__in=contracts).distinct()
     documents = ContractDocument.objects.filter(contract__in=contracts).distinct()
@@ -125,6 +130,10 @@ def _get_contract_data(contracts, last_synced_at=None):
         ).distinct()
         clauses = clauses.filter(updated_at__gt=last_synced_at)
         documents = documents.filter(updated_at__gt=last_synced_at)
+    else:
+        contracts = contracts.filter(deleted=False)
+        clauses = clauses.filter(deleted=False)
+        documents = documents.filter(deleted=False)
 
     return {
         "contracts": ContractSerializer(contracts, many=True).data,

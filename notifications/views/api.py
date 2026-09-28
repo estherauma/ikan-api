@@ -75,7 +75,7 @@ class NotificationDetailApiView(RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, id):
         notification = self.get_notification(id)
-        notification.delete()
+        notification.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Notification deleted successfully.'

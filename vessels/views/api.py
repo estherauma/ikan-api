@@ -121,7 +121,7 @@ class VesselApiDetailView(RetrieveUpdateDestroyAPIView):
                 'error': 'Not Authorized'
             }, status.HTTP_401_UNAUTHORIZED)
 
-        vessel.delete()
+        vessel.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'data': id
@@ -197,7 +197,7 @@ class VesselImageApiDetailListView(RetrieveUpdateDestroyAPIView):
                 'error': 'Not Authorized'
             }, status.HTTP_401_UNAUTHORIZED)
 
-        vessel_image.delete()
+        vessel_image.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'data': id
