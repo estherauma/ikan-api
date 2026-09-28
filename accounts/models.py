@@ -90,6 +90,11 @@ class User(AbstractBaseUser, AuditableModel, PermissionsMixin):
 
     objects = UserManager()
 
+    class Meta:
+        # not inherited automatically: User has multiple abstract bases (AbstractBaseUser, AuditableModel,
+        # PermissionsMixin) so it must redeclare the updated_at index from AuditableModel.Meta itself
+        indexes = [models.Index(fields=['updated_at'])]
+
     @property
     def is_admin(self):
         return self.is_superuser or self.groups.filter(name='admin').exists()
@@ -229,6 +234,8 @@ class AgentVesselOwnerRelationship(AuditableModel):
 
     class Meta:
         unique_together = ('agent', 'vessel_owner')
+        # a child's own Meta replaces AuditableModel.Meta entirely, so the updated_at index must be redeclared
+        indexes = [models.Index(fields=['updated_at'])]
 
     def __str__(self):
         return f'Agent: {self.agent.first_name} {self.agent.last_name} ({self.agent.email or self.agent.mobile}) - ' \
@@ -245,6 +252,8 @@ class TraderVesselOwnerRelationship(AuditableModel):
             models.UniqueConstraint(fields=['trader', 'vessel_owner'], name='unique_trader_vessel_owner'),
             models.CheckConstraint(check=~Q(trader=F('vessel_owner')), name='trader_vessel_owner_not_same_user'),
         ]
+        # a child's own Meta replaces AuditableModel.Meta entirely, so the updated_at index must be redeclared
+        indexes = [models.Index(fields=['updated_at'])]
 
     def clean(self):
         super().clean()

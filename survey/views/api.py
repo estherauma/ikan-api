@@ -155,7 +155,7 @@ class InlineQuestionApiDetailView(RetrieveUpdateDestroyAPIView):
 
     def destroy(self, request, id):
         inline_question = self.get_inline_question(req=request, id=id)
-        inline_question.delete()
+        inline_question.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Inline question deleted successfully'

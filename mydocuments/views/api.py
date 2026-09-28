@@ -89,7 +89,7 @@ class DocumentApiDetailView(RetrieveUpdateDestroyAPIView):
                 'error': 'Not Authorized'
             }, status.HTTP_401_UNAUTHORIZED)
 
-        document.delete()
+        document.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Document deleted successfully'
@@ -177,7 +177,7 @@ class PassportApiDetailView(RetrieveUpdateDestroyAPIView):
                 'error': 'Not Authorized'
             }, status.HTTP_401_UNAUTHORIZED)
 
-        passport.delete()
+        passport.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'message': 'Passport deleted successfully'

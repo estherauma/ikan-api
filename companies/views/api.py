@@ -88,7 +88,7 @@ class CompanyApiDetailView(RetrieveUpdateDestroyAPIView):
                 'error': 'Not Authorized'
             }, status.HTTP_401_UNAUTHORIZED)
 
-        company.delete()
+        company.soft_delete(request.user)
         return Response({
             'status': 'OK',
             'data': id
