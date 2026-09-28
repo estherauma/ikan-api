@@ -39,7 +39,7 @@
                 <li class="menu-item">
                     <a href="{% url 'traders:dashboard-overview' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard-overview' %}active{% endif %}">
                         <span class="menu-icon"><i class="mdi mdi-view-dashboard-outline"></i></span>
-                        <span class="menu-text">{{ menu_labels.overview | default:'Overview' }}</span>
+                        <span class="menu-text">{{ "overview"|translate }}</span>
                     </a>
                 </li>
                 <li class="menu-item">
