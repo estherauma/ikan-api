@@ -1,5 +1,9 @@
 from accounts.models import TraderVesselOwnerRelationship
+from datetime import timedelta
+from django.db.models import Sum
 from django.db.models import Q
+from django.urls import reverse
+from django.utils import timezone
 from vessels.models import Vessel
 from wages.models import Wage
 
@@ -21,12 +25,12 @@ WAGE_STATUS_SUMMARY = {
 
 
 class WagePaymentsService:
-    def __init__(self, trader, dashboard_text=None):
+    def __init__(self, trader, translator):
         self.trader = trader
-        self.dashboard_text = dashboard_text or {}
+        self.translator = translator
 
     def get_text(self, key):
-        return self.dashboard_text.get(key) or key
+        return self.translator.t(key)
 
     def get_attached_vessel_owner_ids(self):
         return [
@@ -90,6 +94,30 @@ class WagePaymentsService:
                 self.get_payslip_status_summary(wages),
             ],
         }
+
+    def get_overview_summary(self):
+        wages = self.get_wages_queryset()
+        recent_wages = wages.filter(payment_date__gte=timezone.localdate() - timedelta(days=365))
+        total_amount = recent_wages.aggregate(total=Sum('usd_amount'))['total'] or 0
+        worker_count = recent_wages.values('user_id').distinct().count()
+        signoff_count = recent_wages.filter(
+            ~Q(payslip_status=Wage.PAYSLIP_STATUS_SIGNED),
+            ~Q(payslip__isnull=True),
+            ~Q(payslip=''),
+        ).count()
+
+        return {
+            'total_wage_payments': f'${total_amount:,.0f}',
+            'worker_count': worker_count,
+            'worker_summary': self.get_worker_summary(worker_count),
+            'payslip_signoff_count': signoff_count,
+            'payslip_signoff_summary': self.get_text('paymentAwaitingReview'),
+            'completion': self.get_payment_completion_summary(wages),
+            'supplier_issue_rows': self.get_supplier_issue_rows(),
+        }
+
+    def get_worker_summary(self, worker_count):
+        return self.translator.t('workersPast12Months', worker_count=worker_count)
 
     def get_payslip_status_summary(self, wages=None):
         if wages is None:
@@ -160,6 +188,34 @@ class WagePaymentsService:
             })
 
         return supplier_rows
+
+    def get_supplier_issue_rows(self):
+        rows = []
+
+        relationships = TraderVesselOwnerRelationship.objects.filter(
+            trader=self.trader,
+        ).select_related('vessel_owner')
+
+        for relationship in relationships:
+            vessel_owner = relationship.vessel_owner
+            wages = self.get_wages_for_vessels(self.get_vessels_for_vessel_owner(vessel_owner))
+            issue_count = wages.filter(status='issue_pending').count()
+
+            if issue_count == 0:
+                continue
+
+            rows.append({
+                'name': self.get_user_display_name(vessel_owner),
+                'issue_summary': self.get_issue_summary(issue_count),
+                'review_url': reverse('traders:dashboard-wage-payments'),
+            })
+
+        return rows
+
+    def get_issue_summary(self, issue_count):
+        if issue_count == 1:
+            return f'1 {self.get_text("outstandingIssue")}'
+        return f'{issue_count} {self.get_text("outstandingIssues")}'
 
     def get_supplier_summary(self, vessel_names, wages):
         vessel_summary = ', '.join(vessel_names) if vessel_names else self.get_text('noVessels')

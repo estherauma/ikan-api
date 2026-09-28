@@ -17,12 +17,12 @@
 
         <div class="row mb-2 mt-4 px-4 align-items-center">
             <div class="col">
-                <h1 class="mb-0 secondary-color">{{ common_text.traders }}</h1>
+                <h1 class="mb-0 secondary-color">{{ "traders"|translate }}</h1>
             </div>
             <div class="col d-flex justify-content-end">
                 <button type="button" class="btn btn-large primary-button" data-bs-toggle="modal" data-bs-target="#invite-trader-modal">
                     <i class="mdi mdi-plus"></i>
-                    {{ common_text.addTrader }}
+                    {{ "addTrader"|translate }}
                 </button>
             </div>
         </div>
@@ -37,11 +37,11 @@
             >
                 <thead>
                     <tr>
-                        <th>{{ common_text.name }}</th>
-                        <th>{{ auth_common_text.email }}</th>
-                        <th>{{ auth_common_text.mobileNumber }}</th>
-                        <th>{{ auth_common_text.isActive }}?</th>
-                        <th>{{ common_text.actions }}</th>
+                        <th>{{ "name"|translate }}</th>
+                        <th>{{ "email"|translate:"page:auth-common-text" }}</th>
+                        <th>{{ "mobileNumber"|translate:"page:auth-common-text" }}</th>
+                        <th>{{ "isActive"|translate:"page:auth-common-text" }}?</th>
+                        <th>{{ "actions"|translate }}</th>
                     </tr>
                 </thead>
 
@@ -53,7 +53,7 @@
                                 {% if trader.first_name or trader.last_name %}
                                     {{ trader.first_name }} {{ trader.last_name }}
                                 {% else %}
-                                    {{ common_text.view }}
+                                    {{ "view"|translate }}
                                 {% endif %}
                             </a>
                         </td>
@@ -70,7 +70,7 @@
                                     data-user-id="{{ trader.pk }}"
                                     data-url="{% url 'accounts-api:user-detail' pk=trader.id %}"
                                 >
-                                    {{ common_text.resendInvite }}
+                                    {{ "resendInvite"|translate }}
                                 </button>
 
                                 <div id="resend-invite-modal-{{ trader.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -78,9 +78,9 @@
                                         <div class="modal-content">
                                             <div class="modal-header d-flex">
                                                 <div class="text-center w-100">
-                                                    <h3 class="modal-title secondary-color">{{ common_text.resendInvite }}</h3>
+                                                    <h3 class="modal-title secondary-color">{{ "resendInvite"|translate }}</h3>
                                                 </div>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ common_text.close }}" style="margin-right: 0;"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label='{{ "close"|translate }}' style="margin-right: 0;"></button>
                                             </div>
 
                                             <div class="modal-body resend-invite-modal-body text-center">
@@ -97,12 +97,12 @@
                                                         data-resend-invite-message
                                                     ></div>
                                                         <div class="mb-3 fs-4 text-center">
-                                                           {{ common_text.resendInvite }} <span class="fw-bold">{{ trader.email }}</span>
+                                                           {{ "resendInvite"|translate }} <span class="fw-bold">{{ trader.email }}</span>
                                                             <input id="email" type="hidden" name="email" value="{{ trader.email }}">
                                                         </div>
                                                     <input type="hidden" name="form-origin" value="trader-list">
                                                     <div class="mb-3 text-center">
-                                                        <button class="btn primary-button " type="submit">{{ common_text.resendInvite }}</button>
+                                                        <button class="btn primary-button " type="submit">{{ "resendInvite"|translate }}</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -122,8 +122,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header invite-trader-modal-header">
-                    <h4 class="modal-title secondary-color invite-trader-modal-title">{{ common_text.addTrader }}</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-right: 0;"></button>
+                    <h4 class="modal-title secondary-color invite-trader-modal-title">{{ "addTrader"|translate }}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label='{{ "close"|translate }}' style="margin-right: 0;"></button>
                 </div>
 
                 <div class="modal-body invite-trader-modal-body">
@@ -144,7 +144,7 @@
                             {% if field.name != 'role' %}
                                 <div class="form-field w-100">
                                     {% if field.name == 'email_or_phone' %}
-                                        <label for="trader_email">{{ common_text.email }}</label>
+                                        <label for="trader_email">{{ "email"|translate }}</label>
                                         <span class="text-danger">*</span>
                                         <input
                                             type="email"
@@ -175,8 +175,8 @@
                         <input type="hidden" name="form-origin" value="trader-list">
 
                         <div class="form-actions">
-                            <button class="btn cancel-button" type="button" data-bs-dismiss="modal">{{ common_text.cancel }}</button>
-                            <button class="btn primary-button" type="submit">{{ common_text.addTrader }}</button>
+                            <button class="btn cancel-button" type="button" data-bs-dismiss="modal">{{ "cancel"|translate }}</button>
+                            <button class="btn primary-button" type="submit">{{ "addTrader"|translate }}</button>
                         </div>
                     </form>
                 </div>
@@ -184,7 +184,7 @@
         </div>
     </div>
 
-    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="resend-invite-loader" loader_text=common_text.loadingText only %}
+    {% include "themes/v1/partials/fullscreen-loader.html" with loader_id="resend-invite-loader" loader_text="loadingText"|translate only %}
 </div>
 
 <style>

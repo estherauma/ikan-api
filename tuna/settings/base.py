@@ -79,6 +79,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "accounts.middleware.SelectLanguageMiddleware",
+    "common.middleware.CurrentRequestMiddleware",
 ]
 
 ROOT_URLCONF = "tuna.urls"
@@ -95,6 +96,9 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "accounts.views.web.loggedin_user",
+            ],
+            "builtins": [
+                "common.templatetags.custom_filters",
             ],
         },
     },

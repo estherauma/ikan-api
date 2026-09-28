@@ -1,7 +1,72 @@
 {% extends "themes/v1/base.html" %}
 
+{% block styles %}
+    <link href="/static/themes/v1/assets/css/trader-dashboard.css" rel="stylesheet" type="text/css" />
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-0 secondary-color">Overview</h1>
+<div class="container-fluid trader-dashboard overview-dashboard">
+    <header class="overview-hero">
+        <h1>
+            {{ "goodMorning"|translate }},
+            {{ request.user.first_name|default:request.user.email }}
+        </h1>
+        <p>{{ "supplyChainOverview"|translate }}</p>
+    </header>
+
+    <section class="overview-payments" aria-labelledby="overview-payments-title">
+        <h2 id="overview-payments-title" class="overview-section-title">
+            {{ "payments"|translate }}
+        </h2>
+
+        <div class="overview-payment-grid">
+            <div class="overview-stat-stack">
+                <article class="overview-stat-card">
+                    <h3>{{ "totalWagePayments"|translate }}</h3>
+                    <strong>{{ overview_summary.total_wage_payments }}</strong>
+                    <p>{{ overview_summary.worker_summary }}</p>
+                </article>
+
+                <article class="overview-stat-card">
+                    <h3>{{ "payslipSignoff"|translate }}</h3>
+                    <strong>{{ overview_summary.payslip_signoff_count }}</strong>
+                    <p>{{ overview_summary.payslip_signoff_summary }}</p>
+                </article>
+            </div>
+
+            {% include "traders/dashboard/partials/completion_chart.html" with completion=overview_summary.completion only %}
+        </div>
+    </section>
+
+    <section class="overview-suppliers" aria-labelledby="overview-suppliers-title">
+        <h2 id="overview-suppliers-title" class="overview-section-title">
+            {{ "supplierVesselOwnerOverview"|translate }}
+        </h2>
+
+        <div class="overview-issue-panel">
+            {% for supplier in overview_summary.supplier_issue_rows %}
+                <article class="overview-issue-row">
+                    <div>
+                        <h3>{{ supplier.name }}</h3>
+                        <p>{{ supplier.issue_summary }}</p>
+                    </div>
+                    <a class="overview-review-button" href="{{ supplier.review_url }}">
+                        {{ "review"|translate }}
+                    </a>
+                </article>
+            {% empty %}
+                <article class="overview-issue-row">
+                    <div>
+                        <h3>{{ "noOutstandingIssues"|translate }}</h3>
+                        <p>{{ "allSuppliersOnTrack"|translate }}</p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
 </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/js/trader-dashboard.js"></script>
 {% endblock %}

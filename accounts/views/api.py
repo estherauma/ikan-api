@@ -13,7 +13,7 @@ from common.email import TunaEmailHelper, EmailTemplate
 from common.jwt_manager import JwtManager
 from common.twilio import TwilioService
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 
 from decouple import config
 
@@ -87,8 +87,8 @@ class LoginView(APIView):
             language = 'en-us'
         request.session['language'] = language
 
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
 
         user = None
         if email is None and phone_number is None:
@@ -177,8 +177,8 @@ class RegisterView(APIView):
             language = 'en-us'
         request.session['language'] = language
 
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
 
         if not data.get('email') and not data.get('phone_number'):
             return Response({
@@ -271,14 +271,14 @@ def notify_admin(user):
 
 
 def verify_email_success(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     return render(request, template_name='verify-email/success.html', context={'auth_common_text': auth_common_text})
 
 
 def verify_email_failure(request):
-    prismic_utils = PrismicUtils(request)
-    auth_common_text = prismic_utils.get_page_text('auth-common-text')
+    content_utils = ContentUtils(request)
+    auth_common_text = content_utils.get_page_text('auth-common-text')
     return render(request, template_name='verify-email/failure.html', context={'auth_common_text': auth_common_text})
 
 
@@ -310,8 +310,8 @@ class RequestPasswordReset(APIView):
             user.reset_password_token = password_reset_token
             user.save()
 
-            prismic_utils = PrismicUtils(request)
-            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            content_utils = ContentUtils(request)
+            auth_common_text = content_utils.get_page_text('auth-common-text')
             email_helper = TunaEmailHelper()
             email_helper.tuna_send_email(
                 to_emails=[user.email],
@@ -369,8 +369,8 @@ class PasswordResetCheckToken(APIView):
                 language = 'en-us'
             request.session['language'] = language
 
-            prismic_utils = PrismicUtils(request)
-            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            content_utils = ContentUtils(request)
+            auth_common_text = content_utils.get_page_text('auth-common-text')
             serializer = PasswordResetCheckTokenSerializer(
                 data=data, auth_common_text=auth_common_text, context={'request': request})
             serializer.is_valid(raise_exception=True)
@@ -406,8 +406,8 @@ class ResetPassword(APIView):
                 language = 'en-us'
             request.session['language'] = language
 
-            prismic_utils = PrismicUtils(request)
-            auth_common_text = prismic_utils.get_page_text('auth-common-text')
+            content_utils = ContentUtils(request)
+            auth_common_text = content_utils.get_page_text('auth-common-text')
 
             serializer = PasswordResetSerializer(data=data, auth_common_text=auth_common_text)
             serializer.is_valid(raise_exception=True)
@@ -582,8 +582,8 @@ class InviteUser(APIView):
         if mobile:
             user_queryset = User.objects.filter(Q(mobile=mobile) | Q(telephone=mobile))
         user_exists = user_queryset.exists()
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         if not user_exists:
             serializer = RegisterSerializer(data=data, auth_common_text=auth_common_text)
             serializer.is_valid(raise_exception=True)
@@ -1076,8 +1076,8 @@ class UserBeneficiariesApiView(APIView):
 
 class GetOTP(APIView):
     def post(self, request, *args, **kwargs):
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         serializer = OTPGenerateSerializer(data=request.data, auth_common_text=auth_common_text)
 
         if serializer.is_valid():
@@ -1172,8 +1172,8 @@ class GetOTP(APIView):
 
 class VerifyOTP(APIView):
     def post(self, request, *args, **kwargs):
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
         serializer = OTPVerifySerializer(data=request.data, auth_common_text=auth_common_text)
         if serializer.is_valid():
             user_id = serializer.validated_data.get('user_id', None)
@@ -1271,8 +1271,8 @@ class CheckPhoneNumberUniquenessView(APIView):
         Allows the same user to reuse a number for both mobile & telephone.
         Trims whitespace before checking.
         """
-        prismic_utils = PrismicUtils(request)
-        auth_common_text = prismic_utils.get_page_text('auth-common-text')
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
 
         phone_number = request.data.get("phone_number")
         user_id = request.data.get("user_id", None)
