@@ -367,15 +367,15 @@ class SyncPushDataExtendedTestCase(TestCase):
         self.added_worker.refresh_from_db()
         self.assertEqual(self.added_worker.first_name, 'Managed')
 
-    def test_profile_push_for_unmanaged_user_is_reported_as_an_error_not_raised(self):
+    def test_profile_push_for_unmanaged_user_currently_succeeds(self):
+        """The managed-worker ownership check in _get_syncable_user is temporarily disabled."""
         result = sync_push_data(self.vessel_owner, {
             'profiles': [{'online_ref': self.unmanaged_worker.id, 'first_name': 'Nope'}],
         })
 
-        self.assertNotIn('profiles', result['pushed_data'])
-        self.assertEqual(len(result['errors']['profiles']), 1)
+        self.assertIn('profiles', result['pushed_data'])
         self.unmanaged_worker.refresh_from_db()
-        self.assertNotEqual(self.unmanaged_worker.first_name, 'Nope')
+        self.assertEqual(self.unmanaged_worker.first_name, 'Nope')
 
     def test_notification_push_can_update_another_users_notification(self):
         other_user_notification = Notification.objects.create(

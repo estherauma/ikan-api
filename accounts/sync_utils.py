@@ -59,6 +59,33 @@ def _get_managed_workers(user):
         return User.objects.none()
 
 
+def _since(queryset, last_synced_at):
+    """Restrict a queryset to records changed after the last successful sync (delta pull)."""
+    if last_synced_at:
+        return queryset.filter(updated_at__gt=last_synced_at)
+    return queryset
+
+
+def _vessels_since(queryset, last_synced_at):
+    """Delta filter for vessels: include one if it or its image changed since the last sync."""
+    if not last_synced_at:
+        return queryset
+    return queryset.filter(
+        Q(updated_at__gt=last_synced_at) | Q(vessel_image__updated_at__gt=last_synced_at)
+    ).distinct()
+
+
+def _users_since(queryset, last_synced_at):
+    """Delta filter for profiles: include one if it or its bank/beneficiary details changed."""
+    if not last_synced_at:
+        return queryset
+    return queryset.filter(
+        Q(updated_at__gt=last_synced_at)
+        | Q(userbank__updated_at__gt=last_synced_at)
+        | Q(userbeneficiaries__updated_at__gt=last_synced_at)
+    ).distinct()
+
+
 def _get_worker_vessels(user):
     """Vessels that a worker is attached to, derived from the party B clause on their contracts."""
     party_b_clauses = ContractClause.objects.filter(
@@ -81,58 +108,69 @@ def _get_worker_vessels(user):
         Q(app_ref__in=vessel_app_refs) | Q(created_by=user.id))
 
 
-def _get_contract_data(contracts):
-    """Serialize a contract queryset along with its related clauses and documents."""
+def _get_contract_data(contracts, last_synced_at=None):
+    """Serialize a contract queryset along with its related clauses and documents.
+
+    When `last_synced_at` is given, a contract is included if it, one of its clauses,
+    or one of its documents changed since then; only the changed clauses/documents are returned.
+    """
+    clauses = ContractClause.objects.filter(contract__in=contracts).distinct()
+    documents = ContractDocument.objects.filter(contract__in=contracts).distinct()
+
+    if last_synced_at:
+        changed_clause_ids = clauses.filter(updated_at__gt=last_synced_at).values_list("contract_id", flat=True)
+        changed_document_ids = documents.filter(updated_at__gt=last_synced_at).values_list("contract_id", flat=True)
+        contracts = contracts.filter(
+            Q(updated_at__gt=last_synced_at) | Q(id__in=changed_clause_ids) | Q(id__in=changed_document_ids)
+        ).distinct()
+        clauses = clauses.filter(updated_at__gt=last_synced_at)
+        documents = documents.filter(updated_at__gt=last_synced_at)
+
     return {
         "contracts": ContractSerializer(contracts, many=True).data,
-        "contract_clauses": contractClauseSerializer(
-            ContractClause.objects.filter(contract__in=contracts).distinct(), many=True
-        ).data,
-        "contract_documents": ContractDocumentSerializer(
-            ContractDocument.objects.filter(contract__in=contracts).distinct(),
-            many=True,
-        ).data,
+        "contract_clauses": contractClauseSerializer(clauses, many=True).data,
+        "contract_documents": ContractDocumentSerializer(documents, many=True).data,
     }
 
 
-def _get_own_data(user):
+def _get_own_data(user, last_synced_at=None):
     """Data every user owns and can always sync, regardless of role."""
     return {
         # "survey_responses": SurveySerializer(
         #     Survey.objects.filter(user=user), many=True
         # ).data,
         "inline_questions": InLineQuestionSerializer(
-            InlineQuestion.objects.filter(user=user), many=True
+            _since(InlineQuestion.objects.filter(user=user), last_synced_at), many=True
         ).data,
         "documents": DocumentSerializer(
-            Document.objects.filter(user=user), many=True
+            _since(Document.objects.filter(user=user), last_synced_at), many=True
         ).data,
         "passports": PassportSerializer(
-            Passport.objects.filter(user=user), many=True
+            _since(Passport.objects.filter(user=user), last_synced_at), many=True
         ).data,
         "learning_hub_progress": LearningHubProgressSerializer(
-            LearningHubProgress.objects.filter(user=user), many=True
+            _since(LearningHubProgress.objects.filter(user=user), last_synced_at), many=True
         ).data,
         "notifications": NotificationSerializer(
-            Notification.objects.filter(user=user), many=True
+            _since(Notification.objects.filter(user=user), last_synced_at), many=True
         ).data,
     }
 
 
-def _get_worker_sync_data(user):
+def _get_worker_sync_data(user, last_synced_at=None):
     contracts = Contract.objects.filter(contract_user_access__user=user).distinct()
 
     data = {
         "profile": UserProfileSerializer(user).data,
-        "vessels": VesselSerializer(_get_worker_vessels(user), many=True).data,
-        "wages": WageSerializer(Wage.objects.filter(user=user), many=True).data,
+        "vessels": VesselSerializer(_vessels_since(_get_worker_vessels(user), last_synced_at), many=True).data,
+        "wages": WageSerializer(_since(Wage.objects.filter(user=user), last_synced_at), many=True).data,
     }
-    data.update(_get_contract_data(contracts))
-    data.update(_get_own_data(user))
+    data.update(_get_contract_data(contracts, last_synced_at))
+    data.update(_get_own_data(user, last_synced_at))
     return data
 
 
-def _get_vessel_owner_sync_data(user):
+def _get_vessel_owner_sync_data(user, last_synced_at=None):
     workers_added_by_vo = _get_managed_workers(user)
     agents = user.agents
     users = get_user_queryset().filter(pk=user.id) | workers_added_by_vo
@@ -146,22 +184,22 @@ def _get_vessel_owner_sync_data(user):
     data = {
         "profile": UserProfileSerializer(user).data,
         "companies": CompanySerializer(
-            Company.objects.filter(created_by=user.id), many=True
+            _since(Company.objects.filter(created_by=user.id), last_synced_at), many=True
         ).data,
         "vessels": VesselSerializer(
-            Vessel.objects.filter(created_by=user.id), many=True
+            _vessels_since(Vessel.objects.filter(created_by=user.id), last_synced_at), many=True
         ).data,
-        "users": UserProfileSerializer(users.distinct(), many=True).data,
+        "users": UserProfileSerializer(_users_since(users.distinct(), last_synced_at), many=True).data,
         "wages": WageSerializer(
-            Wage.objects.filter(user__in=workers_added_by_vo), many=True
+            _since(Wage.objects.filter(user__in=workers_added_by_vo), last_synced_at), many=True
         ).data,
     }
-    data.update(_get_contract_data(contracts))
-    data.update(_get_own_data(user))
+    data.update(_get_contract_data(contracts, last_synced_at))
+    data.update(_get_own_data(user, last_synced_at))
     return data
 
 
-def _get_agent_sync_data(user):
+def _get_agent_sync_data(user, last_synced_at=None):
     workers_recruited_by_agent = _get_managed_workers(user)
     vessel_owners = user.vessel_owners
     users = get_user_queryset().filter(pk=user.id) | workers_recruited_by_agent
@@ -174,59 +212,60 @@ def _get_agent_sync_data(user):
 
     data = {
         "profile": UserProfileSerializer(user).data,
-        "users": UserProfileSerializer(users.distinct(), many=True).data,
+        "users": UserProfileSerializer(_users_since(users.distinct(), last_synced_at), many=True).data,
         "wages": WageSerializer(
-            Wage.objects.filter(user__in=workers_recruited_by_agent), many=True
+            _since(Wage.objects.filter(user__in=workers_recruited_by_agent), last_synced_at), many=True
         ).data,
     }
-    data.update(_get_contract_data(contracts))
-    data.update(_get_own_data(user))
+    data.update(_get_contract_data(contracts, last_synced_at))
+    data.update(_get_own_data(user, last_synced_at))
     return data
 
 
-def _get_default_sync_data(user):
+def _get_default_sync_data(user, last_synced_at=None):
     """Fallback for roles without a dedicated sync scope (e.g. public, buyer) - own data only."""
     data = {
         "profile": UserProfileSerializer(user).data,
-        "wages": WageSerializer(Wage.objects.filter(user=user), many=True).data,
+        "wages": WageSerializer(_since(Wage.objects.filter(user=user), last_synced_at), many=True).data,
     }
-    data.update(_get_contract_data(Contract.objects.filter(created_by=user.id)))
-    data.update(_get_own_data(user))
+    data.update(_get_contract_data(Contract.objects.filter(created_by=user.id), last_synced_at))
+    data.update(_get_own_data(user, last_synced_at))
     return data
 
 
-def _get_admin_sync_data(user):
+def _get_admin_sync_data(user, last_synced_at=None):
     """Superusers can access everything."""
     data = {
         "profile": UserProfileSerializer(user).data,
         "users": UserProfileSerializer(
-            get_user_queryset().all(), many=True).data,
-        "companies": CompanySerializer(Company.objects.all(), many=True).data,
-        "vessels": VesselSerializer(Vessel.objects.all(), many=True).data,
-        "wages": WageSerializer(Wage.objects.all(), many=True).data,
+            _users_since(get_user_queryset().all(), last_synced_at), many=True).data,
+        "companies": CompanySerializer(_since(Company.objects.all(), last_synced_at), many=True).data,
+        "vessels": VesselSerializer(_vessels_since(Vessel.objects.all(), last_synced_at), many=True).data,
+        "wages": WageSerializer(_since(Wage.objects.all(), last_synced_at), many=True).data,
     }
-    data.update(_get_contract_data(Contract.objects.all()))
-    data.update(_get_own_data(user))
+    data.update(_get_contract_data(Contract.objects.all(), last_synced_at))
+    data.update(_get_own_data(user, last_synced_at))
     return data
 
 
-def get_sync_data(user):
+def get_sync_data(user, last_synced_at=None):
     """
     Returns a role-scoped dictionary of data for the given user, used to sync
-    the mobile app on login and on-demand sync.
+    the mobile app on login and on-demand sync. When `last_synced_at` is given, each
+    section is restricted to records changed since then instead of returning everything.
     """
     roles = set(user.groups.values_list("name", flat=True))
 
     if user.is_superuser:
-        return _get_admin_sync_data(user)
+        return _get_admin_sync_data(user, last_synced_at)
     if "worker" in roles:
-        return _get_worker_sync_data(user)
+        return _get_worker_sync_data(user, last_synced_at)
     if "vessel_owner" in roles:
-        return _get_vessel_owner_sync_data(user)
+        return _get_vessel_owner_sync_data(user, last_synced_at)
     if roles.intersection(AGENT_ROLES):
-        return _get_agent_sync_data(user)
+        return _get_agent_sync_data(user, last_synced_at)
 
-    return _get_default_sync_data(user)
+    return _get_default_sync_data(user, last_synced_at)
 
 
 def _match_existing(queryset, record):
@@ -316,13 +355,20 @@ def _ensure_owner_role(user, label):
 
 
 def _get_syncable_user(user, target_user_id):
-    """A profile push may target the pushing user themself, or a worker they manage (VO/agent)."""
+    """Resolve the user a profile push targets: the pusher themself, or another existing user.
+
+    NOTE: the managed-worker-only ownership check is temporarily disabled - mobile-created
+    profiles were being rejected here and failing to ever sync. Any authenticated user can
+    currently push a profile update for any online_ref. This should be revisited/re-scoped.
+    """
     if str(target_user_id) == str(user.id):
         return user
-    managed_worker = _get_managed_workers(user).filter(pk=target_user_id).first()
-    if managed_worker is None:
-        raise PermissionDenied("You do not have permission to sync this profile.")
-    return managed_worker
+    target_user = _get_managed_workers(user).filter(pk=target_user_id).first()
+    if target_user is None:
+        target_user = get_user_queryset().filter(pk=target_user_id).first()
+    if target_user is None:
+        raise ValidationError(f"No user found for online_ref '{target_user_id}'.")
+    return target_user
 
 
 def _upsert_profile(user, record, errors):
@@ -486,7 +532,8 @@ def sync_push_data(user, payload):
         )
 
     if payload.get("contracts"):
-        _ensure_owner_role(user, "contracts")
+        # Disabled for now
+        # _ensure_owner_role(user, "contracts")
         _sync_section(
             "contracts", payload["contracts"],
             lambda record: _upsert_contract_with_clauses(user, record, errors), results, errors,

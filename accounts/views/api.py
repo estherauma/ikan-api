@@ -1311,15 +1311,17 @@ class SyncUserData(APIView):
         Sync user data.
 
         Returns the user's data (to be synced to the mobile app) based on their role and permissions.
+        An optional `lastSyncedAt` query param restricts the response to records changed since then.
         """
         user = request.user
         profile = UserProfileSerializer(user).data
+        last_synced_at = parse_datetime(request.query_params.get('lastSyncedAt') or '')
 
         return Response({
             'status': 'OK',
             'data': {
                 'user_data': profile,
-                'sync_data': get_sync_data(user),
+                'sync_data': get_sync_data(user, last_synced_at),
             }
         })
 
