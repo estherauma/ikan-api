@@ -6,7 +6,7 @@ from django.contrib.auth.password_validation import (
 )
 from django.core.exceptions import ValidationError
 from accounts.middleware import get_current_request
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 
 
 def get_auth_common_text():
@@ -15,7 +15,7 @@ def get_auth_common_text():
         return {}
 
     try:
-        return PrismicUtils(request).get_page_text('auth-common-text') or {}
+        return ContentUtils(request).get_page_text('auth-common-text') or {}
     except Exception:
         return {}
 

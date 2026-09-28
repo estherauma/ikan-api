@@ -21,7 +21,7 @@ from django.views.generic import DetailView
 from payments.forms import VesselSelectForm, PaymentsFormSet
 from notifications.models import Notification
 import json
-from prismic.utils import PrismicUtils
+from content.utils import ContentUtils
 
 
 class PaymentListView(LoginRequiredMixin, ListView):
@@ -57,8 +57,8 @@ class PaymentListView(LoginRequiredMixin, ListView):
             context["grouped_payments"] = grouped_payments
 
         # Get payments common text
-        prismic_utils = PrismicUtils(self.request)
-        context["payments_common_text"] = prismic_utils.get_page_text("payments-common-text")
+        content_utils = ContentUtils(self.request)
+        context["payments_common_text"] = content_utils.get_page_text("payments-common-text")
 
         return context
 
@@ -73,8 +73,8 @@ class PaymentDetailView(LoginRequiredMixin, DetailView):
         context["methods_map"] = methods_map
 
         # Get payments common text
-        prismic_utils = PrismicUtils(self.request)
-        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        content_utils = ContentUtils(self.request)
+        payments_common_text = content_utils.get_page_text("payments-common-text")
         context["payments_common_text"] = payments_common_text
         context["deductions_list"] = generate_deductions_options(payments_common_text)
 
@@ -112,8 +112,8 @@ class AddPayment(LoginRequiredMixin, View):
     template_name = "add_payments.html"
 
     def get(self, request):
-        prismic_utils = PrismicUtils(self.request)
-        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        content_utils = ContentUtils(self.request)
+        payments_common_text = content_utils.get_page_text("payments-common-text")
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
         workers_on_vessel = get_workers_on_vessel(vessel)
@@ -154,8 +154,8 @@ class AddPayment(LoginRequiredMixin, View):
         )
 
     def post(self, request):
-        prismic_utils = PrismicUtils(self.request)
-        payments_common_text = prismic_utils.get_page_text("payments-common-text")
+        content_utils = ContentUtils(self.request)
+        payments_common_text = content_utils.get_page_text("payments-common-text")
         vessel_id = self.request.session.get("vessel_id")
         vessel = get_object_or_404(Vessel, pk=vessel_id)
         workers_on_vessel = get_workers_on_vessel(vessel)

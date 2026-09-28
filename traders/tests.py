@@ -51,15 +51,15 @@ class TraderWebViewsTestCase(TestCase):
         self.assertTemplateUsed(response, 'traders/list.html')
         self.assertContains(response, self.trader.email)
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_trader_detail_renders_from_traders_app(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_trader_detail_renders_from_traders_app(self, content_utils):
         common_text = defaultdict(str)
         common_text.update({
             'view': 'View',
         })
-        prismic_utils.return_value.get_common_text.return_value = common_text
-        prismic_utils.return_value.get_page_text.return_value = defaultdict(str)
-        prismic_utils.return_value.get_form_questions.return_value = []
+        content_utils.return_value.get_common_text.return_value = common_text
+        content_utils.return_value.get_page_text.return_value = defaultdict(str)
+        content_utils.return_value.get_form_questions.return_value = []
 
         TraderVesselOwnerRelationship.objects.create(
             trader=self.trader,
@@ -188,10 +188,10 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         session['language'] = 'en'
         session.save()
 
-    def configure_prismic_mock(self, prismic_utils, page_text):
-        prismic_utils.return_value.get_page_text.return_value = page_text
-        prismic_utils.return_value.get_common_text.return_value = {}
-        prismic_utils.return_value.get_form_questions.return_value = []
+    def configure_content_mock(self, content_utils, page_text):
+        content_utils.return_value.get_page_text.return_value = page_text
+        content_utils.return_value.get_common_text.return_value = {}
+        content_utils.return_value.get_form_questions.return_value = []
 
     def test_wage_payments_view_requires_login(self):
         response = self.client.get(reverse('traders:dashboard-wage-payments'))
@@ -203,8 +203,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         response = self.client.get(reverse('traders:dashboard-wage-payments'))
         self.assertEqual(response.status_code, 403)
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_renders_for_trader(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_renders_for_trader(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -216,7 +216,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'suppliersVesselOwners': 'Suppliers / Vessel Owners',
             'payslips': 'Payslips',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         self.client.force_login(self.trader)
         response = self.client.get(reverse('traders:dashboard-wage-payments'))
@@ -224,8 +224,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'traders/dashboard/wage_payments.html')
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_context_contains_required_keys(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_context_contains_required_keys(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -238,7 +238,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'payslips': 'Payslips',
             'filterBasedOn': 'Filter Based On',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         self.client.force_login(self.trader)
         response = self.client.get(reverse('traders:dashboard-wage-payments'))
@@ -249,8 +249,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         self.assertIn('status_filter_options', context)
         self.assertIn('supplier_rows', context)
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_status_filter_options(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_status_filter_options(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -260,7 +260,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'noIssues': 'No Issues',
             'nonCompliant': 'Non-Compliant',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         self.client.force_login(self.trader)
         response = self.client.get(reverse('traders:dashboard-wage-payments'))
@@ -271,8 +271,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         self.assertEqual(filter_options[1]['value'], 'no_issues')
         self.assertEqual(filter_options[2]['value'], 'non_compliant')
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_supplier_status_no_issues(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_supplier_status_no_issues(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -287,7 +287,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'crew': 'crew',
             'noVessels': 'No Vessels',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         # Create a wage with received status
         wage = Wage.objects.create(
@@ -307,8 +307,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         self.assertEqual(supplier_rows[0]['status_value'], 'no_issues')
         self.assertEqual(supplier_rows[0]['status_class'], 'good')
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_supplier_status_non_compliant(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_supplier_status_non_compliant(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -323,7 +323,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'crew': 'crew',
             'noVessels': 'No Vessels',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         # Create a wage with issue_pending status
         wage = Wage.objects.create(
@@ -343,8 +343,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         self.assertEqual(supplier_rows[0]['status_value'], 'non_compliant')
         self.assertEqual(supplier_rows[0]['status_class'], 'danger')
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_multiple_suppliers(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_multiple_suppliers(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -359,7 +359,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'crew': 'crew',
             'noVessels': 'No Vessels',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         # Create a second vessel owner and relationship
         vessel_owner_2 = make_user(
@@ -405,13 +405,15 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
 
         supplier_rows = response.context['supplier_rows']
         self.assertEqual(len(supplier_rows), 2)
-        self.assertEqual(supplier_rows[0]['name'], 'Vera Owner')
-        self.assertEqual(supplier_rows[0]['payslip_count'], 1)
-        self.assertEqual(supplier_rows[1]['name'], 'Victor Owner2')
-        self.assertEqual(supplier_rows[1]['payslip_count'], 1)
+        supplier_rows_by_name = {
+            supplier_row['name']: supplier_row
+            for supplier_row in supplier_rows
+        }
+        self.assertEqual(supplier_rows_by_name['Vera Owner']['payslip_count'], 1)
+        self.assertEqual(supplier_rows_by_name['Victor Owner2']['payslip_count'], 1)
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_no_suppliers(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_no_suppliers(self, content_utils):
         """Test view when trader has no vessel owner relationships."""
         dashboard_text = defaultdict(str)
         dashboard_text.update({
@@ -425,7 +427,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'payslips': 'Payslips',
             'filterBasedOn': 'Filter Based On',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         # Create a new trader with no relationships
         new_trader = make_user(
@@ -442,8 +444,8 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
         supplier_rows = response.context['supplier_rows']
         self.assertEqual(len(supplier_rows), 0)
 
-    @patch('common.services.translation.PrismicUtils')
-    def test_wage_payments_view_payment_summary_structure(self, prismic_utils):
+    @patch('common.services.translation.ContentUtils')
+    def test_wage_payments_view_payment_summary_structure(self, content_utils):
         dashboard_text = defaultdict(str)
         dashboard_text.update({
             'wagePayments': 'Wage Payments',
@@ -461,7 +463,7 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
             'crew': 'crew',
             'noVessels': 'No Vessels',
         })
-        self.configure_prismic_mock(prismic_utils, dashboard_text)
+        self.configure_content_mock(content_utils, dashboard_text)
 
         self.client.force_login(self.trader)
         response = self.client.get(reverse('traders:dashboard-wage-payments'))
