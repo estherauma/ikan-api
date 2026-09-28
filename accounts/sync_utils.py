@@ -532,8 +532,7 @@ def sync_push_data(user, payload):
         )
 
     if payload.get("contracts"):
-        # Disabled for now
-        # _ensure_owner_role(user, "contracts")
+        _ensure_owner_role(user, "contracts")
         _sync_section(
             "contracts", payload["contracts"],
             lambda record: _upsert_contract_with_clauses(user, record, errors), results, errors,
