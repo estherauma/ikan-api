@@ -405,10 +405,12 @@ class TraderDashboardWagePaymentsViewTestCase(TestCase):
 
         supplier_rows = response.context['supplier_rows']
         self.assertEqual(len(supplier_rows), 2)
-        self.assertEqual(supplier_rows[0]['name'], 'Vera Owner')
-        self.assertEqual(supplier_rows[0]['payslip_count'], 1)
-        self.assertEqual(supplier_rows[1]['name'], 'Victor Owner2')
-        self.assertEqual(supplier_rows[1]['payslip_count'], 1)
+        supplier_rows_by_name = {
+            supplier_row['name']: supplier_row
+            for supplier_row in supplier_rows
+        }
+        self.assertEqual(supplier_rows_by_name['Vera Owner']['payslip_count'], 1)
+        self.assertEqual(supplier_rows_by_name['Victor Owner2']['payslip_count'], 1)
 
     @patch('common.services.translation.ContentUtils')
     def test_wage_payments_view_no_suppliers(self, content_utils):
