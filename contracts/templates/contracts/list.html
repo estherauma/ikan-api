@@ -29,7 +29,7 @@
                 <div class="col d-flex flex-column flex-md-row justify-content-end px-4" style="gap: 20px;">
 
                     <!-- New contract button -->
-                    {% if loggedin_user.is_superuser %}
+                    {% if loggedin_user.is_vessel_owner %}
                         <button
                             type="button"
                             data-bs-toggle="modal"
