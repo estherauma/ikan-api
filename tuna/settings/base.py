@@ -80,6 +80,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "accounts.middleware.SelectLanguageMiddleware",
     "common.middleware.CurrentRequestMiddleware",
+    "accounts.middleware.LowercaseEmailMiddleware",
 ]
 
 ROOT_URLCONF = "tuna.urls"
