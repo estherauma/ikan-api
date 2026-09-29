@@ -14,9 +14,7 @@ from common.jwt_manager import JwtManager
 from common.twilio import TwilioService
 from common.utils import get_access_code, get_user_from_get_request, get_user_from_post_request, send_email_invite
 from content.utils import ContentUtils
-
 from decouple import config
-
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import redirect, render
@@ -32,10 +30,7 @@ from rest_framework.views import APIView
 # from notifications.models import Notification
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
-
-
 import random
-
 from companies.models import Company, UserCompany
 from companies.serializers import UserCompanySerializer
 
@@ -1295,6 +1290,28 @@ class CheckPhoneNumberUniquenessView(APIView):
         return Response({
             "unique": not exists,
             "phone_number": phone_number
+        }, status.HTTP_200_OK)
+
+
+class CheckEmailUniquenessView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        """
+        Check if an email address is already used by another user.
+        """
+        content_utils = ContentUtils(request)
+        auth_common_text = content_utils.get_page_text('auth-common-text')
+        email = request.data.get("email", None)
+        if not email:
+            return Response(
+                {"detail": auth_common_text.get('emailRequired', 'Email is required.')},
+                status=400
+            )
+        exists = User.objects.filter(email=email).exists()
+        return Response({
+            "unique": not exists,
+            "email": email
         }, status.HTTP_200_OK)
 
 
