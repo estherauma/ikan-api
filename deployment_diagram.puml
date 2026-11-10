@@ -1,0 +1,60 @@
+@startuml
+title Tuna API - Deployment Diagram
+
+skinparam shadowing true
+skinparam defaultTextAlignment center
+
+' --- CLIENT DEVICES & APPS ---
+package "Client Tier" {
+  node "Mobile Device\n(iOS / Android)" as Mobile  {
+    artifact "Tuna Mobile App\n(Ionic + Angular + Capacitor)" as MobileApp
+  }
+
+  node "Web Browser\n(Desktop / Laptop)" as Browser  {
+    artifact "Tuna Web App\n(Python + Django)" as WebApp
+  }
+}
+
+' --- SERVER NODES & SOFTWARE COMPONENTS ---
+node "Application Server\n(Django)" as AppHost {
+  component "Tuna API" as ApiService
+}
+
+node "Worker Instance" as WorkerHost {
+  component "Celery Worker Process" as WorkerApp
+}
+
+node "Database Server" as DBHost {
+  database "PostgreSQL" as PGData
+}
+
+node "In-Memory Data Server" as RedisHost {
+  database "Redis Cache & Sessions" as RedisStore
+  queue "Task Queue\n(Celery Broker)" as MQ
+}
+
+' --- THIRD-PARTY CLOUD SERVICES ---
+package "External Services" {
+  cloud "Payment Gateway\n(Stripe / Paystack)" as Pay
+  cloud "Notifications Provider\n(Twilio / SMTP)" as Notify
+  cloud "Object Storage\n(Google Cloud Storage)" as Storage
+  cloud "Identity Provider\n(OAuth / Auth0)" as IdP
+}
+
+' --- CONNECTIONS & FLOWS ---
+MobileApp --> ApiService : HTTPS
+WebApp --> ApiService : HTTPS
+
+ApiService --> PGData : SQL (Port 5432)
+ApiService --> RedisStore : Session/Cache (Port 6379)
+ApiService --> MQ : Enqueue Job
+
+WorkerApp --> MQ : Dequeue / Listen
+WorkerApp --> PGData : SQL (Port 5432)
+
+ApiService --> Pay : Payment API
+WorkerApp --> Notify : SMS / Email API
+ApiService --> Storage : Upload Files
+ApiService --> IdP : Verify Tokens
+
+@enduml
